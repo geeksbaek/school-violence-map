@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { APIProvider, Map as GMap, MapControl, ControlPosition, useMap } from "@vis.gl/react-google-maps";
-import type { DataSet, School, SchoolKind } from "@/types";
+import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import type { Metric } from "@/lib/severity";
 import { computeStat, setToBits, type SchoolStat } from "@/lib/stats";
 import { SchoolMarker } from "@/components/SchoolMarker";
@@ -14,6 +14,7 @@ const DATA_URL = `${import.meta.env.BASE_URL}data.json`;
 
 const DEFAULT_CENTER = { lat: 37.32, lng: 127.05 };
 const ALL_KINDS: SchoolKind[] = ["초등", "중학", "고등"];
+const ALL_GENDERS: SchoolGender[] = ["공학", "여", "남"];
 
 export function App() {
   const [data, setData] = useState<DataSet | null>(null);
@@ -22,6 +23,7 @@ export function App() {
   const [filter, setFilter] = useState<FilterState>({
     cities: new Set(),
     kinds: new Set(ALL_KINDS),
+    genders: new Set(ALL_GENDERS),
     query: "",
     types: new Set([0, 1, 2, 3, 4, 5, 6, 7]),
   });
@@ -45,6 +47,7 @@ export function App() {
     const q = filter.query.trim();
     return data.schools.filter((s) => {
       if (!filter.kinds.has(s.kind)) return false;
+      if (!filter.genders.has(s.gender)) return false;
       if (filter.cities.size > 0 && !filter.cities.has(s.city)) return false;
       if (q && !s.name.includes(q)) return false;
       return true;

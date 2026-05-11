@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { DataSet, School, SchoolKind } from "@/types";
+import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 interface FilterState {
   cities: Set<string>;
   kinds: Set<SchoolKind>;
+  genders: Set<SchoolGender>;
   query: string;
   types: Set<number>; // 학폭 유형 인덱스 (0..7)
 }
@@ -29,6 +30,7 @@ interface Props {
 }
 
 const KIND_LIST: SchoolKind[] = ["초등", "중학", "고등"];
+const GENDER_LIST: SchoolGender[] = ["공학", "여", "남"];
 
 export function Sidebar({
   data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric,
@@ -63,6 +65,14 @@ export function Sidebar({
 
   const labels = severityLabel(metric);
   const allTypesOn = filter.types.size === 8;
+  const allGendersOn = filter.genders.size === 3;
+
+  // 학교 성별별 카운트 (현재 다른 필터 무시한 전체 기준 — 정보용)
+  const genderCounts = useMemo(() => {
+    const m: Record<SchoolGender, number> = { 공학: 0, 여: 0, 남: 0 };
+    for (const s of data.schools) m[s.gender]++;
+    return m;
+  }, [data]);
 
   return (
     <aside className="bg-background flex flex-col gap-3 overflow-hidden border-r p-3 w-[340px] flex-shrink-0">
@@ -102,6 +112,45 @@ export function Sidebar({
             </Button>
           );
         })}
+      </div>
+
+      {/* 학교 성별 필터 */}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+          <span>학교 성별 ({filter.genders.size}/3)</span>
+          <button
+            type="button"
+            onClick={() =>
+              setFilter({
+                ...filter,
+                genders: allGendersOn ? new Set() : new Set(GENDER_LIST),
+              })
+            }
+            className="text-foreground underline underline-offset-2 hover:no-underline"
+          >
+            {allGendersOn ? "모두 끄기" : "모두 켜기"}
+          </button>
+        </div>
+        <div className="flex gap-1.5">
+          {GENDER_LIST.map((g) => {
+            const active = filter.genders.has(g);
+            return (
+              <Button
+                key={g}
+                variant={active ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  const next = new Set(filter.genders);
+                  if (active) next.delete(g); else next.add(g);
+                  setFilter({ ...filter, genders: next });
+                }}
+                className="flex-1 text-xs"
+              >
+                {g === "여" ? "여학교" : g === "남" ? "남학교" : "공학"} ({genderCounts[g]})
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 시 필터 */}

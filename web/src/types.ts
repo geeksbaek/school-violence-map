@@ -1,4 +1,5 @@
 export type SchoolKind = "초등" | "중학" | "고등";
+export type SchoolGender = "여" | "남" | "공학";
 
 export interface SchoolViolence {
   total: number;
@@ -11,6 +12,7 @@ export interface School {
   code: string;
   name: string;
   kind: SchoolKind;
+  gender: SchoolGender;
   city: string;
   district: string;
   sgg: string;

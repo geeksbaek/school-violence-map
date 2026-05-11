@@ -36,6 +36,7 @@ interface SchoolView {
   code: string;
   name: string;
   kind: "초등" | "중학" | "고등";
+  gender: "여" | "남" | "공학";
   city: string;
   district: string;
   sgg: string;
@@ -132,10 +133,19 @@ for (const code of Object.keys(schools)) {
       ? Math.round((violenceTotal / yearsWithData / studentTotal) * 100 * 1000) / 1000
       : null;
 
+  // 학교명 기반 분류. 학교알리미 정식명은 "OO여자중학교"/"OO남자고등학교" 형태.
+  // 줄임("OO여중")은 정식명에 없으므로 "여자"/"남자" 단어만 검사.
+  const schoolGender: "여" | "남" | "공학" = s.name.includes("여자")
+    ? "여"
+    : s.name.includes("남자")
+      ? "남"
+      : "공학";
+
   out.push({
     code,
     name: s.name,
     kind: s.kind,
+    gender: schoolGender,
     city: s.city,
     district: s.district,
     sgg: s.sgg,
