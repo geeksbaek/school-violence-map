@@ -69,39 +69,25 @@ async function fetchEucKr(url: string, opts?: RequestInit): Promise<string> {
   return new TextDecoder("euc-kr").decode(await res.arrayBuffer());
 }
 
-// ── CAPTCHA OCR (claude CLI) ───────────────────────────
-const PROMPT = "이 이미지의 숫자 6자리만 출력. 다른 설명·공백·문자 금지. 정확히 6자리 숫자만.";
+// ── CAPTCHA OCR (macOS Vision via python) ─────────────
+const OCR_SCRIPT = join(import.meta.dir, "_ocr.py");
 
-function ocrOnce(pngPath: string, model: "haiku" | "sonnet" | "opus", timeoutMs = 180_000): string {
-  const res = spawnSync(
-    "claude",
-    [
-      "-p",
-      "--model", model,
-      "--no-session-persistence",
-      "--output-format", "text",
-      `${PROMPT} 이미지: @${pngPath}`,
-    ],
-    { encoding: "utf-8", timeout: timeoutMs },
-  );
+function ocrOnce(pngPath: string): string {
+  const res = spawnSync("python3", [OCR_SCRIPT, pngPath], {
+    encoding: "utf-8",
+    timeout: 10_000,
+  });
   if (res.error || res.status !== 0) return "";
   const digits = (res.stdout || "").replace(/[^0-9]/g, "");
   return digits.length === 6 ? digits : "";
 }
 
-interface OcrStat { haiku: number; sonnet: number; opus: number; failed: number; }
-const stats: OcrStat = { haiku: 0, sonnet: 0, opus: 0, failed: 0 };
+interface OcrStat { vision: number; failed: number; }
+const stats: OcrStat = { vision: 0, failed: 0 };
 
-function solveCaptcha(pngPath: string): { ans: string; via: "haiku" | "sonnet" | "opus" | "fail" } {
-  // Haiku 2회 → Sonnet 1회 → Opus 1회
-  for (let i = 0; i < 2; i++) {
-    const ans = ocrOnce(pngPath, "haiku");
-    if (ans) { stats.haiku++; return { ans, via: "haiku" }; }
-  }
-  const sonAns = ocrOnce(pngPath, "sonnet");
-  if (sonAns) { stats.sonnet++; return { ans: sonAns, via: "sonnet" }; }
-  const opusAns = ocrOnce(pngPath, "opus");
-  if (opusAns) { stats.opus++; return { ans: opusAns, via: "opus" }; }
+function solveCaptcha(pngPath: string): { ans: string; via: "vision" | "fail" } {
+  const ans = ocrOnce(pngPath);
+  if (ans) { stats.vision++; return { ans, via: "vision" }; }
   stats.failed++;
   return { ans: "", via: "fail" };
 }
@@ -362,7 +348,7 @@ async function main() {
   const elapsed = ((Date.now() - t0) / 1000 / 60).toFixed(1);
   console.log(`\n=== 완료 (${elapsed}분) ===`);
   console.log(`수집 ${done}, 기존 ${cached}, 에러 ${errors} / 총 시도 ${total}`);
-  console.log(`OCR: haiku ${stats.haiku} · sonnet ${stats.sonnet} · opus ${stats.opus} · 실패 ${stats.failed}`);
+  console.log(`OCR: vision ${stats.vision} · 실패 ${stats.failed}`);
   process.exit(0);
 }
 

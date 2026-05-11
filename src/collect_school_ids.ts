@@ -30,12 +30,12 @@ async function initSession() {
   SESSION = [wm, js].filter(Boolean).join("; ");
 }
 
-async function getList(sgg10: string, hgJongryu: string) {
+async function getList(sido10: string, sgg10: string, hgJongryu: string) {
   // hgJongryu: 02 초등 / 03 중등 / 04 고등
   const url = `${BASE}/ei/ss/pneiss_a05_s0/selectSchoolListLocation.do`;
   const body = new URLSearchParams({
     HG_JONGRYU_GB: hgJongryu,
-    SIDO_CODE: "4100000000",
+    SIDO_CODE: sido10,
     SIGUNGU_CODE: sgg10,
     SULRIP_GB: "1",
     GS_HANGMOK_CD: "69",
@@ -83,21 +83,24 @@ async function main() {
 
   const out: Record<string, { uuid: string; nameInSearch: string }> = {};
 
-  // 검색 인터페이스의 시군구 코드는 10자리, OpenAPI는 5자리.
-  // 화성시 신설 4개 구(만세/효행/병점/동탄)로 검색해도 일부 누락되므로 통합(4159000000)도 같이 호출.
+  // 검색 인터페이스: 10자리. 통합 sgg + 일반구 sgg 모두 호출.
   const searchRegions = REGIONS;
 
   let matched = 0, unmatched = 0;
   for (const region of searchRegions) {
+    const sido10 = region.sido + "00000000";
     for (const kind of ["초등", "중학", "고등"] as const) {
-      const list = await getList(region.sgg10, KIND_TO_HG[kind]);
+      const list = await getList(sido10, region.sgg10, KIND_TO_HG[kind]);
       let added = 0;
       for (const s of list) {
-        // 학교명 매칭: 같은 sgg + kind 안에서 normalize 일치
         const norm = normalize(s.SHL_NM);
-        // 화성시는 sgg가 41591/93/95/97 + 통합 41590 모두 가능 → 4개 구 sgg + 41590도 시도
+        // 한 학교가 여러 sgg(통합/일반구)에 다 있을 수 있음 → 모든 후보 시도
+        const trySggs = [region.sgg];
+        // 같은 city 내 통합/일반구 sgg 후보 추가 (매칭 누락 방지)
+        for (const r of REGIONS) {
+          if (r.city === region.city && !trySggs.includes(r.sgg)) trySggs.push(r.sgg);
+        }
         let code: string | undefined;
-        const trySggs = region.city === "화성시" ? [region.sgg, "41590"] : [region.sgg];
         for (const sgg of trySggs) {
           code = byKindSggName.get(`${kind}|${sgg}|${norm}`);
           if (code) break;

@@ -13,7 +13,7 @@
  */
 import { join } from "node:path";
 import { DATA_DIR, sleep } from "./_env.ts";
-import { REGIONS, SIDO_CODE, SCHOOL_KIND, type SchoolKindCode } from "./regions.ts";
+import { REGIONS, SCHOOL_KIND, type SchoolKindCode } from "./regions.ts";
 
 const KEY = process.env.SCHOOLINFO_API_KEY!;
 if (!KEY) throw new Error("SCHOOLINFO_API_KEY missing");
@@ -63,14 +63,14 @@ const KIND_LABEL: Record<string, "초등" | "중학" | "고등"> = {
   "04": "고등",
 };
 
-async function fetchSchools(sgg: string, schulKnd: SchoolKindCode): Promise<BasicRow[]> {
+async function fetchSchools(sido: string, sgg: string, schulKnd: SchoolKindCode): Promise<BasicRow[]> {
   const url =
     ENDPOINT +
     "?" +
     new URLSearchParams({
       apiKey: KEY,
       apiType: "0",
-      sidoCode: SIDO_CODE,
+      sidoCode: sido,
       sggCode: sgg,
       schulKndCode: schulKnd,
     });
@@ -116,13 +116,14 @@ async function main() {
   for (const region of REGIONS) {
     const s = (stats[region.label] = { 초등: 0, 중학: 0, 고등: 0 });
     for (const knd of ["02", "03", "04"] as SchoolKindCode[]) {
-      const rows = await fetchSchools(region.sgg, knd);
+      const rows = await fetchSchools(region.sido, region.sgg, knd);
       for (const r of rows) {
         if (!r.SCHUL_CODE) continue;
-        // 화성시 통합(41590) + 효행/만세/병점/동탄(41591/93/95/97) 호출 결과 중복
-        // → SCHUL_CODE 기준 dedup. 단, district 정보가 정확한 row(통합 41590 제외)를 우선.
+        // 일반구가 신설된 시(고양/수원/성남/안산/안양/용인/화성)는 통합 sgg + 일반구 sgg 둘 다 호출.
+        // 같은 학교가 여러 row에 등장 가능 → SCHUL_CODE dedup.
+        // district 정보가 있는 row를 우선 유지 ("(통합)" 또는 "")
         const existing = out[r.SCHUL_CODE];
-        if (existing && existing.district) continue;
+        if (existing && existing.district && existing.district !== "(통합)") continue;
         out[r.SCHUL_CODE] = toEntry(r, region);
         const kindKey = KIND_LABEL[knd];
         if (kindKey === "초등") s.초등++;

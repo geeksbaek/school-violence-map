@@ -38,16 +38,57 @@ export function App() {
     fetch(DATA_URL, { cache: "no-cache" })
       .then((r) => r.json())
       .then((d: DataSet) => {
-        // 옛 캐시 데이터에 gender 필드 누락 가능성 → fallback "공학"
         for (const s of d.schools) {
           if (!s.gender) (s as any).gender = "공학";
         }
         setData(d);
-        // 모든 시 기본 활성
-        setFilter((prev) => ({
-          ...prev,
-          cities: new Set(d.schools.map((s) => s.city)),
-        }));
+
+        // city별 학교 평균 좌표 → 가장 가까운 city 1개를 기본 선택
+        const cityCenters = new Map<string, { lat: number; lng: number; n: number }>();
+        for (const s of d.schools) {
+          const c = cityCenters.get(s.city) ?? { lat: 0, lng: 0, n: 0 };
+          c.lat += s.lat; c.lng += s.lng; c.n += 1;
+          cityCenters.set(s.city, c);
+        }
+        const cityCentroid = new Map<string, { lat: number; lng: number }>();
+        for (const [city, c] of cityCenters) {
+          cityCentroid.set(city, { lat: c.lat / c.n, lng: c.lng / c.n });
+        }
+        const cityList = Array.from(cityCentroid.keys());
+
+        const pickByLocation = (lat: number, lng: number) => {
+          let best = cityList[0];
+          let bestD = Infinity;
+          for (const [city, c] of cityCentroid) {
+            const d2 = (c.lat - lat) ** 2 + (c.lng - lng) ** 2;
+            if (d2 < bestD) { bestD = d2; best = city; }
+          }
+          return best;
+        };
+
+        // 1차: 학교가 가장 많은 city를 default (즉시 표시)
+        let defaultCity = cityList[0];
+        let max = 0;
+        for (const [city, c] of cityCenters) {
+          if (c.n > max) { max = c.n; defaultCity = city; }
+        }
+        setFilter((prev) => ({ ...prev, cities: new Set([defaultCity]) }));
+
+        // 2차: geolocation 받으면 더 정확한 city로 갱신
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const c = pickByLocation(pos.coords.latitude, pos.coords.longitude);
+              setFilter((prev) => {
+                // 사용자가 이미 직접 변경했다면 덮어쓰지 않음 (size=1 + defaultCity일 때만)
+                if (prev.cities.size !== 1 || !prev.cities.has(defaultCity)) return prev;
+                return { ...prev, cities: new Set([c]) };
+              });
+            },
+            () => {/* permission denied — 기본값 유지 */},
+            { timeout: 5000, maximumAge: 600_000 },
+          );
+        }
       })
       .catch((e) => console.error("data load fail", e));
   }, []);

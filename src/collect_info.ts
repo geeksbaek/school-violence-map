@@ -33,7 +33,7 @@
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 import { DATA_DIR, sleep } from "./_env.ts";
-import { REGIONS, SIDO_CODE, SCHOOL_KIND, type SchoolKindCode } from "./regions.ts";
+import { REGIONS, SCHOOL_KIND, type SchoolKindCode } from "./regions.ts";
 
 const KEY = process.env.SCHOOLINFO_API_KEY!;
 const ENDPOINT = "https://www.schoolinfo.go.kr/openApi.do";
@@ -64,14 +64,14 @@ const KIND_TO_CODE: Record<string, SchoolKindCode> = {
   고등: "04",
 };
 
-async function fetchOne(sgg: string, schulKnd: SchoolKindCode, apiType: string, year: string) {
+async function fetchOne(sido: string, sgg: string, schulKnd: SchoolKindCode, apiType: string, year: string) {
   const url =
     ENDPOINT +
     "?" +
     new URLSearchParams({
       apiKey: KEY,
       apiType,
-      sidoCode: SIDO_CODE,
+      sidoCode: sido,
       sggCode: sgg,
       schulKndCode: schulKnd,
       pbanYr: year,
@@ -113,7 +113,7 @@ async function main() {
     for (const knd of ["02", "03", "04"] as SchoolKindCode[]) {
       const kindLabel = SCHOOL_KIND[knd].slice(0, 2); // 초등/중학/고등 의 앞 2글자
       for (const apiType of API_TYPES) {
-        const r = await fetchOne(region.sgg, knd, apiType, YEAR);
+        const r = await fetchOne(region.sido, region.sgg, knd, apiType, YEAR);
         calls++;
         if (!r.ok) {
           // "공시되지 않은 항목" 등은 학교 종류별로 자연스럽게 발생 → 조용히 스킵
