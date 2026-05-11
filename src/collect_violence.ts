@@ -187,58 +187,82 @@ function parseHtmlByCd(html: string, cd: string): any {
   return parseHtml(html); // b69 default
 }
 
-// b75: 학교의 장의 학교폭력사건 자체해결 결과 — 학기별 1개 숫자
+// b75: 학교의 장의 학교폭력사건 자체해결 결과 — 학기별 행. 학기 라벨과 함께 추출.
+// 학교마다 1학기만 있거나, 4학기 모두 있을 수도 있어 가변 처리.
 function parseB75(html: string): any {
   if (html.includes("제외 처리함") || html.includes("없으므로") || html.includes("공시제외")) return { zero: true };
   if (html.includes("데이터가 없습니다")) return { noData: true };
   const m = html.match(/학교의 장의 학교폭력사건 자체해결 결과[\s\S]*?(<table[\s\S]*?<\/table>)/);
   if (!m) return { parseError: true };
-  const tdVals: number[] = [];
-  const re = /<td[^>]*>([\s\S]*?)<\/td>/g;
-  let mm;
-  while ((mm = re.exec(m[1])) !== null) {
-    const v = mm[1].replace(/<[^>]*>/g, "").trim();
-    tdVals.push(+v || 0);
+  // 행 단위 파싱: <tr>...<th>학기 라벨</th>...<td>건수</td></tr>
+  const rows: { label: string; count: number }[] = [];
+  const trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/g;
+  let trMatch;
+  while ((trMatch = trRe.exec(m[1])) !== null) {
+    const tr = trMatch[1];
+    const thM = tr.match(/<th[^>]*>([\s\S]*?)<\/th>/);
+    const tdM = tr.match(/<td[^>]*>([\s\S]*?)<\/td>/);
+    if (!thM || !tdM) continue;
+    const label = thM[1].replace(/<[^>]*>/g, "").trim();
+    const valStr = tdM[1].replace(/<[^>]*>/g, "").trim();
+    if (!label.includes("학기") && !label.includes("학년도")) continue;
+    rows.push({ label, count: parseInt(valStr.replace(/[,]/g, "")) || 0 });
   }
-  if (tdVals.length < 2) return { parseError: true };
-  return { selfResolved: { s1: tdVals[0], s2: tdVals[1] } };
+  if (rows.length === 0) return { parseError: true };
+  // 호환: s1/s2도 첫 두 행 (가능한 경우)
+  const out: any = { selfResolved: { rows } };
+  if (rows.length >= 2) {
+    out.selfResolved.s1 = rows[0].count;
+    out.selfResolved.s2 = rows[1].count;
+  } else if (rows.length === 1) {
+    out.selfResolved.s1 = rows[0].count;
+  }
+  return out;
 }
 
-// b66: 대상별 학교폭력 예방교육 실적 — 3개 표
+// b66: 대상별 학교폭력 예방교육 실적 — 3개 표. 학교 종류·학기 가변 대응.
+// 정확한 td 개수 가정 대신 행 단위로 row[]에 저장하고 raw 보존.
 function parseB66(html: string): any {
   if (html.includes("제외 처리함") || html.includes("없으므로") || html.includes("공시제외")) return { zero: true };
   if (html.includes("데이터가 없습니다")) return { noData: true };
   const result: any = {};
-  // 표1: 학생 평균 교육시간 (정규/정규외/평균) × 2학기 → 6 td
-  try {
-    const m = html.match(/학생 대상 정규 수업[\s\S]*?(<table[\s\S]*?<\/table>)/);
-    if (m) {
-      const tds = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((x) => x[1].replace(/<[^>]*>/g, "").trim());
-      const nums = tds.map((v) => parseFloat(v.replace(/[,]/g, "")) || 0);
-      if (nums.length >= 6) result.studentEdu = { s1: nums.slice(0, 3), s2: nums.slice(3, 6) };
+
+  // 공통: 행 단위로 (label/values) 추출하는 헬퍼
+  const extractRows = (tableHtml: string) => {
+    const rows: { th: string[]; td: (number | string | null)[] }[] = [];
+    const trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/g;
+    let trM;
+    while ((trM = trRe.exec(tableHtml)) !== null) {
+      const tr = trM[1];
+      const ths = [...tr.matchAll(/<th[^>]*>([\s\S]*?)<\/th>/g)].map((x) => x[1].replace(/<[^>]*>/g, "").trim());
+      const tds = [...tr.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((x) => {
+        const s = x[1].replace(/<[^>]*>/g, "").trim();
+        if (s === "-" || s === "") return null;
+        const n = parseFloat(s.replace(/[,]/g, ""));
+        return Number.isFinite(n) ? n : s;
+      });
+      if (ths.length === 0 && tds.length === 0) continue;
+      rows.push({ th: ths, td: tds });
     }
-  } catch {}
-  // 표2: 교원·학부모 연수 (횟수, 인원, 비율) × 2대상 × 2학기
-  try {
-    const m = html.match(/교원 및 학부모 대상 연수[\s\S]*?(<table[\s\S]*?<\/table>)/);
-    if (m) {
-      const tds = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((x) => x[1].replace(/<[^>]*>/g, "").trim());
-      const parse = (s: string) => s === "-" ? null : parseFloat(s.replace(/[,]/g, "")) || 0;
-      const nums = tds.map(parse);
-      // 학기당 6개 (교원 3 + 학부모 3): [교원횟수, 교원인원, 교원비율, 학부모횟수, 학부모인원, 학부모비율]
-      if (nums.length >= 12) result.staffEdu = { s1: nums.slice(0, 6), s2: nums.slice(6, 12) };
-    }
-  } catch {}
-  // 표3: 예방프로그램 (동아리·또래·교육주간·기타) × 2지표 × 2학기
-  try {
-    const m = html.match(/학생 중심 예방프로그램[\s\S]*?(<table[\s\S]*?<\/table>)/);
-    if (m) {
-      const tds = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((x) => x[1].replace(/<[^>]*>/g, "").trim());
-      const nums = tds.map((v) => parseInt(v.replace(/[,]/g, "")) || 0);
-      // 학기당 8개 (지도교사 4 + 참여학생 4)
-      if (nums.length >= 16) result.prevProgram = { s1: { teachers: nums.slice(0, 4), students: nums.slice(4, 8) }, s2: { teachers: nums.slice(8, 12), students: nums.slice(12, 16) } };
-    }
-  } catch {}
+    return rows;
+  };
+
+  for (const [marker, key] of [
+    ["학생 대상 정규 수업", "studentEdu"],
+    ["교원 및 학부모 대상 연수", "staffEdu"],
+    ["학생 중심 예방프로그램", "prevProgram"],
+  ] as const) {
+    try {
+      const m = html.match(new RegExp(`${marker}[\\s\\S]*?(<table[\\s\\S]*?<\\/table>)`));
+      if (m) {
+        const rows = extractRows(m[1]);
+        // 헤더 행(td 없는 th-only)은 제외, 실데이터 행만
+        const dataRows = rows.filter((r) => r.td.length > 0);
+        if (dataRows.length > 0) result[key] = dataRows;
+      }
+    } catch {}
+  }
+
   return Object.keys(result).length > 0 ? result : { parseError: true };
 }
 
@@ -402,9 +426,14 @@ async function main() {
           const total = (res.cases.s1?.n || 0) + (res.cases.s2?.n || 0);
           process.stdout.write(` ${total}건\n`);
         } else if (res.selfResolved) {
-          process.stdout.write(` 자체${(res.selfResolved.s1 || 0) + (res.selfResolved.s2 || 0)}건\n`);
+          const total = (res.selfResolved.rows || []).reduce((s: number, r: any) => s + (r.count || 0), 0);
+          process.stdout.write(` 자체${total}건(행${res.selfResolved.rows?.length || 0})\n`);
         } else if (res.studentEdu || res.staffEdu || res.prevProgram) {
-          process.stdout.write(` 예방교육 OK\n`);
+          const tabs: string[] = [];
+          if (res.studentEdu) tabs.push(`학생${res.studentEdu.length}`);
+          if (res.staffEdu) tabs.push(`연수${res.staffEdu.length}`);
+          if (res.prevProgram) tabs.push(`프로${res.prevProgram.length}`);
+          process.stdout.write(` 예방[${tabs.join("·")}]\n`);
         } else process.stdout.write(" ⚠ parse 실패\n");
       } catch (e: any) {
         data[code][year] = { error: e.message };
