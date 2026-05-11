@@ -12,3 +12,4 @@ web/.env
 data/_*
 data/violence_part_*.json
 logs/
+data/school_info.json
