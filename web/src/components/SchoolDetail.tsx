@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,6 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
   const labels = severityLabel(metric);
 
   const yearsArr = data.years;
-  // 선택 유형만 합산한 년도별 총합으로 막대 그리기
   const yearTotals = yearsArr.map((y) => {
     const v = school.violence[y];
     if (!v) return null;
@@ -37,11 +37,18 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
     return s;
   });
   const maxYearTotal = Math.max(1, ...yearTotals.map((t) => t ?? 0));
-  const maxTypeTotal = Math.max(
-    1,
-    ...school.violence[yearsArr[yearsArr.length - 1]]?.types ?? [0],
-  );
   const allTypesOn = selectedTypes.size === 8;
+
+  // 선택된 공시년도 — 기본은 데이터 있는 최신 년도
+  const defaultYear = (() => {
+    for (let i = yearsArr.length - 1; i >= 0; i--) {
+      if (school.violence[yearsArr[i]]) return yearsArr[i];
+    }
+    return yearsArr[yearsArr.length - 1];
+  })();
+  const [selectedYear, setSelectedYear] = useState<string>(defaultYear);
+  const selectedYearV = school.violence[selectedYear];
+  const maxTypeTotal = Math.max(1, ...(selectedYearV?.types ?? [0]));
 
   return (
     <Card className="w-full">
@@ -104,46 +111,60 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
           </div>
         </div>
 
-        {/* 년도별 막대 (선택 유형 합산) */}
+        {/* 년도별 막대 (선택 유형 합산) — 클릭 시 유형별 차트 전환 */}
         <div>
           <div className="text-muted-foreground mb-1 text-xs">
             공시년도별 사건 {!allTypesOn && <span>· 선택 유형</span>}
+            <span className="text-[10px] ml-1">· 막대 클릭으로 년도 전환</span>
           </div>
           <div className="flex items-end gap-1.5 h-16">
             {yearsArr.map((y, idx) => {
               const t = yearTotals[idx];
               const h = t != null ? Math.max(2, (t / maxYearTotal) * 56) : 0;
+              const isActive = y === selectedYear;
+              const hasData = !!school.violence[y];
               return (
-                <div key={y} className="flex-1 flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  key={y}
+                  onClick={() => hasData && setSelectedYear(y)}
+                  disabled={!hasData}
+                  className={cn(
+                    "flex-1 flex flex-col items-center gap-1 transition-all rounded-sm p-0.5",
+                    hasData ? "cursor-pointer hover:bg-accent/50" : "cursor-not-allowed",
+                    isActive && hasData && "bg-accent ring-1 ring-foreground/20",
+                  )}
+                >
                   <div className="text-[10px] tabular-nums leading-none h-3">{t != null ? t : "—"}</div>
                   <div
                     className="w-full rounded-sm transition-all"
                     style={{
                       height: h,
                       background: t != null ? color : "#e5e7eb",
-                      opacity: t != null ? 1 : 0.4,
+                      opacity: t != null ? (isActive ? 1 : 0.7) : 0.4,
                     }}
                   />
-                  <div className="text-[10px] text-muted-foreground">{y}</div>
-                </div>
+                  <div className={cn("text-[10px]", isActive ? "text-foreground font-semibold" : "text-muted-foreground")}>
+                    {y}
+                  </div>
+                </button>
               );
             })}
           </div>
         </div>
 
-        {/* 유형별 (최신년도) */}
+        {/* 유형별 (선택된 년도) */}
         {(() => {
-          const latest = yearsArr[yearsArr.length - 1];
-          const latestV = school.violence[latest];
+          const latestV = selectedYearV;
           if (!latestV) return null;
           return (
             <div>
               <div className="text-muted-foreground mb-1 text-xs">
-                {latest}공시 유형별
+                {selectedYear}공시 유형별
               </div>
               <div className="flex flex-col gap-1">
                 {data.typeLabels.map((label, i) => {
-                  const cnt = latestV.types[i] ?? 0;
+                  const cnt = latestV!.types[i] ?? 0;
                   const w = (cnt / maxTypeTotal) * 100;
                   const isSelType = selectedTypes.has(i);
                   return (
