@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { X } from "lucide-react";
 import type { School } from "@/types";
 import { severityOf, SEVERITY_COLOR, severityLabel, type Metric } from "@/lib/severity";
@@ -44,7 +45,6 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
     return { total, avgRate, hasData };
   }, [inRegion, stats]);
 
-  // 폴리곤 색상과 일관성 위해 학교당 평균 건수 사용
   const avgTotalPerSchool = inRegion.length > 0 ? summary.total / inRegion.length : 0;
   const sev = severityOf(metric, summary.avgRate, avgTotalPerSchool, summary.hasData);
   const labels = severityLabel(metric);
@@ -64,8 +64,8 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
   const TYPE_LABEL = { city: "시", district: "구", dong: "동" }[region.type];
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex-row items-start justify-between gap-2">
+    <Card className="w-full gap-3 py-4">
+      <CardHeader className="flex-row items-start justify-between gap-2 px-4">
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <CardTitle className="flex items-center gap-2 text-base min-w-0">
             <span
@@ -84,18 +84,17 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
         </Button>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-3">
-        {/* 요약 */}
+      <CardContent className="flex flex-col gap-3 px-4">
         <div className="grid grid-cols-2 gap-1.5">
-          <div className="rounded bg-muted/50 p-1.5">
+          <div className="rounded bg-muted/50 p-2">
             <div className="text-[10px] text-muted-foreground">학교 수</div>
             <div className="text-sm font-semibold tabular-nums">{inRegion.length}</div>
           </div>
-          <div className="rounded bg-muted/50 p-1.5">
+          <div className="rounded bg-muted/50 p-2">
             <div className="text-[10px] text-muted-foreground">4년 합계 사건</div>
-            <div className="text-sm font-semibold tabular-nums">{summary.total}건</div>
+            <div className="text-sm font-semibold tabular-nums">{summary.total.toLocaleString()}건</div>
           </div>
-          <div className="rounded bg-muted/50 p-1.5 col-span-2">
+          <div className="rounded bg-muted/50 p-2 col-span-2">
             <div className="text-[10px] text-muted-foreground">평균 비율 (학생100명·년)</div>
             <div className="text-sm font-semibold tabular-nums">
               {summary.avgRate != null ? summary.avgRate.toFixed(2) : "—"}
@@ -103,8 +102,11 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
           </div>
         </div>
 
-        {/* 학교 리스트 */}
-        <div className="text-muted-foreground text-xs">학교 — {metric === "rate" ? "비율" : "건수"} ↓</div>
+        <Separator />
+
+        <div className="text-muted-foreground text-xs">
+          학교 ({sorted.length.toLocaleString()}개) — {metric === "rate" ? "비율" : "건수"} ↓
+        </div>
         <ul className="flex flex-col gap-1 max-h-[40dvh] md:max-h-[50dvh] overflow-y-auto">
           {sorted.map((s) => {
             const st = stats.get(s.code);

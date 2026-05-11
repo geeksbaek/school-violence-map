@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { X } from "lucide-react";
 import type { DataSet, School, SchoolDetails } from "@/types";
 import { severityOf, SEVERITY_COLOR, severityLabel, type Metric } from "@/lib/severity";
@@ -39,7 +42,6 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
   const maxYearTotal = Math.max(1, ...yearTotals.map((t) => t ?? 0));
   const allTypesOn = selectedTypes.size === 8;
 
-  // 선택된 공시년도 — 기본은 데이터 있는 최신 년도
   const defaultYear = (() => {
     for (let i = yearsArr.length - 1; i >= 0; i--) {
       if (school.violence[yearsArr[i]]) return yearsArr[i];
@@ -51,8 +53,8 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
   const maxTypeTotal = Math.max(1, ...(selectedYearV?.types ?? [0]));
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex-row items-start justify-between gap-2">
+    <Card className="w-full gap-3 py-4">
+      <CardHeader className="flex-row items-start justify-between gap-2 px-4">
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <CardTitle className="flex items-center gap-2 text-base min-w-0">
             <span
@@ -74,7 +76,7 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
         </Button>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-3">
+      <CardContent className="flex flex-col gap-3 px-4">
         {/* 요약 */}
         <div className="grid grid-cols-3 gap-2 text-center">
           <Stat label="학생수" value={school.studentTotal?.toLocaleString() ?? "—"} />
@@ -82,12 +84,12 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
           <Stat label="교원" value={school.teachers?.toString() ?? "—"} />
         </div>
 
-        {/* 학폭 요약 — 절대건수와 비율 모두 표시 */}
+        {/* 학폭 요약 */}
         <div
           className="rounded-md border p-2 text-xs"
           style={{ borderColor: color }}
         >
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between mb-1.5">
             <span className="font-medium">{labels[sev]}</span>
             <span className="text-[10px] text-muted-foreground">
               {metric === "rate" ? "비율 기준" : "건수 기준"}
@@ -111,9 +113,9 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
           </div>
         </div>
 
-        {/* 년도별 막대 (선택 유형 합산) — 클릭 시 유형별 차트 전환 */}
+        {/* 년도별 막대 */}
         <div>
-          <div className="text-muted-foreground mb-3 text-xs">
+          <div className="text-muted-foreground mb-2 text-xs">
             공시년도별 사건 {!allTypesOn && <span>· 선택 유형</span>}
           </div>
           <div className="flex items-end gap-1.5 h-24 px-0.5">
@@ -153,44 +155,46 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
         </div>
 
         {/* 유형별 (선택된 년도) */}
-        {(() => {
-          const latestV = selectedYearV;
-          if (!latestV) return null;
-          return (
-            <div>
-              <div className="text-muted-foreground mb-1 text-xs">
-                {selectedYear}공시 유형별
-              </div>
-              <div className="flex flex-col gap-1">
-                {data.typeLabels.map((label, i) => {
-                  const cnt = latestV!.types[i] ?? 0;
-                  const w = (cnt / maxTypeTotal) * 100;
-                  const isSelType = selectedTypes.has(i);
-                  return (
-                    <div
-                      key={label}
-                      className={cn(
-                        "flex items-center gap-2 text-xs",
-                        !isSelType && "opacity-40",
-                      )}
-                    >
-                      <div className="w-14 text-muted-foreground">{label}</div>
-                      <div className="flex-1 bg-muted h-3 rounded-sm overflow-hidden">
-                        <div
-                          className="h-full rounded-sm"
-                          style={{ width: `${w}%`, background: color, opacity: cnt > 0 ? 0.85 : 0.1 }}
-                        />
-                      </div>
-                      <div className="w-6 text-right tabular-nums">{cnt}</div>
-                    </div>
-                  );
-                })}
-              </div>
+        {selectedYearV && (
+          <div>
+            <div className="text-muted-foreground mb-1.5 text-xs">
+              {selectedYear}공시 유형별
             </div>
-          );
-        })()}
-        {/* 공시 정보 — 접이식 */}
-        {school.details && <DetailsSections details={school.details} color={color} />}
+            <div className="flex flex-col gap-1">
+              {data.typeLabels.map((label, i) => {
+                const cnt = selectedYearV.types[i] ?? 0;
+                const w = (cnt / maxTypeTotal) * 100;
+                const isSelType = selectedTypes.has(i);
+                return (
+                  <div
+                    key={label}
+                    className={cn(
+                      "flex items-center gap-2 text-xs",
+                      !isSelType && "opacity-40",
+                    )}
+                  >
+                    <div className="w-14 text-muted-foreground">{label}</div>
+                    <div className="flex-1 bg-muted h-3 rounded-sm overflow-hidden">
+                      <div
+                        className="h-full rounded-sm"
+                        style={{ width: `${w}%`, background: color, opacity: cnt > 0 ? 0.85 : 0.1 }}
+                      />
+                    </div>
+                    <div className="w-6 text-right tabular-nums">{cnt}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 공시 정보 */}
+        {school.details && (
+          <>
+            <Separator />
+            <DetailsSections details={school.details} color={color} />
+          </>
+        )}
       </CardContent>
     </Card>
   );
@@ -205,45 +209,53 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-// ─── 공시 정보 섹션 ────────────────────────────────────────
+// ─── 공시 정보 ────────────────────────────────────────
 const fmtNum = (n: number | null | undefined): string => (n == null ? "—" : n.toLocaleString());
-const fmtAmt = (n: number | null | undefined): string => (n == null ? "—" : `${(n / 10000).toLocaleString(undefined, { maximumFractionDigits: 1 })}만원`);
+const fmtAmt = (n: number | null | undefined): string =>
+  n == null ? "—" : `${(n / 10000).toLocaleString(undefined, { maximumFractionDigits: 1 })}만원`;
 const fmtPct = (n: number | null | undefined): string => (n == null ? "—" : `${n.toFixed(1)}%`);
 
 function DetailsSections({ details, color }: { details: SchoolDetails; color: string }) {
-  const sections: { key: string; title: string; render: () => React.ReactNode }[] = [];
+  type Section = { key: string; title: string; body: React.ReactNode };
+  const sections: Section[] = [];
 
-  if (details.grades && details.grades.length > 0) {
+  if (details.grades?.length) {
     sections.push({
       key: "grades",
       title: "학년별 학급/학생",
-      render: () => (
-        <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-2 gap-y-0.5 text-xs">
-          <div className="text-muted-foreground">학년</div>
-          <div className="text-muted-foreground text-right">학급</div>
-          <div className="text-muted-foreground text-right">학생</div>
-          <div className="text-muted-foreground text-right">학급당</div>
-          {details.grades!.map((g) => (
-            <div key={g.label} className="contents">
-              <div>{g.label}</div>
-              <div className="text-right tabular-nums">{fmtNum(g.classes)}</div>
-              <div className="text-right tabular-nums">{fmtNum(g.students)}</div>
-              <div className="text-right tabular-nums">{fmtNum(g.perClass)}</div>
-            </div>
-          ))}
-        </div>
+      body: (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="h-7 px-2">학년</TableHead>
+              <TableHead className="h-7 px-2 text-right">학급</TableHead>
+              <TableHead className="h-7 px-2 text-right">학생</TableHead>
+              <TableHead className="h-7 px-2 text-right">학급당</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {details.grades.map((g) => (
+              <TableRow key={g.label}>
+                <TableCell className="py-1 px-2">{g.label}</TableCell>
+                <TableCell className="py-1 px-2 text-right tabular-nums">{fmtNum(g.classes)}</TableCell>
+                <TableCell className="py-1 px-2 text-right tabular-nums">{fmtNum(g.students)}</TableCell>
+                <TableCell className="py-1 px-2 text-right tabular-nums">{fmtNum(g.perClass)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       ),
     });
   }
 
-  if (details.studentTrend && details.studentTrend.length > 0) {
+  if (details.studentTrend?.length) {
     const max = Math.max(1, ...details.studentTrend.map((t) => t.total));
     sections.push({
       key: "trend",
       title: "전년도 학생수 추이",
-      render: () => (
+      body: (
         <div className="flex items-end gap-1.5 h-20">
-          {details.studentTrend!.map((t) => {
+          {details.studentTrend.map((t) => {
             const h = Math.max(2, (t.total / max) * 56);
             return (
               <div key={t.year} className="flex-1 flex flex-col items-center gap-0.5">
@@ -263,13 +275,11 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     sections.push({
       key: "teaching",
       title: "수업·교사",
-      render: () => (
-        <KV pairs={[
-          ["총 교사", fmtNum(t.teachers) + "명"],
-          ["주당 수업", fmtNum(t.weeklyHours) + "시간"],
-          ["주 수업일", fmtNum(t.daysPerWeek) + "일"],
-        ]} />
-      ),
+      body: <KV pairs={[
+        ["총 교사", suffix(t.teachers, "명")],
+        ["주당 수업", suffix(t.weeklyHours, "시간")],
+        ["주 수업일", suffix(t.daysPerWeek, "일")],
+      ]} />,
     });
   }
 
@@ -278,19 +288,17 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     sections.push({
       key: "facility",
       title: "시설",
-      render: () => (
-        <KV pairs={[
-          ["일반교실", fmtNum(f.regularClassrooms) + "실"],
-          ["특별교실", fmtNum(f.specialClassrooms) + "실"],
-          ["체육관 교실", fmtNum(f.sportsClassrooms) + "실"],
-          ["남자 화장실", fmtNum(f.maleToilets) + "개"],
-          ["여자 화장실", fmtNum(f.femaleToilets) + "개"],
-          ["샤워실", fmtNum(f.showers) + "실"],
-          ["강당", fmtNum(f.auditorium) + "실"],
-          ["수영장", f.pool ?? "—"],
-          ["기숙사 수용", fmtNum(f.boardingCapacity) + "명"],
-        ].filter(([, v]) => !v.startsWith("—")) as [string, string][]} />
-      ),
+      body: <KV pairs={trim([
+        ["일반교실", suffix(f.regularClassrooms, "실")],
+        ["특별교실", suffix(f.specialClassrooms, "실")],
+        ["체육교실", suffix(f.sportsClassrooms, "실")],
+        ["남자 화장실", suffix(f.maleToilets, "개")],
+        ["여자 화장실", suffix(f.femaleToilets, "개")],
+        ["샤워실", suffix(f.showers, "실")],
+        ["강당", suffix(f.auditorium, "실")],
+        ["수영장", f.pool ?? "—"],
+        ["기숙사 수용", suffix(f.boardingCapacity, "명")],
+      ])} />,
     });
   }
 
@@ -299,15 +307,13 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     sections.push({
       key: "meal",
       title: "급식",
-      render: () => (
-        <KV pairs={[
-          ["급식 학생수", fmtNum(m.students) + "명"],
-          ["영양사", fmtNum(m.nutritionists) + "명"],
-          ["조리원", fmtNum(m.cooks) + "명"],
-          ["조리보조", fmtNum(m.cookAssistants) + "명"],
-          ["운영방식", m.operationMethod ?? "—"],
-        ]} />
-      ),
+      body: <KV pairs={trim([
+        ["급식 학생수", suffix(m.students, "명")],
+        ["영양사", suffix(m.nutritionists, "명")],
+        ["조리원", suffix(m.cooks, "명")],
+        ["조리보조", suffix(m.cookAssistants, "명")],
+        ["운영방식", m.operationMethod ?? "—"],
+      ])} />,
     });
   }
 
@@ -316,12 +322,10 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     sections.push({
       key: "digital",
       title: "정보화 활용",
-      render: () => (
-        <KV pairs={[
-          ["전체 활용 학생", fmtNum(d.allUtilStudents) + "명"],
-          ["주간 평균 활용", fmtNum(d.weeklyAvgUtilStudents) + "명"],
-        ]} />
-      ),
+      body: <KV pairs={[
+        ["전체 활용 학생", suffix(d.allUtilStudents, "명")],
+        ["주간 평균", suffix(d.weeklyAvgUtilStudents, "명")],
+      ]} />,
     });
   }
 
@@ -330,8 +334,8 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     const maxTotal = Math.max(1, ...cats.map(([, v]) => v.total ?? 0));
     sections.push({
       key: "safety",
-      title: "안전교육 (시간)",
-      render: () => (
+      title: "안전교육",
+      body: (
         <div className="flex flex-col gap-1">
           {cats.map(([cat, v]) => {
             const w = ((v.total ?? 0) / maxTotal) * 100;
@@ -341,7 +345,7 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
                 <div className="flex-1 bg-muted h-3 rounded-sm overflow-hidden">
                   <div className="h-full" style={{ width: `${w}%`, background: color, opacity: 0.7 }} />
                 </div>
-                <div className="w-10 text-right tabular-nums">{fmtNum(v.total)}h</div>
+                <div className="w-12 text-right tabular-nums">{fmtNum(v.total)}h</div>
               </div>
             );
           })}
@@ -355,16 +359,14 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     sections.push({
       key: "activities",
       title: "창체·동아리",
-      render: () => (
-        <KV pairs={[
-          ["창체 학생수", fmtNum(a.creativeStudents) + "명"],
-          ["창체 담당교사", fmtNum(a.creativeTeachers) + "명"],
-          ["외부강사", fmtNum(a.creativeExternalLecturers) + "명"],
-          ["창체 예산", fmtAmt(a.creativeBudget)],
-          ["동아리 수", fmtNum(a.clubs) + "개"],
-          ["동아리 예산", fmtAmt(a.clubBudget)],
-        ].filter(([, v]) => !v.startsWith("—")) as [string, string][]} />
-      ),
+      body: <KV pairs={trim([
+        ["창체 학생수", suffix(a.creativeStudents, "명")],
+        ["창체 담당교사", suffix(a.creativeTeachers, "명")],
+        ["외부강사", suffix(a.creativeExternalLecturers, "명")],
+        ["창체 예산", fmtAmt(a.creativeBudget)],
+        ["동아리 수", suffix(a.clubs, "개")],
+        ["동아리 예산", fmtAmt(a.clubBudget)],
+      ])} />,
     });
   }
 
@@ -373,15 +375,13 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     sections.push({
       key: "after",
       title: "방과후·돌봄",
-      render: () => (
-        <KV pairs={[
-          ["방과후 프로그램", fmtNum(a.programs) + "개"],
-          ["방과후 학생", fmtNum(a.students) + "명"],
-          ["수익자 부담금", fmtAmt(a.burdenAmount)],
-          ["돌봄 교실", fmtNum(a.careRooms) + "실"],
-          ["돌봄 학생", fmtNum(a.careStudents) + "명"],
-        ].filter(([, v]) => !v.startsWith("—")) as [string, string][]} />
-      ),
+      body: <KV pairs={trim([
+        ["방과후 프로그램", suffix(a.programs, "개")],
+        ["방과후 학생", suffix(a.students, "명")],
+        ["수익자 부담금", fmtAmt(a.burdenAmount)],
+        ["돌봄 교실", suffix(a.careRooms, "실")],
+        ["돌봄 학생", suffix(a.careStudents, "명")],
+      ])} />,
     });
   }
 
@@ -390,14 +390,12 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     sections.push({
       key: "scholarship",
       title: "장학금",
-      render: () => (
-        <KV pairs={[
-          ["금전 (건/금액)", `${fmtNum(s.money?.count)} / ${fmtAmt(s.money?.amount)}`],
-          ["보험·금융 (건/금액)", `${fmtNum(s.fortune?.count)} / ${fmtAmt(s.fortune?.amount)}`],
-          ["물품 (건/금액)", `${fmtNum(s.things?.count)} / ${fmtAmt(s.things?.amount)}`],
-          ["합계 (건/금액)", `${fmtNum(s.total?.count)} / ${fmtAmt(s.total?.amount)}`],
-        ]} />
-      ),
+      body: <KV pairs={[
+        ["금전 (건/금액)", `${fmtNum(s.money?.count)} / ${fmtAmt(s.money?.amount)}`],
+        ["보험·금융 (건/금액)", `${fmtNum(s.fortune?.count)} / ${fmtAmt(s.fortune?.amount)}`],
+        ["물품 (건/금액)", `${fmtNum(s.things?.count)} / ${fmtAmt(s.things?.amount)}`],
+        ["합계 (건/금액)", `${fmtNum(s.total?.count)} / ${fmtAmt(s.total?.amount)}`],
+      ]} />,
     });
   }
 
@@ -406,40 +404,46 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     sections.push({
       key: "graduation",
       title: "졸업·진학",
-      render: () => (
-        <KV pairs={[
-          ["전체 졸업생", fmtNum(g.totalGrads) + "명"],
-          ["진학자", fmtNum(g.advanceCount) + "명"],
-          ["취업자", fmtNum(g.employmentCount) + "명"],
-          ["진학률", fmtPct(g.advanceRate)],
-          ["취업률", fmtPct(g.employmentRate)],
-          ["외국인 비율", fmtPct(g.foreignRate)],
-        ].filter(([, v]) => !v.endsWith("—") && !v.endsWith("—명") && !v.endsWith("—%")) as [string, string][]} />
-      ),
+      body: <KV pairs={trim([
+        ["전체 졸업생", suffix(g.totalGrads, "명")],
+        ["진학자", suffix(g.advanceCount, "명")],
+        ["취업자", suffix(g.employmentCount, "명")],
+        ["진학률", fmtPct(g.advanceRate)],
+        ["취업률", fmtPct(g.employmentRate)],
+        ["외국인 비율", fmtPct(g.foreignRate)],
+      ])} />,
     });
   }
 
   if (sections.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-1 border-t pt-2">
+    <div className="flex flex-col gap-1.5">
       <div className="text-muted-foreground text-xs">공시 정보</div>
-      {sections.map((s) => (
-        <details key={s.key} className="rounded-md border text-xs group">
-          <summary className="cursor-pointer list-none px-2 py-1.5 flex items-center justify-between hover:bg-accent/50 select-none">
-            <span className="font-medium">{s.title}</span>
-            <span className="text-muted-foreground group-open:rotate-90 transition-transform">▶</span>
-          </summary>
-          <div className="px-2 pb-2 pt-1">{s.render()}</div>
-        </details>
-      ))}
+      <Accordion type="multiple" className="w-full">
+        {sections.map((s) => (
+          <AccordionItem key={s.key} value={s.key} className="last:border-b">
+            <AccordionTrigger className="py-2 text-xs font-medium hover:no-underline">
+              {s.title}
+            </AccordionTrigger>
+            <AccordionContent className="pb-3">{s.body}</AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </div>
   );
 }
 
+function suffix(n: number | null | undefined, unit: string): string {
+  return n == null ? "—" : `${fmtNum(n)}${unit}`;
+}
+function trim(pairs: [string, string][]): [string, string][] {
+  return pairs.filter(([, v]) => v !== "—");
+}
+
 function KV({ pairs }: { pairs: [string, string][] }) {
   return (
-    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs">
+    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
       {pairs.map(([k, v]) => (
         <div key={k} className="contents">
           <div className="text-muted-foreground">{k}</div>

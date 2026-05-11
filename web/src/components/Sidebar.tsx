@@ -3,7 +3,10 @@ import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Search, X } from "lucide-react";
 import {
   SEVERITY_COLOR, SEVERITY_ORDER, severityOf, severityLabel, type Metric,
 } from "@/lib/severity";
@@ -27,16 +30,16 @@ interface Props {
   onPick: (s: School) => void;
   metric: Metric;
   setMetric: (m: Metric) => void;
-  onClose?: () => void; // 모바일 닫기 버튼
+  onClose?: () => void;
 }
 
 const KIND_LIST: SchoolKind[] = ["초등", "중학", "고등"];
 const GENDER_LIST: SchoolGender[] = ["공학", "여"];
+const ALL_TYPES = [0, 1, 2, 3, 4, 5, 6, 7];
 
 export function Sidebar({
   data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, onClose,
 }: Props) {
-  // 검색어 입력은 로컬 state — Enter / blur 시점에만 커밋
   const [queryInput, setQueryInput] = useState(filter.query);
   useEffect(() => { setQueryInput(filter.query); }, [filter.query]);
   const commitQuery = (v: string) => {
@@ -71,9 +74,7 @@ export function Sidebar({
 
   const labels = severityLabel(metric);
   const allTypesOn = filter.types.size === 8;
-  const allGendersOn = filter.genders.size === 2;
 
-  // 학교 성별별 카운트 (현재 다른 필터 무시한 전체 기준 — 정보용)
   const genderCounts = useMemo(() => {
     const m: Record<SchoolGender, number> = { 공학: 0, 여: 0, 남: 0 };
     for (const s of data.schools) m[s.gender]++;
@@ -81,118 +82,107 @@ export function Sidebar({
   }, [data]);
 
   return (
-    <aside className="bg-background flex flex-col gap-3 overflow-y-auto overscroll-contain border-r p-3 w-full h-full md:w-[340px] md:flex-shrink-0">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex flex-col gap-1">
+    <aside className="bg-background flex h-full w-full flex-col gap-4 overflow-y-auto overscroll-contain border-r p-4 md:w-[340px] md:flex-shrink-0">
+      <header className="flex items-start justify-between gap-2">
+        <div className="flex flex-col gap-0.5">
           <h1 className="text-base font-bold leading-tight">학교폭력 지도</h1>
           <span className="text-muted-foreground text-xs">
-            수원·용인·성남·화성 · {data.schools.length}개 학교
+            전국 {data.schools.length.toLocaleString()}개 학교
           </span>
         </div>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden shrink-0">
+          <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden shrink-0 -mt-1 -mr-1">
             <X className="size-4" />
           </Button>
         )}
-      </div>
+      </header>
 
-      {/* 검색 — Enter 시점에만 적용 */}
+      {/* 검색 */}
       <form
         onSubmit={(e) => { e.preventDefault(); commitQuery(queryInput.trim()); }}
+        className="relative"
       >
-        <input
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+        <Input
           type="search"
           placeholder="학교명 검색 (Enter)"
           value={queryInput}
           onChange={(e) => {
             const v = e.target.value;
             setQueryInput(v);
-            // X 버튼으로 비웠을 때(또는 빈 값)는 즉시 적용
             if (v === "") commitQuery("");
           }}
           onBlur={() => commitQuery(queryInput.trim())}
-          className="border rounded-md px-3 py-2 text-sm bg-background w-full"
+          className="pl-8"
         />
       </form>
 
-      {/* 학교 종류 필터 */}
-      <div className="flex gap-1.5">
-        {KIND_LIST.map((k) => {
-          const active = filter.kinds.has(k);
-          return (
-            <Button
-              key={k}
-              variant={active ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                const next = new Set(filter.kinds);
-                if (active) next.delete(k); else next.add(k);
-                setFilter({ ...filter, kinds: next });
-              }}
-              className="flex-1"
-            >
+      {/* 메트릭 토글 */}
+      <ToggleGroup
+        type="single"
+        value={metric}
+        onValueChange={(v) => v && setMetric(v as Metric)}
+        variant="outline"
+        size="sm"
+        className="w-full"
+      >
+        <ToggleGroupItem value="rate" className="flex-1">비율</ToggleGroupItem>
+        <ToggleGroupItem value="count" className="flex-1">건수</ToggleGroupItem>
+      </ToggleGroup>
+
+      <Separator />
+
+      {/* 학교 종류 */}
+      <FilterBlock label="학교 종류" count={`${filter.kinds.size}/3`}>
+        <ToggleGroup
+          type="multiple"
+          value={[...filter.kinds]}
+          onValueChange={(arr) => setFilter({ ...filter, kinds: new Set(arr as SchoolKind[]) })}
+          variant="outline"
+          size="sm"
+          className="w-full"
+        >
+          {KIND_LIST.map((k) => (
+            <ToggleGroupItem key={k} value={k} className="flex-1">
               {k}
-            </Button>
-          );
-        })}
-      </div>
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </FilterBlock>
 
-      {/* 학교 성별 필터 */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-          <span>학교 성별 ({filter.genders.size}/2)</span>
+      {/* 학교 성별 */}
+      <FilterBlock label="학교 성별" count={`${filter.genders.size}/2`}>
+        <ToggleGroup
+          type="multiple"
+          value={[...filter.genders]}
+          onValueChange={(arr) => setFilter({ ...filter, genders: new Set(arr as SchoolGender[]) })}
+          variant="outline"
+          size="sm"
+          className="w-full"
+        >
+          {GENDER_LIST.map((g) => (
+            <ToggleGroupItem key={g} value={g} className="flex-1 text-xs">
+              {g === "여" ? "여학교" : "공학"}
+              <span className="ml-1 text-muted-foreground tabular-nums">{genderCounts[g]}</span>
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </FilterBlock>
+
+      {/* 학폭 유형 */}
+      <FilterBlock
+        label="학폭 유형"
+        count={`${filter.types.size}/8`}
+        action={
           <button
             type="button"
-            onClick={() =>
-              setFilter({
-                ...filter,
-                genders: allGendersOn ? new Set() : new Set(GENDER_LIST),
-              })
-            }
-            className="text-foreground underline underline-offset-2 hover:no-underline"
-          >
-            {allGendersOn ? "모두 끄기" : "모두 켜기"}
-          </button>
-        </div>
-        <div className="flex gap-1.5">
-          {GENDER_LIST.map((g) => {
-            const active = filter.genders.has(g);
-            return (
-              <Button
-                key={g}
-                variant={active ? "default" : "outline"}
-                size="sm"
-                onClick={() => {
-                  const next = new Set(filter.genders);
-                  if (active) next.delete(g); else next.add(g);
-                  setFilter({ ...filter, genders: next });
-                }}
-                className="flex-1 text-xs"
-              >
-                {g === "여" ? "여학교" : "공학"} ({genderCounts[g]})
-              </Button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 학폭 유형 필터 */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-          <span>학폭 유형 ({filter.types.size}/8)</span>
-          <button
-            type="button"
-            onClick={() =>
-              setFilter({
-                ...filter,
-                types: allTypesOn ? new Set() : new Set([0, 1, 2, 3, 4, 5, 6, 7]),
-              })
-            }
+            onClick={() => setFilter({ ...filter, types: allTypesOn ? new Set() : new Set(ALL_TYPES) })}
             className="text-foreground underline underline-offset-2 hover:no-underline"
           >
             {allTypesOn ? "모두 끄기" : "모두 켜기"}
           </button>
-        </div>
+        }
+      >
         <div className="flex flex-wrap gap-1">
           {data.typeLabels.map((label, i) => {
             const active = filter.types.has(i);
@@ -205,37 +195,19 @@ export function Sidebar({
                   if (active) next.delete(i); else next.add(i);
                   setFilter({ ...filter, types: next });
                 }}
-                className="cursor-pointer text-[10px]"
+                className="cursor-pointer text-[10px] select-none"
               >
                 {label}
               </Badge>
             );
           })}
         </div>
-      </div>
+      </FilterBlock>
 
-      {/* 메트릭 토글 */}
-      <div className="flex gap-1 rounded-md border p-0.5 bg-muted/30">
-        <Button
-          variant={metric === "rate" ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setMetric("rate")}
-          className="flex-1 h-7"
-        >
-          비율
-        </Button>
-        <Button
-          variant={metric === "count" ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setMetric("count")}
-          className="flex-1 h-7"
-        >
-          건수
-        </Button>
-      </div>
+      <Separator />
 
-      {/* 범례 — 색·크기·모양 */}
-      <Card className="py-2">
+      {/* 범례 */}
+      <Card className="py-2 gap-0">
         <CardHeader className="px-3 pb-1">
           <CardTitle className="text-xs">
             색 — {metric === "rate" ? "학생 100명당 연 사건" : "4년 합계 건수"}
@@ -256,7 +228,8 @@ export function Sidebar({
           ))}
         </CardContent>
 
-        <div className="mt-1 border-t pt-2 px-3 flex flex-col gap-1.5">
+        <Separator className="my-2" />
+        <CardContent className="px-3 flex flex-col gap-1.5">
           <div className="text-xs font-semibold">
             크기 — {metric === "rate" ? "학생수" : "사건 수 (4년)"}
           </div>
@@ -285,32 +258,18 @@ export function Sidebar({
               </div>
             ))}
           </div>
-
-          <div className="text-xs font-semibold mt-1">모양 — 학교 종류</div>
-          <div className="flex items-center gap-3 pl-1 text-[10px] text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <span className="inline-block size-3 rounded-full bg-foreground/60" />
-              초등
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="inline-block size-3 bg-foreground/60" />
-              중학
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="inline-block size-3 bg-foreground/60 rotate-45" />
-              고등
-            </div>
-          </div>
-        </div>
+        </CardContent>
       </Card>
 
+      <Separator />
+
       {/* 리스트 */}
-      <div className="text-muted-foreground text-xs px-1">
-        리스트 ({sortedTop.length}개) — {metric === "rate" ? "비율" : "건수"} ↓
-      </div>
-      <div className="-mx-3 px-3">
+      <div className="flex flex-col gap-2">
+        <div className="text-muted-foreground text-xs px-1">
+          리스트 ({sortedTop.length.toLocaleString()}개) — {metric === "rate" ? "비율" : "건수"} ↓
+        </div>
         <ul className="flex flex-col gap-1">
-          {sortedTop.map((s) => {
+          {sortedTop.slice(0, 200).map((s) => {
             const st = stats.get(s.code);
             const sev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false);
             const isSel = selected?.code === s.code;
@@ -349,9 +308,31 @@ export function Sidebar({
           {sortedTop.length === 0 && (
             <li className="text-center text-xs text-muted-foreground py-4">필터 조건에 맞는 학교 없음</li>
           )}
+          {sortedTop.length > 200 && (
+            <li className="text-center text-[10px] text-muted-foreground py-2">
+              상위 200개만 표시 — 검색·필터로 좁혀주세요
+            </li>
+          )}
         </ul>
       </div>
     </aside>
+  );
+}
+
+function FilterBlock({
+  label, count, action, children,
+}: { label: string; count?: string; action?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between text-xs px-1">
+        <span className="text-muted-foreground">
+          {label}
+          {count && <span className="ml-1 tabular-nums">({count})</span>}
+        </span>
+        {action}
+      </div>
+      {children}
+    </div>
   );
 }
 
