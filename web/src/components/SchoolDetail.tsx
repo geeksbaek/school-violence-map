@@ -113,13 +113,13 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
 
         {/* 년도별 막대 (선택 유형 합산) — 클릭 시 유형별 차트 전환 */}
         <div>
-          <div className="text-muted-foreground mb-2 text-xs">
+          <div className="text-muted-foreground mb-3 text-xs">
             공시년도별 사건 {!allTypesOn && <span>· 선택 유형</span>}
           </div>
-          <div className="flex items-end gap-1.5 h-16">
+          <div className="flex items-end gap-1.5 h-24 px-0.5">
             {yearsArr.map((y, idx) => {
               const t = yearTotals[idx];
-              const h = t != null ? Math.max(2, (t / maxYearTotal) * 56) : 0;
+              const h = t != null ? Math.max(2, (t / maxYearTotal) * 64) : 0;
               const isActive = y === selectedYear;
               const hasData = !!school.violence[y];
               return (
