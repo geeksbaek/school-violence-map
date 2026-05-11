@@ -111,6 +111,245 @@ interface SchoolView {
   violenceTotal: number;
   violenceYears: number; // 데이터 있는 년도 수
   violenceRatePer100: number | null; // 학생수 대비
+  details: SchoolDetails;
+}
+
+// 학교알리미 공시 정보 — 카테고리별 정리
+interface SchoolDetails {
+  // apiType 09: 학년별 학급/학생
+  grades?: { label: string; classes: number | null; students: number | null; perClass: number | null }[];
+  // apiType 10: 전년도 학생수 추이
+  studentTrend?: { year: number; total: number }[];
+  // apiType 08: 수업/교사
+  teaching?: { teachers: number | null; weeklyHours: number | null; daysPerWeek: number | null };
+  // apiType 17/18: 시설
+  facility?: {
+    regularClassrooms?: number | null;     // COM_CCCLA_FGR
+    specialClassrooms?: number | null;     // CURR_CCCLA_FGR
+    sportsClassrooms?: number | null;      // LRN_SPORT_ETC_CCCLA_FGR
+    maleToilets?: number | null;
+    femaleToilets?: number | null;
+    showers?: number | null;
+    auditorium?: number | null;            // COSE_CNSRM_FGR (체육관/강당)
+    pool?: string | null;                  // SWMPL_ENNC (Y/N)
+    boardingCapacity?: number | null;      // BRHS_RCPTN_NMPR_FGR
+  };
+  // apiType 34: 급식
+  meal?: {
+    students?: number | null;
+    nutritionists?: number | null;
+    cooks?: number | null;
+    cookAssistants?: number | null;
+    operationMethod?: string | null;       // OPER_MET_CODE (직영/위탁)
+  };
+  // apiType 38: 정보화
+  digital?: {
+    allUtilStudents?: number | null;       // 모든 정보기기 활용 학생 수
+    weeklyAvgUtilStudents?: number | null; // 주간 평균
+  };
+  // apiType 43: 안전교육 7개 영역
+  safetyEducation?: {
+    [category: string]: { total: number | null; sem1: number | null; sem2: number | null };
+  };
+  // apiType 56: 창체/동아리
+  activities?: {
+    creativeStudents?: number | null;
+    creativeTeachers?: number | null;
+    creativeExternalLecturers?: number | null;
+    creativeBudget?: number | null;
+    clubs?: number | null;                  // STDNT_SLCTL_CCCLU_FGR
+    clubBudget?: number | null;             // CCCLU_ACT_BDG_SPORT_AMT
+  };
+  // apiType 59: 방과후/돌봄
+  afterSchool?: {
+    programs?: number | null;
+    students?: number | null;               // SUM_ASL_REG_STDNT_FGR
+    burdenAmount?: number | null;           // ASL_BNFR_BRDN_AMT
+    careRooms?: number | null;              // ECC_PM_OPER_CCCLA_FGR
+    careStudents?: number | null;
+  };
+  // apiType 30: 장학금 (중·고)
+  scholarship?: {
+    money?: { count: number | null; amount: number | null };
+    fortune?: { count: number | null; amount: number | null };
+    things?: { count: number | null; amount: number | null };
+    total?: { count: number | null; amount: number | null };
+  };
+  // apiType 51: 진학·졸업 (중·고)
+  graduation?: {
+    totalGrads?: number | null;
+    advanceCount?: number | null;          // 진학자
+    employmentCount?: number | null;       // 취업자 (PRTI_GRDTN_BOYST_FGR)
+    advanceRate?: number | null;
+    employmentRate?: number | null;
+    foreignRate?: number | null;
+  };
+}
+
+function safetyCatLabel(prefix: string): string {
+  return ({
+    TRFC_SAFE: "교통안전",
+    LVLH_SAFE: "생활안전",
+    DISA_SAFE: "재난안전",
+    DRU_CYBER_PRVT: "약물·사이버중독",
+    CYBER_PRVT: "사이버폭력",
+    OCCP_SAFE: "직업안전",
+    VIO_PRVT_BDY_PRTC: "폭력·신체보호",
+    EMGN_MDLRT: "응급처치",
+  } as Record<string, string>)[prefix] ?? prefix;
+}
+
+function extractDetails(i: any, kind: "초등" | "중학" | "고등"): SchoolDetails {
+  const d: SchoolDetails = {};
+  const grade = i["09"];
+  const gender = i["10"];
+  const wkly = i["08"];
+  const fac = i["17"];
+  const ground = i["18"];
+  const meal = i["34"];
+  const digital = i["38"];
+  const safety = i["43"];
+  const act = i["56"];
+  const after = i["59"];
+  const scholarship = i["30"];
+  const gradData = i["51"];
+
+  // 학년별
+  if (grade) {
+    const maxGrade = kind === "초등" ? 6 : 3;
+    const arr: NonNullable<SchoolDetails["grades"]> = [];
+    for (let g = 1; g <= maxGrade; g++) {
+      const c = num(grade[`COL_${g}`]);
+      const s = num(grade[`COL_S${g}`]);
+      const pc = num(grade[`COL_C${g}`]);
+      if (c != null || s != null) {
+        arr.push({ label: `${g}학년`, classes: c, students: s, perClass: pc });
+      }
+    }
+    if (arr.length > 0) d.grades = arr;
+  }
+
+  // 전년도 학생수 추이 (10에서 STDNT_SUM_NN 형태)
+  if (gender) {
+    const trend: NonNullable<SchoolDetails["studentTrend"]> = [];
+    for (const k of Object.keys(gender)) {
+      const m = k.match(/^STDNT_SUM_(\d{2})$/);
+      if (!m) continue;
+      const t = num(gender[k]);
+      if (t == null) continue;
+      trend.push({ year: 2000 + parseInt(m[1]), total: t });
+    }
+    trend.sort((a, b) => a.year - b.year);
+    if (trend.length > 0) d.studentTrend = trend;
+  }
+
+  // 수업/교사
+  if (wkly) {
+    d.teaching = {
+      teachers: num(wkly.ITRT_TCR_TOT_FGR),
+      weeklyHours: num(wkly.WEEK_TOT_ITRT_HR_FGR),
+      daysPerWeek: num(wkly.PER_STUDAY_DAY),
+    };
+  }
+
+  // 시설
+  const facObj: NonNullable<SchoolDetails["facility"]> = {};
+  if (fac) {
+    facObj.regularClassrooms = num(fac.COM_CCCLA_FGR);
+    facObj.specialClassrooms = num(fac.CURR_CCCLA_FGR);
+    facObj.sportsClassrooms = num(fac.LRN_SPORT_ETC_CCCLA_FGR);
+    facObj.maleToilets = num(fac.ML_TOI_FGR);
+    facObj.femaleToilets = num(fac.FML_TOI_FGR);
+    facObj.showers = num(fac.STDNT_SWRM_FGR);
+  }
+  if (ground) {
+    facObj.auditorium = num(ground.COSE_CNSRM_FGR);
+    facObj.pool = ground.SWMPL_ENNC === "Y" ? "있음" : ground.SWMPL_ENNC === "N" ? "없음" : null;
+    facObj.boardingCapacity = num(ground.BRHS_RCPTN_NMPR_FGR);
+  }
+  if (Object.values(facObj).some((v) => v != null)) d.facility = facObj;
+
+  // 급식
+  if (meal) {
+    d.meal = {
+      students: num(meal.MLSV_STDNT_FGR),
+      nutritionists: num(meal.NTRST_FGR),
+      cooks: num(meal.COOK_FGR),
+      cookAssistants: num(meal.COOAS_FGR),
+      operationMethod: meal.OPER_MET_CODE === "1" ? "직영" : meal.OPER_MET_CODE === "2" ? "위탁" : null,
+    };
+  }
+
+  // 정보화
+  if (digital) {
+    d.digital = {
+      allUtilStudents: num(digital.ALL_IFRMA_UTILZ_STDNT_FGR),
+      weeklyAvgUtilStudents: num(digital.WIK_AVRG_IFRMA_UTILZ_STDNT_FGR),
+    };
+  }
+
+  // 안전교육 7개 영역
+  if (safety) {
+    const cats: NonNullable<SchoolDetails["safetyEducation"]> = {};
+    const prefixes = ["TRFC_SAFE", "LVLH_SAFE", "DISA_SAFE", "DRU_CYBER_PRVT", "CYBER_PRVT", "OCCP_SAFE", "VIO_PRVT_BDY_PRTC", "EMGN_MDLRT"];
+    for (const p of prefixes) {
+      const total = num(safety[`${p}_EDC_TOTAL`]);
+      const s1 = num(safety[`${p}_EDC_HR_FGR1`]);
+      const s2 = num(safety[`${p}_EDC_HR_FGR2`]);
+      if (total != null || s1 != null || s2 != null) {
+        cats[safetyCatLabel(p)] = { total, sem1: s1, sem2: s2 };
+      }
+    }
+    if (Object.keys(cats).length > 0) d.safetyEducation = cats;
+  }
+
+  // 창체/동아리
+  if (act) {
+    d.activities = {
+      creativeStudents: num(act.CREAT_EXPER_ACT_STDNT_FGR),
+      creativeTeachers: num(act.CREAT_EXPER_ACT_CCH_TCR_FGR),
+      creativeExternalLecturers: num(act.CREAT_EXPER_ACT_EXTRLLECTR_FGR),
+      creativeBudget: num(act.CREAT_EXPER_ACT_BDG_SPORT_AMT),
+      clubs: num(act.STDNT_SLCTL_CCCLU_FGR),
+      clubBudget: num(act.CCCLU_ACT_BDG_SPORT_AMT),
+    };
+  }
+
+  // 방과후/돌봄
+  if (after) {
+    d.afterSchool = {
+      programs: num(after.SUM_ASL_PGM_FGR),
+      students: num(after.SUM_ASL_REG_STDNT_FGR),
+      burdenAmount: num(after.ASL_BNFR_BRDN_AMT),
+      careRooms: num(after.ECC_PM_OPER_CCCLA_FGR),
+      careStudents: num(after.ECC_PM_PTPT_STDNT_FGR),
+    };
+  }
+
+  // 장학금 (중·고)
+  if (scholarship && (kind === "중학" || kind === "고등")) {
+    const sc: NonNullable<SchoolDetails["scholarship"]> = {
+      money: { count: num(scholarship.MONE_AWA_SCRTS_CNT), amount: num(scholarship.MONE_AWA_SCRTS_AMT) },
+      fortune: { count: num(scholarship.FA_AWA_FRTUN_CNT), amount: num(scholarship.FA_AWA_FRTUN_AMT) },
+      things: { count: num(scholarship.BOS_AWA_THNG_CNT), amount: num(scholarship.BOS_AWA_THNG_AMT) },
+      total: { count: num(scholarship.CNT_SMTOT), amount: num(scholarship.AMT_SMTOT) },
+    };
+    if (sc.total!.count != null || sc.total!.amount != null) d.scholarship = sc;
+  }
+
+  // 진학/졸업 (중·고)
+  if (gradData && (kind === "중학" || kind === "고등")) {
+    d.graduation = {
+      totalGrads: num(gradData.ALL_SUM ?? gradData.TOTAL_SUM),
+      advanceCount: num(gradData.SUFRNTN_SCHUL_MTHMC_BOYST_FGR ?? gradData.FRNTN_SCHUL_MTHMC_BOYST_FGR),
+      employmentCount: num(gradData.SUPRTI_GRDTN_BOYST_FGR ?? gradData.PRTI_GRDTN_BOYST_FGR),
+      advanceRate: num(gradData.TOTAL1_RATE),
+      employmentRate: num(gradData.TOTAL_RATE),
+      foreignRate: num(gradData.FOREIGN_ST_RATE),
+    };
+  }
+
+  return d;
 }
 
 function num(v: any): number | null {
@@ -220,6 +459,7 @@ for (const code of Object.keys(schools)) {
     violenceTotal,
     violenceYears: yearsWithData,
     violenceRatePer100,
+    details: extractDetails(i, s.kind),
   });
 }
 
