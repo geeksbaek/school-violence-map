@@ -281,8 +281,11 @@ export function SchoolDeckLayer({
         return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
       };
 
-      // city polygon — feature group by city, geometry는 같은 city 첫 feature 사용 (서울은 city=구별, but city="서울특별시"로 묶임)
-      // 단순화: 모든 feature를 그대로 그리되 zoom < 12.5에서는 전체 city로 색 결정
+      const isSelectedCity = (p: any) => selectedRegion?.type === "city" && selectedRegion.key === p.city;
+      const isSelectedDistrict = (p: any) => selectedRegion?.type === "district" && selectedRegion.key === `${p.city}|${p.district}`;
+      const isSelectedDong = (p: any) => selectedRegion?.type === "dong" && selectedRegion.key === p.code;
+      const SEL_LINE: [number, number, number, number] = [37, 99, 235, 255]; // blue-600
+
       if (cityAlpha > 0) {
         layers.push(new GeoJsonLayer({
           id: "polygon-city",
@@ -291,16 +294,18 @@ export function SchoolDeckLayer({
           filled: true,
           pickable: true,
           getFillColor: (f: any) => {
-            const c = featureSeverity(f.properties.city, f.properties.district, true);
-            const m = c.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)!;
-            return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16), cityAlpha];
+            const [r, g, b] = hexToRgb(featureSeverity(f.properties.city, f.properties.district, true));
+            const sel = isSelectedCity(f.properties);
+            return [r, g, b, sel ? Math.min(220, cityAlpha + 60) : cityAlpha];
           },
-          getLineColor: [255, 255, 255, Math.min(220, cityAlpha + 60)],
-          getLineWidth: 1,
+          getLineColor: (f: any) =>
+            isSelectedCity(f.properties) ? SEL_LINE : [255, 255, 255, Math.min(220, cityAlpha + 60)],
+          getLineWidth: (f: any) => (isSelectedCity(f.properties) ? 3 : 1),
           lineWidthUnits: "pixels",
           updateTriggers: {
-            getFillColor: [metric, aggregatedStats, cityAlpha],
-            getLineColor: [cityAlpha],
+            getFillColor: [metric, aggregatedStats, cityAlpha, selectedRegion],
+            getLineColor: [cityAlpha, selectedRegion],
+            getLineWidth: [selectedRegion],
           },
           transitions: { getFillColor: 300 },
         }));
