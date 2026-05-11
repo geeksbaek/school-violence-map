@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import type { DataSet, School, SchoolDetails } from "@/types";
 import { severityOf, SEVERITY_COLOR, severityLabel, type Metric } from "@/lib/severity";
 import type { SchoolStat } from "@/lib/stats";
 import { cn } from "@/lib/utils";
+import { trackSection } from "@/lib/analytics";
 
 interface Props {
   school: School;
@@ -216,6 +217,7 @@ const fmtAmt = (n: number | null | undefined): string =>
 const fmtPct = (n: number | null | undefined): string => (n == null ? "—" : `${n.toFixed(1)}%`);
 
 function DetailsSections({ details, color }: { details: SchoolDetails; color: string }) {
+  const openRef = useRef<Set<string> | null>(null);
   type Section = { key: string; title: string; body: React.ReactNode };
   const sections: Section[] = [];
 
@@ -421,7 +423,18 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
   return (
     <div className="flex flex-col gap-1.5">
       <div className="text-muted-foreground text-xs">공시 정보</div>
-      <Accordion type="multiple" defaultValue={sections.map((s) => s.key)} className="w-full">
+      <Accordion
+        type="multiple"
+        defaultValue={sections.map((s) => s.key)}
+        onValueChange={(open) => {
+          // 새로 열린 섹션만 트래킹 (이전 set과의 diff)
+          const prev = openRef.current ?? new Set(sections.map((s) => s.key));
+          const now = new Set(open);
+          for (const k of now) if (!prev.has(k)) trackSection(k);
+          openRef.current = now;
+        }}
+        className="w-full"
+      >
         {sections.map((s) => (
           <AccordionItem key={s.key} value={s.key} className="last:border-b">
             <AccordionTrigger className="py-2 text-xs font-medium hover:no-underline">

@@ -12,6 +12,7 @@ import {
 } from "@/lib/severity";
 import type { SchoolStat } from "@/lib/stats";
 import { cn } from "@/lib/utils";
+import { trackFilter, trackMetric, trackSearch, trackSelection } from "@/lib/analytics";
 
 interface FilterState {
   kinds: Set<SchoolKind>;
@@ -102,11 +103,11 @@ export function Sidebar({
       <ToggleGroup
         type="single"
         value={metric}
-        onValueChange={(v) => v && setMetric(v as Metric)}
+        onValueChange={(v) => { if (v) { setMetric(v as Metric); trackMetric(v); } }}
         variant="outline"
         size="sm"
         spacing={1}
-        className="w-full"
+        className="w-full gap-1"
       >
         <ToggleGroupItem value="rate" className="flex-1">비율</ToggleGroupItem>
         <ToggleGroupItem value="count" className="flex-1">건수</ToggleGroupItem>
@@ -119,7 +120,10 @@ export function Sidebar({
         <ToggleGroup
           type="multiple"
           value={[...filter.kinds]}
-          onValueChange={(arr) => setFilter({ ...filter, kinds: new Set(arr as SchoolKind[]) })}
+          onValueChange={(arr) => {
+            setFilter({ ...filter, kinds: new Set(arr as SchoolKind[]) });
+            trackFilter("kinds", arr as string[]);
+          }}
           variant="outline"
           size="sm"
           className="w-full"
@@ -137,15 +141,18 @@ export function Sidebar({
         <ToggleGroup
           type="multiple"
           value={[...filter.genders]}
-          onValueChange={(arr) => setFilter({ ...filter, genders: new Set(arr as SchoolGender[]) })}
+          onValueChange={(arr) => {
+            setFilter({ ...filter, genders: new Set(arr as SchoolGender[]) });
+            trackFilter("genders", arr as string[]);
+          }}
           variant="outline"
           size="sm"
           className="w-full"
         >
           {GENDER_LIST.map((g) => (
             <ToggleGroupItem key={g} value={g} className="flex-1 text-xs">
-              {g === "여" ? "여학교" : "공학"}
-              <span className="ml-1 text-muted-foreground tabular-nums">{genderCounts[g]}</span>
+              <span>{g === "여" ? "여학교" : "공학"}</span>
+              <span className="text-[10px] opacity-70 tabular-nums">{genderCounts[g].toLocaleString()}</span>
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
@@ -158,7 +165,11 @@ export function Sidebar({
         action={
           <button
             type="button"
-            onClick={() => setFilter({ ...filter, types: allTypesOn ? new Set() : new Set(ALL_TYPES) })}
+            onClick={() => {
+              const next = allTypesOn ? new Set<number>() : new Set(ALL_TYPES);
+              setFilter({ ...filter, types: next });
+              trackFilter("types_toggle_all", allTypesOn ? "off" : "on");
+            }}
             className="text-foreground underline underline-offset-2 hover:no-underline"
           >
             {allTypesOn ? "모두 끄기" : "모두 켜기"}
@@ -176,6 +187,7 @@ export function Sidebar({
                   const next = new Set(filter.types);
                   if (active) next.delete(i); else next.add(i);
                   setFilter({ ...filter, types: next });
+                  trackFilter("type", `${label}:${active ? "off" : "on"}`);
                 }}
                 className="cursor-pointer text-[10px] select-none"
               >
@@ -259,7 +271,10 @@ export function Sidebar({
               <li key={s.code}>
                 <button
                   type="button"
-                  onClick={() => onPick(s)}
+                  onClick={() => {
+                    trackSelection("school", s.name, "list", { school_kind: s.kind, city: s.city });
+                    onPick(s);
+                  }}
                   className={cn(
                     "w-full text-left rounded-md border px-2 py-1.5 hover:bg-accent transition-colors",
                     isSel && "bg-accent border-foreground/30",
@@ -377,6 +392,8 @@ function SchoolAutocomplete({
   }
 
   function pick(s: School) {
+    trackSearch(q.trim());
+    trackSelection("school", s.name, "search", { school_kind: s.kind, city: s.city });
     onPick(s);
     setQ("");
     setOpen(false);

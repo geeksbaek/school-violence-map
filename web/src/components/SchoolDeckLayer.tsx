@@ -12,6 +12,7 @@ import { ScatterplotLayer, GeoJsonLayer } from "@deck.gl/layers";
 import type { School } from "@/types";
 import { severityOf, SEVERITY_COLOR, type Metric } from "@/lib/severity";
 import type { SchoolStat } from "@/lib/stats";
+import { trackZoom } from "@/lib/analytics";
 
 export interface RegionPick {
   type: "city" | "district" | "dong";
@@ -74,7 +75,11 @@ export function SchoolDeckLayer({
   // 줌 변화 추적
   useEffect(() => {
     if (!map) return;
-    const update = () => setZoom(map.getZoom() ?? 11);
+    const update = () => {
+      const z = map.getZoom() ?? 11;
+      setZoom(z);
+      trackZoom(z);
+    };
     update();
     const lis = map.addListener("zoom_changed", update);
     return () => lis.remove();

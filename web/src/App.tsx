@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { APIProvider, Map as GMap, useMap } from "@vis.gl/react-google-maps";
-import { Menu } from "lucide-react";
+import { Menu, LocateFixed, Loader2 } from "lucide-react";
 import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import type { Metric } from "@/lib/severity";
 import { computeStat, setToBits, type SchoolStat } from "@/lib/stats";
@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { initAnalytics, trackSelection } from "@/lib/analytics";
+import { initAnalytics, trackEvent, trackPageView, trackSelection } from "@/lib/analytics";
 
 const KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string;
 
@@ -107,7 +107,7 @@ export function App() {
     }
   }, [data, dongGeo]);
 
-  // state → URL 동기화
+  // state → URL 동기화 + GA page_view
   useEffect(() => {
     if (!restoredRef.current) return;
     const params = new URLSearchParams(window.location.search);
@@ -118,6 +118,12 @@ export function App() {
     const qs = params.toString();
     const url = `${window.location.pathname}${qs ? "?" + qs : ""}${window.location.hash}`;
     window.history.replaceState(null, "", url);
+    const title = selected
+      ? `학교 — ${selected.name}`
+      : selectedRegion
+        ? `지역 — ${selectedRegion.label}`
+        : "전국 학교폭력 지도";
+    trackPageView(`${window.location.pathname}${qs ? "?" + qs : ""}`, title);
   }, [selected, selectedRegion]);
 
   const filtered = useMemo(() => {
@@ -143,7 +149,10 @@ export function App() {
       if (!dir) return;
       e.preventDefault();
       const next = nearestInDirection(selected!, filtered, dir);
-      if (next) setSelected(next);
+      if (next) {
+        setSelected(next);
+        trackSelection("school", next.name, "keyboard", { school_kind: next.kind, city: next.city });
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -181,7 +190,6 @@ export function App() {
       onPick={(s) => {
         setSelected(s);
         setSidebarOpen(false);
-        trackSelection("school", s.name, { school_kind: s.kind, city: s.city, source: "list" });
       }}
       metric={metric}
       setMetric={setMetric}
@@ -197,7 +205,7 @@ export function App() {
 
         {/* 모바일 사이드바 — Sheet */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetContent side="left" className="w-full max-w-[360px] p-0 gap-0">
+          <SheetContent side="left" showCloseButton={false} className="w-full max-w-[360px] p-0 gap-0">
             <SheetHeader className="sr-only">
               <SheetTitle>학교폭력 지도</SheetTitle>
             </SheetHeader>
@@ -228,17 +236,18 @@ export function App() {
                 onPick={(s) => {
                   setSelected(s);
                   setSelectedRegion(null);
-                  trackSelection("school", s.name, { school_kind: s.kind, city: s.city });
+                  trackSelection("school", s.name, "marker", { school_kind: s.kind, city: s.city });
                 }}
                 onPickRegion={(r) => {
                   setSelectedRegion(r);
                   setSelected(null);
-                  trackSelection("region", r.label, { region_type: r.type });
+                  trackSelection("region", r.label, "marker", { region_type: r.type });
                 }}
                 adminGeo={adminGeo}
                 dongGeo={dongGeo}
               />
               <FlyToSelected school={selected} />
+              <LocateMeButton />
             </GMap>
           </APIProvider>
 
@@ -321,6 +330,52 @@ function nearestInDirection(from: School, all: School[], dir: "left" | "right" |
     if (d2 < bestD2) { bestD2 = d2; best = s; }
   }
   return best;
+}
+
+function LocateMeButton() {
+  const map = useMap();
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  function locate() {
+    if (!navigator.geolocation || !map) return;
+    setLoading(true);
+    setErr(null);
+    trackEvent("locate_me_request");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        if ((map.getZoom() ?? 0) < 14) map.setZoom(15);
+        setLoading(false);
+        trackEvent("locate_me_success");
+      },
+      (e) => {
+        setLoading(false);
+        setErr(e.message);
+        trackEvent("locate_me_fail", { reason: e.code });
+        setTimeout(() => setErr(null), 3000);
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
+  return (
+    <div className="absolute bottom-6 right-3 z-10 flex flex-col items-end gap-1">
+      {err && (
+        <div className="bg-destructive/90 text-destructive-foreground text-xs px-2 py-1 rounded shadow">
+          위치 가져오기 실패
+        </div>
+      )}
+      <Button
+        variant="default"
+        size="icon"
+        onClick={locate}
+        disabled={loading}
+        className="shadow-md size-10"
+        aria-label="현재 위치로 이동"
+      >
+        {loading ? <Loader2 className="size-5 animate-spin" /> : <LocateFixed className="size-5" />}
+      </Button>
+    </div>
+  );
 }
 
 function FlyToSelected({ school }: { school: School | null }) {
