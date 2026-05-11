@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { APIProvider, Map as GMap, MapControl, ControlPosition, useMap } from "@vis.gl/react-google-maps";
+import { Menu } from "lucide-react";
 import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import type { Metric } from "@/lib/severity";
 import { computeStat, setToBits, type SchoolStat } from "@/lib/stats";
 import { SchoolMarker } from "@/components/SchoolMarker";
 import { SchoolDetail } from "@/components/SchoolDetail";
 import { Sidebar, type FilterState } from "@/components/Sidebar";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 const KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string;
 
@@ -22,6 +25,7 @@ export function App() {
   const [data, setData] = useState<DataSet | null>(null);
   const [selected, setSelected] = useState<School | null>(null);
   const [metric, setMetric] = useState<Metric>("rate");
+  const [sidebarOpen, setSidebarOpen] = useState(false); // 모바일용
   const [filter, setFilter] = useState<FilterState>({
     cities: new Set(),
     kinds: new Set(ALL_KINDS),
@@ -89,18 +93,40 @@ export function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
-      <Sidebar
-        data={data}
-        filtered={filtered}
-        stats={stats}
-        filter={filter}
-        setFilter={setFilter}
-        selected={selected}
-        onPick={(s) => setSelected(s)}
-        metric={metric}
-        setMetric={setMetric}
-      />
+    <div className="flex h-[100dvh] w-screen overflow-hidden">
+      {/* 사이드바 — 데스크톱 고정 / 모바일 슬라이드 */}
+      <div
+        className={cn(
+          "fixed md:static inset-y-0 left-0 z-30 w-full max-w-[360px] md:max-w-none md:w-auto",
+          "transform transition-transform duration-200",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+        )}
+      >
+        <Sidebar
+          data={data}
+          filtered={filtered}
+          stats={stats}
+          filter={filter}
+          setFilter={setFilter}
+          selected={selected}
+          onPick={(s) => {
+            setSelected(s);
+            setSidebarOpen(false);
+          }}
+          metric={metric}
+          setMetric={setMetric}
+          onClose={() => setSidebarOpen(false)}
+        />
+      </div>
+
+      {/* 모바일 사이드바 backdrop */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/40 z-20"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       <main className="flex-1 relative">
         <APIProvider apiKey={KEY}>
           <GMap
@@ -111,6 +137,7 @@ export function App() {
             mapTypeControl={false}
             streetViewControl={false}
             fullscreenControl={false}
+            zoomControl={false}
             className="absolute inset-0"
           >
             {filtered.map((s) => (
@@ -126,13 +153,38 @@ export function App() {
             <FlyToSelected school={selected} />
             <MapControl position={ControlPosition.TOP_RIGHT}>
               <div className="m-2 bg-white/90 backdrop-blur rounded-md px-2 py-1 text-xs shadow">
-                마커 표시 {filtered.length}개 / 전체 {data.schools.length}
+                {filtered.length}/{data.schools.length}
               </div>
             </MapControl>
           </GMap>
         </APIProvider>
+
+        {/* 모바일 햄버거 + 타이틀 — 지도 위 floating */}
+        <div className="md:hidden absolute top-3 left-3 z-10 flex items-center gap-2">
+          <Button
+            variant="default"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+            className="shadow-md"
+          >
+            <Menu className="size-5" />
+          </Button>
+          <div className="bg-white/90 backdrop-blur rounded-md px-2 py-1 text-xs shadow-md font-medium">
+            학교폭력 지도
+          </div>
+        </div>
+
+        {/* 디테일 패널 — 데스크톱 우상단 / 모바일 하단 시트 */}
         {selected && (
-          <div className="absolute top-3 right-3 w-[340px] max-h-[calc(100vh-1.5rem)] overflow-y-auto z-10">
+          <div
+            className={cn(
+              "absolute z-10 overflow-y-auto",
+              // 모바일: 하단 시트, 화면 70%까지
+              "left-2 right-2 bottom-2 max-h-[70dvh]",
+              // 데스크톱: 우상단 카드
+              "md:left-auto md:bottom-auto md:right-3 md:top-3 md:w-[340px] md:max-h-[calc(100dvh-1.5rem)]",
+            )}
+          >
             <SchoolDetail
               school={selected}
               stat={stats.get(selected.code)!}

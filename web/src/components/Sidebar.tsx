@@ -3,6 +3,7 @@ import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 import {
   SEVERITY_COLOR, SEVERITY_ORDER, severityOf, severityLabel, type Metric,
 } from "@/lib/severity";
@@ -27,13 +28,14 @@ interface Props {
   onPick: (s: School) => void;
   metric: Metric;
   setMetric: (m: Metric) => void;
+  onClose?: () => void; // 모바일 닫기 버튼
 }
 
 const KIND_LIST: SchoolKind[] = ["초등", "중학", "고등"];
 const GENDER_LIST: SchoolGender[] = ["공학", "여", "남"];
 
 export function Sidebar({
-  data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric,
+  data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, onClose,
 }: Props) {
   const cityList = useMemo(() => Array.from(new Set(data.schools.map((s) => s.city))).sort(), [data]);
 
@@ -75,12 +77,19 @@ export function Sidebar({
   }, [data]);
 
   return (
-    <aside className="bg-background flex flex-col gap-3 overflow-hidden border-r p-3 w-[340px] flex-shrink-0">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-base font-bold leading-tight">학교폭력 지도</h1>
-        <span className="text-muted-foreground text-xs">
-          수원·용인·성남·화성 · {data.schools.length}개 학교
-        </span>
+    <aside className="bg-background flex flex-col gap-3 overflow-hidden border-r p-3 w-full h-full md:w-[340px] md:flex-shrink-0">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-base font-bold leading-tight">학교폭력 지도</h1>
+          <span className="text-muted-foreground text-xs">
+            수원·용인·성남·화성 · {data.schools.length}개 학교
+          </span>
+        </div>
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden shrink-0">
+            <X className="size-4" />
+          </Button>
+        )}
       </div>
 
       {/* 검색 */}
