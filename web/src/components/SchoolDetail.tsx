@@ -54,8 +54,8 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
   const maxTypeTotal = Math.max(1, ...(selectedYearV?.types ?? [0]));
 
   return (
-    <Card className="w-full gap-3 py-4">
-      <CardHeader className="flex-row items-start justify-between gap-2 px-4">
+    <Card className="w-full gap-3 py-0 pb-4">
+      <CardHeader className="sticky top-0 z-20 bg-card flex-row items-start justify-between gap-2 px-4 pt-4 pb-3 border-b">
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <CardTitle className="flex items-center gap-2 text-base min-w-0">
             <span
