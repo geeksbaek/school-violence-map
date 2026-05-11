@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { APIProvider, Map, MapControl, ControlPosition, useMap } from "@vis.gl/react-google-maps";
+import { APIProvider, Map as GMap, MapControl, ControlPosition, useMap } from "@vis.gl/react-google-maps";
 import type { DataSet, School, SchoolKind } from "@/types";
 import type { Metric } from "@/lib/severity";
+import { computeStat, setToBits, type SchoolStat } from "@/lib/stats";
 import { SchoolMarker } from "@/components/SchoolMarker";
 import { SchoolDetail } from "@/components/SchoolDetail";
 import { Sidebar, type FilterState } from "@/components/Sidebar";
@@ -22,6 +23,7 @@ export function App() {
     cities: new Set(),
     kinds: new Set(ALL_KINDS),
     query: "",
+    types: new Set([0, 1, 2, 3, 4, 5, 6, 7]),
   });
 
   useEffect(() => {
@@ -49,6 +51,15 @@ export function App() {
     });
   }, [data, filter]);
 
+  // 학교별 stat (선택 유형 기준 합산) — code → SchoolStat
+  const stats = useMemo(() => {
+    const m = new Map<string, SchoolStat>();
+    if (!data) return m;
+    const mask = setToBits(filter.types);
+    for (const s of data.schools) m.set(s.code, computeStat(s, data.years, mask));
+    return m;
+  }, [data, filter.types]);
+
   if (!KEY) {
     return (
       <div className="h-screen flex items-center justify-center text-center text-sm">
@@ -73,6 +84,7 @@ export function App() {
       <Sidebar
         data={data}
         filtered={filtered}
+        stats={stats}
         filter={filter}
         setFilter={setFilter}
         selected={selected}
@@ -82,7 +94,7 @@ export function App() {
       />
       <main className="flex-1 relative">
         <APIProvider apiKey={KEY}>
-          <Map
+          <GMap
             defaultCenter={DEFAULT_CENTER}
             defaultZoom={11}
             gestureHandling="greedy"
@@ -96,6 +108,7 @@ export function App() {
               <SchoolMarker
                 key={s.code}
                 school={s}
+                stat={stats.get(s.code)!}
                 selected={selected?.code === s.code}
                 metric={metric}
                 onClick={(picked) => setSelected(picked)}
@@ -107,11 +120,18 @@ export function App() {
                 마커 표시 {filtered.length}개 / 전체 {data.schools.length}
               </div>
             </MapControl>
-          </Map>
+          </GMap>
         </APIProvider>
         {selected && (
           <div className="absolute top-3 right-3 w-[340px] max-h-[calc(100vh-1.5rem)] overflow-y-auto z-10">
-            <SchoolDetail school={selected} data={data} metric={metric} onClose={() => setSelected(null)} />
+            <SchoolDetail
+              school={selected}
+              stat={stats.get(selected.code)!}
+              data={data}
+              metric={metric}
+              selectedTypes={filter.types}
+              onClose={() => setSelected(null)}
+            />
           </div>
         )}
       </main>

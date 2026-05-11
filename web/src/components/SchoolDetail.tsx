@@ -4,11 +4,15 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import type { DataSet, School } from "@/types";
 import { severityOf, SEVERITY_COLOR, severityLabel, type Metric } from "@/lib/severity";
+import type { SchoolStat } from "@/lib/stats";
+import { cn } from "@/lib/utils";
 
 interface Props {
   school: School;
+  stat: SchoolStat;
   data: DataSet;
   metric: Metric;
+  selectedTypes: Set<number>;
   onClose: () => void;
 }
 
@@ -18,17 +22,26 @@ const KIND_VARIANT: Record<string, "default" | "secondary" | "destructive" | "ou
   고등: "outline",
 };
 
-export function SchoolDetail({ school, data, metric, onClose }: Props) {
-  const sev = severityOf(metric, school.violenceRatePer100, school.violenceTotal, school.violenceYears > 0);
+export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClose }: Props) {
+  const sev = severityOf(metric, stat.ratePer100, stat.total, stat.hasData);
   const color = SEVERITY_COLOR[sev];
   const labels = severityLabel(metric);
 
   const yearsArr = data.years;
-  const maxYearTotal = Math.max(1, ...yearsArr.map((y) => school.violence[y]?.total ?? 0));
+  // 선택 유형만 합산한 년도별 총합으로 막대 그리기
+  const yearTotals = yearsArr.map((y) => {
+    const v = school.violence[y];
+    if (!v) return null;
+    let s = 0;
+    for (const i of selectedTypes) s += v.types[i] ?? 0;
+    return s;
+  });
+  const maxYearTotal = Math.max(1, ...yearTotals.map((t) => t ?? 0));
   const maxTypeTotal = Math.max(
     1,
     ...school.violence[yearsArr[yearsArr.length - 1]]?.types ?? [0],
   );
+  const allTypesOn = selectedTypes.size === 8;
 
   return (
     <Card className="w-full">
@@ -75,37 +88,40 @@ export function SchoolDetail({ school, data, metric, onClose }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-1.5">
             <div className="rounded bg-muted/50 p-1.5">
-              <div className="text-[10px] text-muted-foreground">4년 합계</div>
+              <div className="text-[10px] text-muted-foreground">
+                4년 합계 {!allTypesOn && <span>· 선택 유형</span>}
+              </div>
               <div className="text-sm font-semibold tabular-nums">
-                {school.violenceYears > 0 ? `${school.violenceTotal}건` : "—"}
+                {stat.hasData ? `${stat.total}건` : "—"}
               </div>
             </div>
             <div className="rounded bg-muted/50 p-1.5">
               <div className="text-[10px] text-muted-foreground">학생100명당/년</div>
               <div className="text-sm font-semibold tabular-nums">
-                {school.violenceRatePer100 != null ? school.violenceRatePer100.toFixed(2) : "—"}
+                {stat.ratePer100 != null ? stat.ratePer100.toFixed(2) : "—"}
               </div>
             </div>
           </div>
         </div>
 
-        {/* 년도별 막대 */}
+        {/* 년도별 막대 (선택 유형 합산) */}
         <div>
-          <div className="text-muted-foreground mb-1 text-xs">공시년도별 사건</div>
+          <div className="text-muted-foreground mb-1 text-xs">
+            공시년도별 사건 {!allTypesOn && <span>· 선택 유형</span>}
+          </div>
           <div className="flex items-end gap-1.5 h-16">
-            {yearsArr.map((y) => {
-              const v = school.violence[y];
-              const t = v?.total ?? 0;
-              const h = v ? Math.max(2, (t / maxYearTotal) * 56) : 0;
+            {yearsArr.map((y, idx) => {
+              const t = yearTotals[idx];
+              const h = t != null ? Math.max(2, (t / maxYearTotal) * 56) : 0;
               return (
                 <div key={y} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="text-[10px] tabular-nums leading-none h-3">{v ? t : "—"}</div>
+                  <div className="text-[10px] tabular-nums leading-none h-3">{t != null ? t : "—"}</div>
                   <div
                     className="w-full rounded-sm transition-all"
                     style={{
                       height: h,
-                      background: v ? color : "#e5e7eb",
-                      opacity: v ? 1 : 0.4,
+                      background: t != null ? color : "#e5e7eb",
+                      opacity: t != null ? 1 : 0.4,
                     }}
                   />
                   <div className="text-[10px] text-muted-foreground">{y}</div>
@@ -129,8 +145,15 @@ export function SchoolDetail({ school, data, metric, onClose }: Props) {
                 {data.typeLabels.map((label, i) => {
                   const cnt = latestV.types[i] ?? 0;
                   const w = (cnt / maxTypeTotal) * 100;
+                  const isSelType = selectedTypes.has(i);
                   return (
-                    <div key={label} className="flex items-center gap-2 text-xs">
+                    <div
+                      key={label}
+                      className={cn(
+                        "flex items-center gap-2 text-xs",
+                        !isSelType && "opacity-40",
+                      )}
+                    >
                       <div className="w-14 text-muted-foreground">{label}</div>
                       <div className="flex-1 bg-muted h-3 rounded-sm overflow-hidden">
                         <div

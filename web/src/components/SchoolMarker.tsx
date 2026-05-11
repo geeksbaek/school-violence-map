@@ -2,9 +2,11 @@ import { useMap } from "@vis.gl/react-google-maps";
 import { useEffect, useRef } from "react";
 import type { School } from "@/types";
 import { severityOf, SEVERITY_COLOR, type Metric } from "@/lib/severity";
+import type { SchoolStat } from "@/lib/stats";
 
 interface Props {
   school: School;
+  stat: SchoolStat;
   selected: boolean;
   metric: Metric;
   onClick: (s: School) => void;
@@ -17,20 +19,19 @@ const SHAPE: Record<string, { path: string; scale: number }> = {
   고등: { path: "M 0,-1 L 1,0 L 0,1 L -1,0 Z", scale: 1 },                    // 다이아몬드
 };
 
-export function SchoolMarker({ school, selected, metric, onClick }: Props) {
+export function SchoolMarker({ school, stat, selected, metric, onClick }: Props) {
   const map = useMap();
   const markerRef = useRef<google.maps.Marker | null>(null);
 
-  const sev = severityOf(metric, school.violenceRatePer100, school.violenceTotal, school.violenceYears > 0);
+  const sev = severityOf(metric, stat.ratePer100, stat.total, stat.hasData);
   const color = SEVERITY_COLOR[sev];
 
-  // 크기: rate 모드 → 학생수 (맥락), count 모드 → 절대 건수 (강조)
   let baseScale: number;
   if (metric === "rate") {
     const st = school.studentTotal ?? 300;
     baseScale = st >= 1000 ? 9 : st >= 500 ? 7 : st >= 200 ? 5.5 : 4.5;
   } else {
-    const c = school.violenceTotal;
+    const c = stat.total;
     baseScale = c >= 30 ? 11 : c >= 15 ? 8.5 : c >= 5 ? 6.5 : c >= 1 ? 5 : 4;
   }
   const scale = selected ? baseScale * 1.4 : baseScale;
@@ -53,8 +54,8 @@ export function SchoolMarker({ school, selected, metric, onClick }: Props) {
       zIndex: selected
         ? 1000
         : metric === "rate"
-          ? Math.round(school.violenceRatePer100 ?? 0)
-          : school.violenceTotal,
+          ? Math.round(stat.ratePer100 ?? 0)
+          : stat.total,
     });
     markerRef.current = marker;
     const listener = marker.addListener("click", () => onClick(school));
@@ -64,7 +65,7 @@ export function SchoolMarker({ school, selected, metric, onClick }: Props) {
       markerRef.current = null;
     };
     // Recreate marker on key prop changes
-  }, [map, school, color, scale, selected, onClick]);
+  }, [map, school, color, scale, selected, metric, onClick]);
 
   return null;
 }

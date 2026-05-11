@@ -6,17 +6,20 @@ import { Button } from "@/components/ui/button";
 import {
   SEVERITY_COLOR, SEVERITY_ORDER, severityOf, severityLabel, type Metric,
 } from "@/lib/severity";
+import type { SchoolStat } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 
 interface FilterState {
   cities: Set<string>;
   kinds: Set<SchoolKind>;
   query: string;
+  types: Set<number>; // 학폭 유형 인덱스 (0..7)
 }
 
 interface Props {
   data: DataSet;
   filtered: School[];
+  stats: Map<string, SchoolStat>;
   filter: FilterState;
   setFilter: (f: FilterState) => void;
   selected: School | null;
@@ -28,35 +31,38 @@ interface Props {
 const KIND_LIST: SchoolKind[] = ["초등", "중학", "고등"];
 
 export function Sidebar({
-  data, filtered, filter, setFilter, selected, onPick, metric, setMetric,
+  data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric,
 }: Props) {
   const cityList = useMemo(() => Array.from(new Set(data.schools.map((s) => s.city))).sort(), [data]);
 
   const sortedTop = useMemo(() => {
     return [...filtered].sort((a, b) => {
+      const sa = stats.get(a.code);
+      const sb = stats.get(b.code);
       if (metric === "rate") {
-        const ar = a.violenceYears > 0 ? a.violenceRatePer100 ?? -1 : -1;
-        const br = b.violenceYears > 0 ? b.violenceRatePer100 ?? -1 : -1;
+        const ar = sa?.hasData ? sa.ratePer100 ?? -1 : -1;
+        const br = sb?.hasData ? sb.ratePer100 ?? -1 : -1;
         return br - ar;
       }
-      // count: 데이터 없으면 뒤로
-      const ah = a.violenceYears > 0 ? 1 : 0;
-      const bh = b.violenceYears > 0 ? 1 : 0;
+      const ah = sa?.hasData ? 1 : 0;
+      const bh = sb?.hasData ? 1 : 0;
       if (ah !== bh) return bh - ah;
-      return b.violenceTotal - a.violenceTotal;
+      return (sb?.total ?? 0) - (sa?.total ?? 0);
     });
-  }, [filtered, metric]);
+  }, [filtered, stats, metric]);
 
-  const stats = useMemo(() => {
+  const sevCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const s of filtered) {
-      const sev = severityOf(metric, s.violenceRatePer100, s.violenceTotal, s.violenceYears > 0);
+      const st = stats.get(s.code);
+      const sev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false);
       counts[sev] = (counts[sev] ?? 0) + 1;
     }
     return counts;
-  }, [filtered, metric]);
+  }, [filtered, stats, metric]);
 
   const labels = severityLabel(metric);
+  const allTypesOn = filter.types.size === 8;
 
   return (
     <aside className="bg-background flex flex-col gap-3 overflow-hidden border-r p-3 w-[340px] flex-shrink-0">
@@ -119,6 +125,42 @@ export function Sidebar({
         })}
       </div>
 
+      {/* 학폭 유형 필터 */}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+          <span>학폭 유형 ({filter.types.size}/8)</span>
+          {!allTypesOn && (
+            <button
+              type="button"
+              onClick={() => setFilter({ ...filter, types: new Set([0,1,2,3,4,5,6,7]) })}
+              className="text-foreground underline underline-offset-2 hover:no-underline"
+            >
+              전체
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {data.typeLabels.map((label, i) => {
+            const active = filter.types.has(i);
+            return (
+              <Badge
+                key={label}
+                variant={active ? "default" : "outline"}
+                onClick={() => {
+                  const next = new Set(filter.types);
+                  if (active) next.delete(i); else next.add(i);
+                  if (next.size === 0) return; // 모두 끄지 못하게 (의미 없음)
+                  setFilter({ ...filter, types: next });
+                }}
+                className="cursor-pointer text-[10px]"
+              >
+                {label}
+              </Badge>
+            );
+          })}
+        </div>
+      </div>
+
       {/* 메트릭 토글 */}
       <div className="flex gap-1 rounded-md border p-0.5 bg-muted/30">
         <Button
@@ -155,7 +197,7 @@ export function Sidebar({
               />
               <span className="flex-1">{labels[s]}</span>
               <span className="text-muted-foreground tabular-nums">
-                {stats[s] ?? 0}개
+                {sevCounts[s] ?? 0}개
               </span>
             </div>
           ))}
@@ -216,7 +258,8 @@ export function Sidebar({
       <div className="flex-1 overflow-y-auto -mx-3 px-3">
         <ul className="flex flex-col gap-1">
           {sortedTop.map((s) => {
-            const sev = severityOf(metric, s.violenceRatePer100, s.violenceTotal, s.violenceYears > 0);
+            const st = stats.get(s.code);
+            const sev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false);
             const isSel = selected?.code === s.code;
             return (
               <li key={s.code}>
@@ -235,10 +278,10 @@ export function Sidebar({
                     />
                     <span className="text-sm font-medium truncate flex-1">{s.name}</span>
                     <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
-                      {s.violenceYears > 0 ? (
-                        metric === "rate" && s.violenceRatePer100 != null
-                          ? `${s.violenceRatePer100.toFixed(2)}/100명·년`
-                          : `${s.violenceTotal}건`
+                      {st?.hasData ? (
+                        metric === "rate" && st.ratePer100 != null
+                          ? `${st.ratePer100.toFixed(2)}/100명·년`
+                          : `${st.total}건`
                       ) : "—"}
                     </span>
                   </div>
