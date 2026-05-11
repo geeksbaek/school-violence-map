@@ -298,14 +298,11 @@ export function SchoolDeckLayer({
             const sel = isSelectedCity(f.properties);
             return [r, g, b, sel ? Math.min(220, cityAlpha + 60) : cityAlpha];
           },
-          getLineColor: (f: any) =>
-            isSelectedCity(f.properties) ? SEL_LINE : [255, 255, 255, Math.min(220, cityAlpha + 60)],
-          getLineWidth: (f: any) => (isSelectedCity(f.properties) ? 3 : 1),
+          getLineColor: [255, 255, 255, Math.min(220, cityAlpha + 60)],
+          getLineWidth: 1,
           lineWidthUnits: "pixels",
           updateTriggers: {
             getFillColor: [metric, aggregatedStats, cityAlpha, selectedRegion],
-            getLineColor: [cityAlpha, selectedRegion],
-            getLineWidth: [selectedRegion],
           },
           transitions: { getFillColor: 300 },
         }));
@@ -323,14 +320,11 @@ export function SchoolDeckLayer({
             const sel = isSelectedDistrict(f.properties);
             return [r, g, b, sel ? Math.min(220, distAlpha + 70) : distAlpha];
           },
-          getLineColor: (f: any) =>
-            isSelectedDistrict(f.properties) ? SEL_LINE : [255, 255, 255, Math.min(220, distAlpha + 60)],
-          getLineWidth: (f: any) => (isSelectedDistrict(f.properties) ? 3 : 1.5),
+          getLineColor: [255, 255, 255, Math.min(220, distAlpha + 60)],
+          getLineWidth: 1.5,
           lineWidthUnits: "pixels",
           updateTriggers: {
             getFillColor: [metric, aggregatedStats, distAlpha, selectedRegion],
-            getLineColor: [distAlpha, selectedRegion],
-            getLineWidth: [selectedRegion],
           },
           transitions: { getFillColor: 300 },
         }));
@@ -348,17 +342,36 @@ export function SchoolDeckLayer({
             const sel = isSelectedDong(f.properties);
             return [r, g, b, sel ? Math.min(220, dongAlpha + 70) : dongAlpha];
           },
-          getLineColor: (f: any) =>
-            isSelectedDong(f.properties) ? SEL_LINE : [255, 255, 255, Math.min(220, dongAlpha + 40)],
-          getLineWidth: (f: any) => (isSelectedDong(f.properties) ? 3 : 1),
+          getLineColor: [255, 255, 255, Math.min(220, dongAlpha + 40)],
+          getLineWidth: 1,
           lineWidthUnits: "pixels",
           updateTriggers: {
             getFillColor: [metric, aggregatedStats, dongAlpha, selectedRegion],
-            getLineColor: [dongAlpha, selectedRegion],
-            getLineWidth: [selectedRegion],
           },
           transitions: { getFillColor: 300 },
         }));
+      }
+
+      // 선택된 폴리곤의 테두리만 별도 layer로 최상단에 (인접 폴리곤 테두리에 가려지지 않도록)
+      if (selectedRegion) {
+        const sourceGeo = selectedRegion.type === "dong" ? dongGeo : adminGeo;
+        const matcher =
+          selectedRegion.type === "city" ? isSelectedCity
+            : selectedRegion.type === "district" ? isSelectedDistrict
+            : isSelectedDong;
+        const features = sourceGeo?.features?.filter((f: any) => matcher(f.properties)) ?? [];
+        if (features.length > 0) {
+          layers.push(new GeoJsonLayer({
+            id: "polygon-selected-outline",
+            data: { type: "FeatureCollection", features },
+            stroked: true,
+            filled: false,
+            pickable: false,
+            getLineColor: SEL_LINE,
+            getLineWidth: 3,
+            lineWidthUnits: "pixels",
+          }));
+        }
       }
 
       layers.push(layer);
