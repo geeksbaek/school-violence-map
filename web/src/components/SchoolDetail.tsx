@@ -421,7 +421,7 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
   return (
     <div className="flex flex-col gap-1.5">
       <div className="text-muted-foreground text-xs">공시 정보</div>
-      <Accordion type="multiple" className="w-full">
+      <Accordion type="multiple" defaultValue={sections.map((s) => s.key)} className="w-full">
         {sections.map((s) => (
           <AccordionItem key={s.key} value={s.key} className="last:border-b">
             <AccordionTrigger className="py-2 text-xs font-medium hover:no-underline">
