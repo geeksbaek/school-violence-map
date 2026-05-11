@@ -332,6 +332,15 @@ function FlyToSelected({ school }: { school: School | null }) {
     if (!map || !school) return;
     map.panTo({ lat: school.lat, lng: school.lng });
     if ((map.getZoom() ?? 0) < 14) map.setZoom(14);
+    // 팝오버 영역만큼 보정 — 데스크톱은 우상단(360px), 모바일은 하단(~40%dvh)
+    requestAnimationFrame(() => {
+      const isMobile = window.matchMedia("(max-width: 767px)").matches;
+      if (isMobile) {
+        map.panBy(0, Math.round(window.innerHeight * 0.2));
+      } else {
+        map.panBy(180, 0);
+      }
+    });
   }, [map, school]);
   return null;
 }
