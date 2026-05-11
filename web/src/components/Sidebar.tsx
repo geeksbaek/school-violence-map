@@ -139,11 +139,11 @@ export function Sidebar({
         </Button>
       </div>
 
-      {/* 범례 */}
+      {/* 범례 — 색·크기·모양 */}
       <Card className="py-2">
         <CardHeader className="px-3 pb-1">
           <CardTitle className="text-xs">
-            {metric === "rate" ? "학생 100명당 연 사건" : "4년 합계 건수"}
+            색 — {metric === "rate" ? "학생 100명당 연 사건" : "4년 합계 건수"}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-3 flex flex-col gap-1 text-[11px]">
@@ -160,6 +160,53 @@ export function Sidebar({
             </div>
           ))}
         </CardContent>
+
+        <div className="mt-1 border-t pt-2 px-3 flex flex-col gap-1.5">
+          <div className="text-xs font-semibold">
+            크기 — {metric === "rate" ? "학생수" : "사건 수 (4년)"}
+          </div>
+          <div className="flex items-end gap-3 pl-1">
+            {(metric === "rate"
+              ? [
+                  { d: 9, l: "<200" },
+                  { d: 11, l: "200+" },
+                  { d: 14, l: "500+" },
+                  { d: 18, l: "1000+" },
+                ]
+              : [
+                  { d: 8, l: "0건" },
+                  { d: 10, l: "1+" },
+                  { d: 13, l: "5+" },
+                  { d: 17, l: "15+" },
+                  { d: 22, l: "30+" },
+                ]
+            ).map((s) => (
+              <div key={s.l} className="flex flex-col items-center gap-0.5">
+                <span
+                  className="rounded-full bg-foreground/60 border border-white"
+                  style={{ width: s.d, height: s.d }}
+                />
+                <span className="text-[10px] text-muted-foreground">{s.l}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-xs font-semibold mt-1">모양 — 학교 종류</div>
+          <div className="flex items-center gap-3 pl-1 text-[10px] text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <span className="inline-block size-3 rounded-full bg-foreground/60" />
+              초등
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="inline-block size-3 bg-foreground/60" />
+              중학
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="inline-block size-3 bg-foreground/60 rotate-45" />
+              고등
+            </div>
+          </div>
+        </div>
       </Card>
 
       {/* 리스트 */}
