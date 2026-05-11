@@ -1,0 +1,58 @@
+import { useMap } from "@vis.gl/react-google-maps";
+import { useEffect, useRef } from "react";
+import type { School } from "@/types";
+import { severityOf, SEVERITY_COLOR } from "@/lib/severity";
+
+interface Props {
+  school: School;
+  selected: boolean;
+  onClick: (s: School) => void;
+}
+
+// google.maps.SymbolPath / SVG path 대신 SVG path string 사용 — 학교 종류별 모양 구분
+const SHAPE: Record<string, { path: string; scale: number }> = {
+  초등: { path: "M 0,0 m -1,0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0", scale: 1 }, // 원
+  중학: { path: "M -1,-1 L 1,-1 L 1,1 L -1,1 Z", scale: 1 },                  // 정사각
+  고등: { path: "M 0,-1 L 1,0 L 0,1 L -1,0 Z", scale: 1 },                    // 다이아몬드
+};
+
+export function SchoolMarker({ school, selected, onClick }: Props) {
+  const map = useMap();
+  const markerRef = useRef<google.maps.Marker | null>(null);
+
+  const sev = severityOf(school.violenceRatePer100, school.violenceYears > 0);
+  const color = SEVERITY_COLOR[sev];
+
+  const st = school.studentTotal ?? 300;
+  const baseScale = st >= 1000 ? 9 : st >= 500 ? 7 : st >= 200 ? 5.5 : 4.5;
+  const scale = selected ? baseScale * 1.4 : baseScale;
+
+  useEffect(() => {
+    if (!map || !window.google?.maps) return;
+    const shape = SHAPE[school.kind];
+    const marker = new google.maps.Marker({
+      position: { lat: school.lat, lng: school.lng },
+      map,
+      title: `${school.name} (${school.kind})`,
+      icon: {
+        path: shape.path,
+        fillColor: color,
+        fillOpacity: 0.95,
+        strokeColor: selected ? "#1e40af" : "#ffffff",
+        strokeWeight: selected ? 2.5 : 1.2,
+        scale,
+      },
+      zIndex: selected ? 1000 : Math.round(school.violenceRatePer100 ?? 0),
+    });
+    markerRef.current = marker;
+    const listener = marker.addListener("click", () => onClick(school));
+    return () => {
+      listener.remove();
+      marker.setMap(null);
+      markerRef.current = null;
+    };
+    // Recreate marker on key prop changes
+  }, [map, school, color, scale, selected, onClick]);
+
+  return null;
+}

@@ -1,0 +1,14 @@
+node_modules
+dist
+bun.lock
+*.local
+.DS_Store
+
+# 민감정보
+.env
+web/.env
+
+# 임시/디버그 파일
+data/_*
+data/violence_part_*.json
+logs/
