@@ -129,15 +129,18 @@ export function Sidebar({
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
           <span>학폭 유형 ({filter.types.size}/8)</span>
-          {!allTypesOn && (
-            <button
-              type="button"
-              onClick={() => setFilter({ ...filter, types: new Set([0,1,2,3,4,5,6,7]) })}
-              className="text-foreground underline underline-offset-2 hover:no-underline"
-            >
-              전체
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() =>
+              setFilter({
+                ...filter,
+                types: allTypesOn ? new Set() : new Set([0, 1, 2, 3, 4, 5, 6, 7]),
+              })
+            }
+            className="text-foreground underline underline-offset-2 hover:no-underline"
+          >
+            {allTypesOn ? "모두 끄기" : "모두 켜기"}
+          </button>
         </div>
         <div className="flex flex-wrap gap-1">
           {data.typeLabels.map((label, i) => {
@@ -149,7 +152,6 @@ export function Sidebar({
                 onClick={() => {
                   const next = new Set(filter.types);
                   if (active) next.delete(i); else next.add(i);
-                  if (next.size === 0) return; // 모두 끄지 못하게 (의미 없음)
                   setFilter({ ...filter, types: next });
                 }}
                 className="cursor-pointer text-[10px]"
