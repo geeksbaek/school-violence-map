@@ -45,24 +45,24 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
 
   return (
     <Card className="w-full">
-      <CardHeader className="flex-row items-center justify-between">
-        <div className="flex flex-col gap-1">
-          <CardTitle className="flex items-center gap-2 text-base">
+      <CardHeader className="flex-row items-start justify-between gap-2">
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
+          <CardTitle className="flex items-center gap-2 text-base min-w-0">
             <span
-              className="size-3 rounded-full border border-white shadow-sm"
+              className="size-3 rounded-full border border-white shadow-sm shrink-0"
               style={{ background: color }}
             />
-            {school.name}
-            <Badge variant={KIND_VARIANT[school.kind]} className="ml-1">
+            <span className="truncate">{school.name}</span>
+            <Badge variant={KIND_VARIANT[school.kind]} className="shrink-0">
               {school.kind}
             </Badge>
           </CardTitle>
-          <span className="text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-xs truncate">
             {school.city} {school.district}
             {school.addr ? ` · ${school.addr}` : ""}
           </span>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
+        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0 -mt-1 -mr-1">
           <X className="size-4" />
         </Button>
       </CardHeader>

@@ -74,7 +74,7 @@ export function Sidebar({
   }, [data]);
 
   return (
-    <aside className="bg-background flex flex-col gap-3 overflow-hidden border-r p-3 w-full h-full md:w-[340px] md:flex-shrink-0">
+    <aside className="bg-background flex flex-col gap-3 overflow-y-auto overscroll-contain border-r p-3 w-full h-full md:w-[340px] md:flex-shrink-0">
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1">
           <h1 className="text-base font-bold leading-tight">학교폭력 지도</h1>
@@ -291,7 +291,7 @@ export function Sidebar({
       <div className="text-muted-foreground text-xs px-1">
         리스트 ({sortedTop.length}개) — {metric === "rate" ? "비율" : "건수"} ↓
       </div>
-      <div className="flex-1 overflow-y-auto -mx-3 px-3">
+      <div className="-mx-3 px-3">
         <ul className="flex flex-col gap-1">
           {sortedTop.map((s) => {
             const st = stats.get(s.code);

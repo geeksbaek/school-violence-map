@@ -63,21 +63,21 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
 
   return (
     <Card className="w-full">
-      <CardHeader className="flex-row items-center justify-between">
-        <div className="flex flex-col gap-1">
-          <CardTitle className="flex items-center gap-2 text-base">
+      <CardHeader className="flex-row items-start justify-between gap-2">
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
+          <CardTitle className="flex items-center gap-2 text-base min-w-0">
             <span
-              className="size-3 rounded-full border border-white shadow-sm"
+              className="size-3 rounded-full border border-white shadow-sm shrink-0"
               style={{ background: color }}
             />
-            {region.label}
-            <Badge variant="outline" className="ml-1">{TYPE_LABEL}</Badge>
+            <span className="truncate">{region.label}</span>
+            <Badge variant="outline" className="shrink-0">{TYPE_LABEL}</Badge>
           </CardTitle>
-          <span className="text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-xs truncate">
             학교 {inRegion.length}개 · {labels[sev]}
           </span>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
+        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0 -mt-1 -mr-1">
           <X className="size-4" />
         </Button>
       </CardHeader>
