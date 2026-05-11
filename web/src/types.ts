@@ -13,6 +13,8 @@ export interface School {
   name: string;
   kind: SchoolKind;
   gender: SchoolGender;
+  dong?: string;
+  dongCode?: string;
   city: string;
   district: string;
   sgg: string;

@@ -29,6 +29,59 @@ const violence: Record<string, Record<string, any>> = existsSync(join(DATA_DIR, 
   ? await Bun.file(join(DATA_DIR, "violence.json")).json()
   : {};
 
+// 동 polygon 로드 + bbox 사전 계산 (학교 좌표 → 동 매핑용)
+const dongPath = join(ROOT, "web/public/dong.geojson");
+let dongIndex: Array<{ code: string; name: string; bbox: [number, number, number, number]; rings: number[][][] }> = [];
+if (existsSync(dongPath)) {
+  const dongGeo = await Bun.file(dongPath).json();
+  for (const f of dongGeo.features) {
+    const polys: number[][][][] = f.geometry.type === "Polygon"
+      ? [f.geometry.coordinates]
+      : f.geometry.coordinates;
+    for (const poly of polys) {
+      let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+      for (const [lng, lat] of poly[0]) {
+        if (lng < minLng) minLng = lng;
+        if (lat < minLat) minLat = lat;
+        if (lng > maxLng) maxLng = lng;
+        if (lat > maxLat) maxLat = lat;
+      }
+      dongIndex.push({
+        code: f.properties.code,
+        name: f.properties.name,
+        bbox: [minLng, minLat, maxLng, maxLat],
+        rings: poly,  // [outer, hole1, hole2...]
+      });
+    }
+  }
+  console.log(`동 polygon 로드: ${dongIndex.length}개`);
+}
+
+function pointInRing(lng: number, lat: number, ring: number[][]): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if (((yi > lat) !== (yj > lat)) && (lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function findDong(lng: number, lat: number): { code: string; name: string } | null {
+  for (const d of dongIndex) {
+    if (lng < d.bbox[0] || lng > d.bbox[2] || lat < d.bbox[1] || lat > d.bbox[3]) continue;
+    // 외곽 ring 안 + 모든 hole 밖이면 매칭
+    if (!pointInRing(lng, lat, d.rings[0])) continue;
+    let inHole = false;
+    for (let h = 1; h < d.rings.length; h++) {
+      if (pointInRing(lng, lat, d.rings[h])) { inHole = true; break; }
+    }
+    if (!inHole) return { code: d.code, name: d.name };
+  }
+  return null;
+}
+
 const YEARS = ["2023", "2024", "2025", "2026"] as const;
 const TYPE_LABELS = ["신체폭력", "언어폭력", "금품갈취", "강요", "따돌림", "성폭력", "사이버폭력", "기타"];
 
@@ -39,6 +92,8 @@ interface SchoolView {
   gender: "여" | "남" | "공학";
   city: string;
   district: string;
+  dong: string;        // 행정동 (없으면 빈 문자열)
+  dongCode: string;
   sgg: string;
   addr: string;
   lat: number;
@@ -141,11 +196,16 @@ for (const code of Object.keys(schools)) {
       ? "남"
       : "공학";
 
+  // 학교 좌표 → 동 매핑
+  const dongMatch = findDong(s.lng, s.lat);
+
   out.push({
     code,
     name: s.name,
     kind: s.kind,
     gender: schoolGender,
+    dong: dongMatch?.name ?? "",
+    dongCode: dongMatch?.code ?? "",
     city: s.city,
     district: s.district,
     sgg: s.sgg,

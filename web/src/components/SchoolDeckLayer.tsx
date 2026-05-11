@@ -19,7 +19,8 @@ interface Props {
   metric: Metric;
   selectedCode: string | null;
   onPick: (s: School) => void;
-  adminGeo: any | null; // admin.geojson FeatureCollection
+  adminGeo: any | null; // 시·일반구 polygon
+  dongGeo: any | null;  // 행정동 polygon
 }
 
 type AggLevel = "school" | "district" | "city";
@@ -49,7 +50,7 @@ const COLOR_RGBA: Record<string, [number, number, number, number]> = Object.from
 // 학교 종류 → stroke 두께 차별 (모양 대신)
 const KIND_STROKE: Record<string, number> = { 초등: 1, 중학: 2, 고등: 3 };
 
-export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, adminGeo }: Props) {
+export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, adminGeo, dongGeo }: Props) {
   const map = useMap();
   const overlayRef = useRef<GoogleMapsOverlay | null>(null);
   const [zoom, setZoom] = useState<number>(11);
@@ -68,16 +69,21 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
     return () => lis.remove();
   }, [map]);
 
-  // city / district 별 합산 stat (polygon 색 결정용)
+  // city / district / dong 별 합산 stat
   const aggregatedStats = useMemo(() => {
-    const cityAgg = new Map<string, { total: number; rateSum: number; rateCnt: number; hasData: boolean }>();
-    const distAgg = new Map<string, typeof cityAgg extends Map<string, infer V> ? V : never>();
+    type Agg = { total: number; rateSum: number; rateCnt: number; hasData: boolean };
+    const cityAgg = new Map<string, Agg>();
+    const distAgg = new Map<string, Agg>();
+    const dongAgg = new Map<string, Agg>();
     for (const s of schools) {
       const st = stats.get(s.code);
       if (!st) continue;
-      const ck = s.city;
-      const dk = `${s.city}|${s.district}`;
-      for (const [m, k] of [[cityAgg, ck], [distAgg, dk]] as const) {
+      const buckets: Array<[Map<string, Agg>, string]> = [
+        [cityAgg, s.city],
+        [distAgg, `${s.city}|${s.district}`],
+      ];
+      if (s.dongCode) buckets.push([dongAgg, s.dongCode]);
+      for (const [m, k] of buckets) {
         const cur = m.get(k) ?? { total: 0, rateSum: 0, rateCnt: 0, hasData: false };
         cur.total += st.total;
         if (st.ratePer100 != null) {
@@ -88,7 +94,7 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
         m.set(k, cur);
       }
     }
-    return { city: cityAgg, district: distAgg };
+    return { city: cityAgg, district: distAgg, dong: dongAgg };
   }, [schools, stats]);
 
   // 화성 신설구처럼 polygon 매칭 안 되는 district는 city polygon에 흡수
@@ -144,7 +150,13 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
     }
 
     // opacity는 layer 생성 시 prop으로 — 사후 mutation은 frozen으로 throw
-    const schoolAlpha0 = Math.round(255 * smoothstep(zoom, 12.5, 13.5));
+    // zoom 레벨별 표시:
+    //   z < 10   : city polygon만
+    //   10-11.5  : city → district 전환
+    //   11.5-13  : district → dong 전환
+    //   13-14    : dong → 학교 마커 전환
+    //   z >= 14  : 학교 마커만
+    const schoolAlpha0 = Math.round(255 * smoothstep(zoom, 13.2, 14.2));
     const layer = new ScatterplotLayer({
       id: "schools",
       data: layerData,
@@ -205,10 +217,9 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
     const layers: any[] = [];
 
     if (adminGeo) {
-      // city polygon: zoom < 12.5 일 때 fade in
-      // district polygon: 11 <= zoom < 14 일 때 fade in
-      const cityAlpha = Math.round(160 * (1 - smoothstep(zoom, 10.5, 12.5)));
-      const distAlpha = Math.round(170 * smoothstep(zoom, 10.5, 12) * (1 - smoothstep(zoom, 12.8, 14)));
+      const cityAlpha = Math.round(160 * (1 - smoothstep(zoom, 10, 11.5)));
+      const distAlpha = Math.round(170 * smoothstep(zoom, 10, 11) * (1 - smoothstep(zoom, 11.5, 13)));
+      const dongAlpha = dongGeo ? Math.round(180 * smoothstep(zoom, 11.5, 12.5) * (1 - smoothstep(zoom, 13.2, 14.2))) : 0;
 
       const featureSeverity = (city: string, district: string, useCity: boolean) => {
         const key = useCity ? city : `${city}|${district}`;
@@ -217,6 +228,19 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
         const avgRate = agg.rateCnt > 0 ? agg.rateSum / agg.rateCnt : null;
         const sev = severityOf(metric, avgRate, agg.total, agg.hasData);
         return SEVERITY_COLOR[sev];
+      };
+
+      const dongSeverity = (dongCode: string) => {
+        const agg = aggregatedStats.dong.get(dongCode);
+        if (!agg) return SEVERITY_COLOR.unknown;
+        const avgRate = agg.rateCnt > 0 ? agg.rateSum / agg.rateCnt : null;
+        const sev = severityOf(metric, avgRate, agg.total, agg.hasData);
+        return SEVERITY_COLOR[sev];
+      };
+
+      const hexToRgb = (hex: string): [number, number, number] => {
+        const m = hex.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)!;
+        return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
       };
 
       // city polygon — feature group by city, geometry는 같은 city 첫 feature 사용 (서울은 city=구별, but city="서울특별시"로 묶임)
@@ -252,9 +276,8 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
           filled: true,
           pickable: false,
           getFillColor: (f: any) => {
-            const c = featureSeverity(f.properties.city, f.properties.district, false);
-            const m = c.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)!;
-            return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16), distAlpha];
+            const [r, g, b] = hexToRgb(featureSeverity(f.properties.city, f.properties.district, false));
+            return [r, g, b, distAlpha];
           },
           getLineColor: [255, 255, 255, Math.min(220, distAlpha + 60)],
           getLineWidth: 1.5,
@@ -267,14 +290,35 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
         }));
       }
 
-      // 학교 마커 layer는 위에서 이미 opacity/visible 설정됨
+      if (dongAlpha > 0 && dongGeo) {
+        layers.push(new GeoJsonLayer({
+          id: "polygon-dong",
+          data: dongGeo,
+          stroked: true,
+          filled: true,
+          pickable: false,
+          getFillColor: (f: any) => {
+            const [r, g, b] = hexToRgb(dongSeverity(f.properties.code));
+            return [r, g, b, dongAlpha];
+          },
+          getLineColor: [255, 255, 255, Math.min(220, dongAlpha + 40)],
+          getLineWidth: 1,
+          lineWidthUnits: "pixels",
+          updateTriggers: {
+            getFillColor: [metric, aggregatedStats, dongAlpha],
+            getLineColor: [dongAlpha],
+          },
+          transitions: { getFillColor: 300 },
+        }));
+      }
+
       layers.push(layer);
     } else {
       layers.push(layer);
     }
 
     overlayRef.current.setProps({ layers });
-  }, [map, layerData, metric, selectedCode, stats, schools, aggLevel, centroids, zoom, adminGeo, aggregatedStats]);
+  }, [map, layerData, metric, selectedCode, stats, schools, aggLevel, centroids, zoom, adminGeo, dongGeo, aggregatedStats]);
 
   // 마운트 해제 시 cleanup
   useEffect(() => {
