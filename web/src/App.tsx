@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { APIProvider, Map as GMap, MapControl, ControlPosition, useMap } from "@vis.gl/react-google-maps";
+import { APIProvider, Map as GMap, useMap } from "@vis.gl/react-google-maps";
 import { Menu } from "lucide-react";
 import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import type { Metric } from "@/lib/severity";
@@ -222,11 +222,6 @@ export function App() {
                 dongGeo={dongGeo}
               />
               <FlyToSelected school={selected} />
-              <MapControl position={ControlPosition.TOP_RIGHT}>
-                <div className="m-2 bg-white/90 backdrop-blur rounded-md px-2 py-1 text-xs shadow border tabular-nums">
-                  {filtered.length.toLocaleString()} / {data.schools.length.toLocaleString()}
-                </div>
-              </MapControl>
             </GMap>
           </APIProvider>
 
