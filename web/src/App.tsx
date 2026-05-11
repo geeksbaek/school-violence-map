@@ -4,7 +4,7 @@ import { Menu } from "lucide-react";
 import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import type { Metric } from "@/lib/severity";
 import { computeStat, setToBits, type SchoolStat } from "@/lib/stats";
-import { SchoolMarker } from "@/components/SchoolMarker";
+import { SchoolDeckLayer } from "@/components/SchoolDeckLayer";
 import { SchoolDetail } from "@/components/SchoolDetail";
 import { Sidebar, type FilterState } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
@@ -181,16 +181,13 @@ export function App() {
             zoomControl={false}
             className="absolute inset-0"
           >
-            {filtered.map((s) => (
-              <SchoolMarker
-                key={s.code}
-                school={s}
-                stat={stats.get(s.code)!}
-                selected={selected?.code === s.code}
-                metric={metric}
-                onClick={(picked) => setSelected(picked)}
-              />
-            ))}
+            <SchoolDeckLayer
+              schools={filtered}
+              stats={stats}
+              metric={metric}
+              selectedCode={selected?.code ?? null}
+              onPick={(s) => setSelected(s)}
+            />
             <FlyToSelected school={selected} />
             <MapControl position={ControlPosition.TOP_RIGHT}>
               <div className="m-2 bg-white/90 backdrop-blur rounded-md px-2 py-1 text-xs shadow">
