@@ -132,6 +132,26 @@ export function App() {
     });
   }, [data, filter]);
 
+  // 방향키 네비게이션 — 선택된 학교 기준 가장 가까운 학교(같은 방향 90° wedge)로 이동
+  useEffect(() => {
+    if (!selected) return;
+    function onKey(e: KeyboardEvent) {
+      const tgt = e.target as HTMLElement | null;
+      if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA" || tgt.isContentEditable)) return;
+      let dir: "left" | "right" | "up" | "down" | null = null;
+      if (e.key === "ArrowLeft") dir = "left";
+      else if (e.key === "ArrowRight") dir = "right";
+      else if (e.key === "ArrowUp") dir = "up";
+      else if (e.key === "ArrowDown") dir = "down";
+      if (!dir) return;
+      e.preventDefault();
+      const next = nearestInDirection(selected!, filtered, dir);
+      if (next) setSelected(next);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected, filtered]);
+
   const stats = useMemo(() => {
     const m = new Map<string, SchoolStat>();
     if (!data) return m;
@@ -283,6 +303,27 @@ export function App() {
       </div>
     </TooltipProvider>
   );
+}
+
+// 방향 wedge 안에서 가장 가까운 학교 선택. lat·lng 직접 비교(경도는 위도로 보정).
+function nearestInDirection(from: School, all: School[], dir: "left" | "right" | "up" | "down"): School | null {
+  const lngScale = Math.cos((from.lat * Math.PI) / 180);
+  let best: School | null = null;
+  let bestD2 = Infinity;
+  for (const s of all) {
+    if (s.code === from.code) continue;
+    const dx = (s.lng - from.lng) * lngScale;
+    const dy = s.lat - from.lat;
+    let inWedge = false;
+    if (dir === "right") inWedge = dx > 0 && Math.abs(dy) <= dx;
+    else if (dir === "left") inWedge = dx < 0 && Math.abs(dy) <= -dx;
+    else if (dir === "up") inWedge = dy > 0 && Math.abs(dx) <= dy;
+    else if (dir === "down") inWedge = dy < 0 && Math.abs(dx) <= -dy;
+    if (!inWedge) continue;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestD2) { bestD2 = d2; best = s; }
+  }
+  return best;
 }
 
 function FlyToSelected({ school }: { school: School | null }) {
