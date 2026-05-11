@@ -31351,6 +31351,3114 @@
     "uuid": "81aa2395-f5dd-408a-8d33-4bdfcf58845b",
     "nameInSearch": "태안여자고등학교"
   },
+  "S000003525": {
+    "uuid": "2ff11acd-9d0f-4646-b0eb-358abced925f",
+    "nameInSearch": "전주교육대학교전주부설초등학교"
+  },
+  "S130001426": {
+    "uuid": "1ffd140c-71c3-4680-b96d-8c79f4f8051e",
+    "nameInSearch": "전주남초등학교"
+  },
+  "S130001427": {
+    "uuid": "6b598b3e-9569-454d-a563-16aeddbf3813",
+    "nameInSearch": "전주대성초등학교"
+  },
+  "S130002478": {
+    "uuid": "161f37f6-a660-4812-ba78-bd6e8cf0fd43",
+    "nameInSearch": "전주대정초등학교"
+  },
+  "S130001433": {
+    "uuid": "5b9c99fc-2513-48c8-887d-e241666429e0",
+    "nameInSearch": "전주동초등학교"
+  },
+  "S130001435": {
+    "uuid": "4b5d4152-bb51-4c28-b6af-67942ecc5ee8",
+    "nameInSearch": "전주문정초등학교"
+  },
+  "S130002572": {
+    "uuid": "1f137f30-b329-4153-8e10-135d03045b0b",
+    "nameInSearch": "전주문학초등학교"
+  },
+  "S130001440": {
+    "uuid": "a7ddda99-3ab5-4141-a31b-3fe92c9313a9",
+    "nameInSearch": "전주삼천남초등학교"
+  },
+  "S130001441": {
+    "uuid": "b91a19e6-788e-417e-8237-4dd6ad76569c",
+    "nameInSearch": "전주삼천초등학교"
+  },
+  "S130002737": {
+    "uuid": "7a0613fa-3afe-4fe0-aa7c-b8b323822612",
+    "nameInSearch": "전주새연초등학교"
+  },
+  "S130001442": {
+    "uuid": "9f41f104-b96b-4922-8666-dacd915aecd7",
+    "nameInSearch": "전주서곡초등학교"
+  },
+  "S130001443": {
+    "uuid": "dfa02e77-9702-4a81-b16b-0fa6d67db36e",
+    "nameInSearch": "전주서문초등학교"
+  },
+  "S130001444": {
+    "uuid": "d57f19e7-a064-4ba1-a3ee-ccd0d0389b74",
+    "nameInSearch": "전주서신초등학교"
+  },
+  "S130001445": {
+    "uuid": "93d7b66a-6f53-47f1-b230-01e61d7c6b3e",
+    "nameInSearch": "전주서원초등학교"
+  },
+  "S130001446": {
+    "uuid": "5c7b24d8-1c38-4be3-a320-8c452f3040fc",
+    "nameInSearch": "전주서일초등학교"
+  },
+  "S130001447": {
+    "uuid": "e267f4b7-e118-49f4-bb05-d2707eee9512",
+    "nameInSearch": "전주서천초등학교"
+  },
+  "S130001452": {
+    "uuid": "c0e0fd3a-5d0d-4ac3-89c3-ba33687bbfae",
+    "nameInSearch": "전주신성초등학교"
+  },
+  "S130001454": {
+    "uuid": "12f16c89-aa54-49c4-a984-071ffa0470fa",
+    "nameInSearch": "전주양지초등학교"
+  },
+  "S130002463": {
+    "uuid": "a6f98e21-3b79-476a-afad-af06a2d59681",
+    "nameInSearch": "전주여울초등학교"
+  },
+  "S130001455": {
+    "uuid": "72d92859-35fd-414b-9d6d-b628242785af",
+    "nameInSearch": "전주완산서초등학교"
+  },
+  "S130001456": {
+    "uuid": "6a87a7b6-a1cb-497e-bcaa-67fd000c6b74",
+    "nameInSearch": "전주완산초등학교"
+  },
+  "S130002479": {
+    "uuid": "8f156cf3-c143-4e32-92a8-b3f2b5791815",
+    "nameInSearch": "전주용와초등학교"
+  },
+  "S130001458": {
+    "uuid": "ac5cb7a1-2cfd-4eef-ab0d-74f59a98e272",
+    "nameInSearch": "전주용흥초등학교"
+  },
+  "S130002573": {
+    "uuid": "d7888e25-9f19-4bd0-8e88-c763fea950fb",
+    "nameInSearch": "전주우림초등학교"
+  },
+  "S130001459": {
+    "uuid": "9db068a0-ed75-4724-98d2-04b422634d6f",
+    "nameInSearch": "전주우전초등학교"
+  },
+  "S130001467": {
+    "uuid": "b04cca34-79e1-4ab7-bc79-9ed2e6bccb4b",
+    "nameInSearch": "전주중산초등학교"
+  },
+  "S130001468": {
+    "uuid": "9088143a-a84e-43ee-aa38-04986f6ac84a",
+    "nameInSearch": "전주중앙초등학교"
+  },
+  "S130001469": {
+    "uuid": "14cbac72-20ac-48b3-8272-322681463587",
+    "nameInSearch": "전주중인초등학교"
+  },
+  "S130001470": {
+    "uuid": "341bfa9f-aef2-4109-add1-a8937b6bbdad",
+    "nameInSearch": "전주지곡초등학교"
+  },
+  "S130001472": {
+    "uuid": "e1031fd4-edc0-4afb-be3a-fce01c57db7b",
+    "nameInSearch": "전주초등학교"
+  },
+  "S130001475": {
+    "uuid": "6f69f49e-b618-4dcc-a715-e58bc906a458",
+    "nameInSearch": "전주평화초등학교"
+  },
+  "S130001476": {
+    "uuid": "d40d0f27-90d6-4de3-86f9-66b3d32f16af",
+    "nameInSearch": "전주풍남초등학교"
+  },
+  "S130001477": {
+    "uuid": "216be90f-eb01-41ac-bb9f-2f0fa0b47509",
+    "nameInSearch": "전주한들초등학교"
+  },
+  "S130002725": {
+    "uuid": "e4e77ea1-546d-48d2-bea6-4d4aabd8a709",
+    "nameInSearch": "전주홍산초등학교"
+  },
+  "S130001478": {
+    "uuid": "cc55fc5d-fce2-4f7c-ba4f-3e4073e6847a",
+    "nameInSearch": "전주화산초등학교"
+  },
+  "S130001479": {
+    "uuid": "57f8f6cd-09a9-4c6a-a9ae-3317203c8aba",
+    "nameInSearch": "전주효림초등학교"
+  },
+  "S130001480": {
+    "uuid": "e2d25a4e-c76b-4793-98ed-fc4b9d3fe8a4",
+    "nameInSearch": "전주효문초등학교"
+  },
+  "S130001481": {
+    "uuid": "06c14c2e-8393-41e0-b161-07cb68559883",
+    "nameInSearch": "전주효자초등학교"
+  },
+  "S130002745": {
+    "uuid": "790b2db9-6ae3-4318-b49b-65d24bd2f430",
+    "nameInSearch": "전주효천초등학교"
+  },
+  "S130001385": {
+    "uuid": "c420fe59-9602-4659-9c09-0897f77e20a9",
+    "nameInSearch": "서전주중학교"
+  },
+  "S130001386": {
+    "uuid": "2adf63a3-754f-4146-88aa-8fad97cf4a8b",
+    "nameInSearch": "완산중학교"
+  },
+  "S130002466": {
+    "uuid": "0d07216e-651c-4828-953b-8c201636c35f",
+    "nameInSearch": "전주곤지중학교"
+  },
+  "S130001395": {
+    "uuid": "80bf8d9d-5d3e-4a0a-a9f1-e90175ca1f14",
+    "nameInSearch": "전주근영중학교"
+  },
+  "S130001396": {
+    "uuid": "3de97723-3682-478c-a119-fe33c10d3e33",
+    "nameInSearch": "전주기전중학교"
+  },
+  "S130001397": {
+    "uuid": "1136d65b-894a-4fb9-8a82-9bac3e43173e",
+    "nameInSearch": "전주남중학교"
+  },
+  "S130002453": {
+    "uuid": "b07976fa-e9e4-475b-811a-726d770245b1",
+    "nameInSearch": "전주서곡중학교"
+  },
+  "S130001401": {
+    "uuid": "00ba0793-91c3-447a-80d0-cd337eed5cf0",
+    "nameInSearch": "전주서신중학교"
+  },
+  "S130001402": {
+    "uuid": "8859d7d0-26e1-4467-ad31-20522f9eaefb",
+    "nameInSearch": "전주서중학교"
+  },
+  "S130001403": {
+    "uuid": "1a1eb87d-8285-40e1-974c-4558ca92c09d",
+    "nameInSearch": "전주성심여자중학교"
+  },
+  "S130001411": {
+    "uuid": "98d471af-ffc1-4c49-8add-a7ef1ab84341",
+    "nameInSearch": "전주신일중학교"
+  },
+  "S130001405": {
+    "uuid": "82dfd85c-f282-4b7c-98de-2a5d398f5a18",
+    "nameInSearch": "전주신흥중학교"
+  },
+  "S130001406": {
+    "uuid": "6820a072-1bbf-43c0-8fd9-8126efedccda",
+    "nameInSearch": "전주양지중학교"
+  },
+  "S130002480": {
+    "uuid": "12eb10ac-3516-46ce-90ad-87e8fe6b09b1",
+    "nameInSearch": "전주용흥중학교"
+  },
+  "S130002574": {
+    "uuid": "ee4f6934-8779-4c61-8bdd-3c11e3467450",
+    "nameInSearch": "전주우림중학교"
+  },
+  "S130001388": {
+    "uuid": "a2a6b058-54df-4fac-b429-1ea52d4d571e",
+    "nameInSearch": "전주우전중학교"
+  },
+  "S130002464": {
+    "uuid": "8a746481-aaf2-4e5d-9fc6-32c87bbb414a",
+    "nameInSearch": "전주평화중학교"
+  },
+  "S130001415": {
+    "uuid": "d1eced39-d01a-4f87-931f-e05d72aff455",
+    "nameInSearch": "전주풍남중학교"
+  },
+  "S130001416": {
+    "uuid": "d1c88524-8388-4ed9-993a-a8f410f3d0a9",
+    "nameInSearch": "전주해성중학교"
+  },
+  "S130001418": {
+    "uuid": "80ed9734-3c54-4536-bb65-418547545bfb",
+    "nameInSearch": "전주효문중학교"
+  },
+  "S130001420": {
+    "uuid": "05ffe4ae-dee6-4caa-9f37-9e853b0cf5c5",
+    "nameInSearch": "전주효정중학교"
+  },
+  "S130000337": {
+    "uuid": "0735ae5f-a450-4907-a259-bc7c88ebb774",
+    "nameInSearch": "동암고등학교"
+  },
+  "S130000355": {
+    "uuid": "ddda6440-86b2-4452-8286-260f760adf21",
+    "nameInSearch": "상산고등학교"
+  },
+  "S130000374": {
+    "uuid": "0b6722a9-a10d-4f50-8ef9-0c11833dacac",
+    "nameInSearch": "완산고등학교"
+  },
+  "S130000376": {
+    "uuid": "2e1cd9f7-0e89-4a98-a62a-9c7847cb0afa",
+    "nameInSearch": "완산여자고등학교"
+  },
+  "S130000413": {
+    "uuid": "75ae2ce8-5a91-4d7f-8a33-55b5b5f57dac",
+    "nameInSearch": "전일고등학교"
+  },
+  "S130000414": {
+    "uuid": "dc4ca2aa-8c21-4ec9-94f0-b4abe51d38f4",
+    "nameInSearch": "전주고등학교"
+  },
+  "S130000417": {
+    "uuid": "a5d04aa2-d1c0-4dd8-bd9e-153085d731a9",
+    "nameInSearch": "전주근영여자고등학교"
+  },
+  "S130000419": {
+    "uuid": "2604858a-37ef-4061-99e2-e9cc22f7c2e6",
+    "nameInSearch": "전주기전여자고등학교"
+  },
+  "S130000373": {
+    "uuid": "bc13f015-91a8-4fa2-a88a-f4c6c2a7b807",
+    "nameInSearch": "전주대학교사범대학부설고등학교"
+  },
+  "S130000422": {
+    "uuid": "6cd2bd8e-ea59-46e5-8ba9-e289788f4fd3",
+    "nameInSearch": "전주성심여자고등학교"
+  },
+  "S130000425": {
+    "uuid": "1cffbdb4-2e67-48f9-9f79-6dfd5fdcc43f",
+    "nameInSearch": "전주신흥고등학교"
+  },
+  "S130000428": {
+    "uuid": "c64fcfb0-8344-496b-8489-749ec75998bf",
+    "nameInSearch": "전주여자상업고등학교"
+  },
+  "S130000429": {
+    "uuid": "5a4ed21a-dbdc-4437-8606-166f2158e425",
+    "nameInSearch": "전주영생고등학교"
+  },
+  "S130002014": {
+    "uuid": "0ca92ea8-22d8-4803-a8d5-a52b47e810a1",
+    "nameInSearch": "전주제일고등학교"
+  },
+  "S130000432": {
+    "uuid": "88724670-c5f7-43b0-aeee-ac0867e258d6",
+    "nameInSearch": "전주한일고등학교"
+  },
+  "S130000433": {
+    "uuid": "4d5673d6-b8ef-4f81-b8d1-1f8aeaf8f464",
+    "nameInSearch": "전주해성고등학교"
+  },
+  "S130000456": {
+    "uuid": "0a206ec1-2b56-4851-8019-fe93886042ea",
+    "nameInSearch": "한국전통문화고등학교"
+  },
+  "S130000465": {
+    "uuid": "a8860794-e5dd-4cff-a11e-ded097b23212",
+    "nameInSearch": "호남제일고등학교"
+  },
+  "S130001423": {
+    "uuid": "2053caa3-774a-4de0-a10a-bc9df117c220",
+    "nameInSearch": "전주금암초등학교"
+  },
+  "S130001424": {
+    "uuid": "265a9253-d7b2-45a7-b97c-4717afd072d1",
+    "nameInSearch": "전주금평초등학교"
+  },
+  "S130001425": {
+    "uuid": "ff19cdb0-e4d6-4ce6-b9bd-981a7a88b72c",
+    "nameInSearch": "전주기린초등학교"
+  },
+  "S130001428": {
+    "uuid": "2fbcbbdc-1c7c-4dbe-a3dd-6ee58f9c3ad1",
+    "nameInSearch": "전주덕일초등학교"
+  },
+  "S130001429": {
+    "uuid": "899469e5-73ee-431b-837f-60cdef984445",
+    "nameInSearch": "전주덕진초등학교"
+  },
+  "S130001431": {
+    "uuid": "0cc05bbc-86a2-4c1f-ac09-c0dc08a5acb3",
+    "nameInSearch": "전주동북초등학교"
+  },
+  "S130001432": {
+    "uuid": "72a23b76-a1fa-4585-9e9e-db17ea1a7860",
+    "nameInSearch": "전주동신초등학교"
+  },
+  "S130001434": {
+    "uuid": "203c4f72-63bd-4ce0-a579-42829a4614bb",
+    "nameInSearch": "전주만성초등학교"
+  },
+  "S130002506": {
+    "uuid": "ea5fe9f2-82eb-4341-a545-bb473dacff6f",
+    "nameInSearch": "전주만수초등학교"
+  },
+  "S130001436": {
+    "uuid": "b0c9d98f-01bc-45fd-ba78-9be85c949993",
+    "nameInSearch": "전주미산초등학교"
+  },
+  "S130001437": {
+    "uuid": "f246cd35-ec58-43c6-a0a4-0bbb59a7a3fa",
+    "nameInSearch": "전주반월초등학교"
+  },
+  "S130001438": {
+    "uuid": "cde231be-f925-4715-aaca-3f0bf302c103",
+    "nameInSearch": "전주북일초등학교"
+  },
+  "S130001439": {
+    "uuid": "fb7b3d5b-3eec-401e-b53a-1c0c49edc1f2",
+    "nameInSearch": "전주북초등학교"
+  },
+  "S130001448": {
+    "uuid": "58219161-09f3-4a30-bf0f-cf130cf4660f",
+    "nameInSearch": "전주송북초등학교"
+  },
+  "S130001449": {
+    "uuid": "cc46fa61-fcf2-4053-bb09-00887168e9af",
+    "nameInSearch": "전주송원초등학교"
+  },
+  "S130001450": {
+    "uuid": "2e8e73c4-cac5-4833-a629-d66a16ab3aa6",
+    "nameInSearch": "전주송천초등학교"
+  },
+  "S130001451": {
+    "uuid": "7603818f-48a4-4cb1-afce-c8862f5d8905",
+    "nameInSearch": "전주신동초등학교"
+  },
+  "S130001453": {
+    "uuid": "2efca397-2443-466e-bf72-c8491226e71c",
+    "nameInSearch": "전주아중초등학교"
+  },
+  "S130002732": {
+    "uuid": "3da94489-730f-41bb-8a91-e3cf797278c3",
+    "nameInSearch": "전주양현초등학교"
+  },
+  "S130002507": {
+    "uuid": "0c344b2a-cf56-40c4-92b9-19640a7dfb2d",
+    "nameInSearch": "전주오송초등학교"
+  },
+  "S130002714": {
+    "uuid": "c01898dd-f378-47bb-bf4d-a34b7127a8e5",
+    "nameInSearch": "전주온빛초등학교"
+  },
+  "S130001457": {
+    "uuid": "257edb21-3a39-4dcd-ae18-eb35198fc359",
+    "nameInSearch": "전주용덕초등학교"
+  },
+  "S130002468": {
+    "uuid": "367893a6-db1a-4748-b329-80dced094be6",
+    "nameInSearch": "전주용소초등학교"
+  },
+  "S130001460": {
+    "uuid": "490bdaca-2e8c-476b-905b-3891082e4c10",
+    "nameInSearch": "전주원동초등학교"
+  },
+  "S130001461": {
+    "uuid": "2b1048dc-14e6-4c80-9226-07e75d510199",
+    "nameInSearch": "전주인봉초등학교"
+  },
+  "S130001462": {
+    "uuid": "cbe4054c-cff8-4249-b20d-5ebd59d30017",
+    "nameInSearch": "전주인후초등학교"
+  },
+  "S130002771": {
+    "uuid": "cf15d0c1-e210-4877-9bd0-b85e0a341c48",
+    "nameInSearch": "전주자연초등학교"
+  },
+  "S130001463": {
+    "uuid": "5e177156-adbe-4cb6-9041-a0fafe078ec6",
+    "nameInSearch": "전주장동초등학교"
+  },
+  "S130001464": {
+    "uuid": "115265eb-5dcd-460c-a550-df63e6abc939",
+    "nameInSearch": "전주전라초등학교"
+  },
+  "S130001465": {
+    "uuid": "63f3aa8f-3650-4659-b54e-5263719346a1",
+    "nameInSearch": "전주전일초등학교"
+  },
+  "S130001466": {
+    "uuid": "3d743a88-a9d5-4b04-bdcb-c34f33c483ee",
+    "nameInSearch": "전주조촌초등학교"
+  },
+  "S130001471": {
+    "uuid": "d5b282b7-822d-4d87-a96e-ab8d0a572866",
+    "nameInSearch": "전주진북초등학교"
+  },
+  "S130001473": {
+    "uuid": "2b44e7a3-441c-4fec-995f-35d211af2098",
+    "nameInSearch": "전주초포초등학교"
+  },
+  "S130001474": {
+    "uuid": "b25e1b71-4b6e-4e48-85f6-28be3c27da32",
+    "nameInSearch": "전주팔복초등학교"
+  },
+  "S130002738": {
+    "uuid": "9337da0e-44fe-4912-96d0-1d09fa5c8517",
+    "nameInSearch": "전주하가초등학교"
+  },
+  "S130002748": {
+    "uuid": "764481eb-9b4f-4e5b-a9f1-be6751ed7ac0",
+    "nameInSearch": "전주화정초등학교"
+  },
+  "S130001390": {
+    "uuid": "77fe7f8a-a973-491f-8c2a-d76f0a2b6048",
+    "nameInSearch": "전라중학교"
+  },
+  "S130001409": {
+    "uuid": "2649f2a9-a505-4b31-9ad0-fa9610f20244",
+    "nameInSearch": "전북중학교"
+  },
+  "S130001393": {
+    "uuid": "d837beaf-9a32-46cd-8782-1e7db509b29c",
+    "nameInSearch": "전일중학교"
+  },
+  "S130001383": {
+    "uuid": "21209fa5-c894-4acd-9cf5-8b42bf885f12",
+    "nameInSearch": "전주기린중학교"
+  },
+  "S130001398": {
+    "uuid": "d29c48c5-f403-4e69-b760-b72643957400",
+    "nameInSearch": "전주덕일중학교"
+  },
+  "S130001399": {
+    "uuid": "dd12184c-c321-4ed5-914d-246dc8e1e8d4",
+    "nameInSearch": "전주덕진중학교"
+  },
+  "S130001400": {
+    "uuid": "fbf9d658-cc90-4847-be93-12b711ff4e14",
+    "nameInSearch": "전주동중학교"
+  },
+  "S130002742": {
+    "uuid": "411e8439-e3a0-4856-b2c7-06904d4b0784",
+    "nameInSearch": "전주만성중학교"
+  },
+  "S130001404": {
+    "uuid": "b0da9674-6711-4ac0-a9f1-fb2851ed3fec",
+    "nameInSearch": "전주솔빛중학교"
+  },
+  "S130002465": {
+    "uuid": "0770485c-2293-43bd-892f-0cabab8211b4",
+    "nameInSearch": "전주아중중학교"
+  },
+  "S130002770": {
+    "uuid": "aede8bd0-99dc-4ad5-b47e-6ecfcceb57ad",
+    "nameInSearch": "전주양현중학교"
+  },
+  "S130002583": {
+    "uuid": "7a77801d-881e-49a3-a49a-7b734a60060e",
+    "nameInSearch": "전주오송중학교"
+  },
+  "S130001407": {
+    "uuid": "89e61273-9e2e-4261-9b43-3c9684477d0d",
+    "nameInSearch": "전주온고을중학교"
+  },
+  "S130002699": {
+    "uuid": "a661f1ff-c99c-4229-afe9-3ef88e60bb4b",
+    "nameInSearch": "전주온빛중학교"
+  },
+  "S130002467": {
+    "uuid": "e162028c-6c74-4dfb-bbb8-ecf4c455e558",
+    "nameInSearch": "전주용소중학교"
+  },
+  "S130001387": {
+    "uuid": "c15de817-8c6d-4bd2-843e-1533bc50e6c6",
+    "nameInSearch": "전주우아중학교"
+  },
+  "S130001412": {
+    "uuid": "f283ad36-8314-4ad8-ac21-8d4ca5eaec4e",
+    "nameInSearch": "전주중앙중학교"
+  },
+  "S130001413": {
+    "uuid": "c1b9364d-15b9-4b97-916e-3cdbbf19b09a",
+    "nameInSearch": "전주중학교"
+  },
+  "S130001417": {
+    "uuid": "1b209557-740e-45b8-9c9b-48d8a586ff47",
+    "nameInSearch": "전주호성중학교"
+  },
+  "S130002744": {
+    "uuid": "689d7bd4-0f6d-47a3-994a-d5ee0c00488e",
+    "nameInSearch": "전주화정중학교"
+  },
+  "S130002706": {
+    "uuid": "41672698-f0f4-42b2-990e-f8be6e5829de",
+    "nameInSearch": "양현고등학교"
+  },
+  "S130000380": {
+    "uuid": "1f644b73-3745-4a07-8325-e42c4f5c55b9",
+    "nameInSearch": "우석고등학교"
+  },
+  "S130000387": {
+    "uuid": "a0cee0b4-900f-46bc-9c3b-d2a18c9ea0af",
+    "nameInSearch": "유일여자고등학교"
+  },
+  "S130000403": {
+    "uuid": "2b7b7ccd-1ff0-4c5f-b4cb-1e409a9d45f1",
+    "nameInSearch": "전라고등학교"
+  },
+  "S000003520": {
+    "uuid": "f9533aba-9d8e-4ac9-8644-f0eb61a77d79",
+    "nameInSearch": "전북대학교사범대학부설고등학교"
+  },
+  "S130000381": {
+    "uuid": "202f0e75-e850-4551-a928-68d21d0a0a31",
+    "nameInSearch": "전북여자고등학교"
+  },
+  "S130000416": {
+    "uuid": "e085bb4b-6187-40b6-bbe8-c4cd215d257d",
+    "nameInSearch": "전주공업고등학교"
+  },
+  "S130000420": {
+    "uuid": "3c3c5dc4-5557-400f-b3a7-e730f046c4c3",
+    "nameInSearch": "전주생명과학고등학교"
+  },
+  "S130000361": {
+    "uuid": "c09d4797-30be-4222-b034-0b2b801d45f0",
+    "nameInSearch": "전주솔내고등학교"
+  },
+  "S130000426": {
+    "uuid": "a60e4a35-5811-43dd-b730-05e70f63c86e",
+    "nameInSearch": "전주여자고등학교"
+  },
+  "S130000431": {
+    "uuid": "dbafb690-c1cc-49b3-8009-da0e97b32ef1",
+    "nameInSearch": "전주중앙여자고등학교"
+  },
+  "S130000570": {
+    "uuid": "eb71d27b-d5f3-428c-abb0-42ad1959884e",
+    "nameInSearch": "개야도초등학교"
+  },
+  "S130000571": {
+    "uuid": "588f1483-c4ac-4a68-a867-08275f715eea",
+    "nameInSearch": "개정초등학교"
+  },
+  "S130000574": {
+    "uuid": "61d4d569-eda6-4b7e-b506-4ca5787a6eea",
+    "nameInSearch": "군산경포초등학교"
+  },
+  "S130000575": {
+    "uuid": "e6dfa5cf-d955-4249-9405-4b66aaf280b0",
+    "nameInSearch": "군산구암초등학교"
+  },
+  "S130000576": {
+    "uuid": "15a8c08f-3736-408b-a54a-489fa9c30784",
+    "nameInSearch": "군산금광초등학교"
+  },
+  "S130002788": {
+    "uuid": "b83c3e9d-05d4-4dce-b732-b4a52042b151",
+    "nameInSearch": "군산금빛초등학교"
+  },
+  "S130000577": {
+    "uuid": "1967050b-6c60-4e16-ad4b-863308a3f96c",
+    "nameInSearch": "군산나운초등학교"
+  },
+  "S130000578": {
+    "uuid": "d4b1fe0f-3644-493a-bd5f-57695ff038f8",
+    "nameInSearch": "군산남초등학교"
+  },
+  "S130000579": {
+    "uuid": "64ea1c59-3cb6-459d-849b-e5fa07a52aa5",
+    "nameInSearch": "군산내흥초등학교"
+  },
+  "S130000580": {
+    "uuid": "ba235d05-4ead-48e0-99e7-d74961e5d693",
+    "nameInSearch": "군산동초등학교"
+  },
+  "S130000581": {
+    "uuid": "d678ea63-f6e7-43d5-a41a-55f4e550f85f",
+    "nameInSearch": "군산문화초등학교"
+  },
+  "S130002498": {
+    "uuid": "6d7f01b4-0a71-4d8c-bb7b-0bfa23412e48",
+    "nameInSearch": "군산미성초등학교"
+  },
+  "S130002582": {
+    "uuid": "2ee0904b-1b8f-4adb-84bc-27cf9a3eea4c",
+    "nameInSearch": "군산미장초등학교"
+  },
+  "S130000582": {
+    "uuid": "27ce6d26-6130-47e7-bce3-d9de8904aa63",
+    "nameInSearch": "군산산북초등학교"
+  },
+  "S130000583": {
+    "uuid": "e5231e0d-ebc3-4281-8054-76a1197c23e8",
+    "nameInSearch": "군산서초등학교"
+  },
+  "S130000584": {
+    "uuid": "327b6ccb-dd9f-4a9b-88b3-2c9201554e2e",
+    "nameInSearch": "군산서해초등학교"
+  },
+  "S130000586": {
+    "uuid": "75eef188-8fd1-42e5-afd8-7f8c8cbef913",
+    "nameInSearch": "군산수송초등학교"
+  },
+  "S130000618": {
+    "uuid": "8bab6833-6c89-42cf-948f-e6e2216930c5",
+    "nameInSearch": "군산신풍초등학교"
+  },
+  "S130000587": {
+    "uuid": "fd785847-616b-43ec-a9cc-3bd7f85b9144",
+    "nameInSearch": "군산신흥초등학교"
+  },
+  "S130002673": {
+    "uuid": "2675f46f-fe72-496b-b67b-f3eab05412b9",
+    "nameInSearch": "군산아리울초등학교"
+  },
+  "S130000588": {
+    "uuid": "6eb37b90-4369-416f-9e66-04d183300adc",
+    "nameInSearch": "군산용문초등학교"
+  },
+  "S130000589": {
+    "uuid": "c88574d8-1d7f-411b-8025-7dd9d1f6ba6b",
+    "nameInSearch": "군산월명초등학교"
+  },
+  "S130000590": {
+    "uuid": "48ddd76b-a401-43e9-8895-f7d7d547b434",
+    "nameInSearch": "군산중앙초등학교"
+  },
+  "S130000591": {
+    "uuid": "3a20de84-1162-4b84-8fc0-6536a50f1697",
+    "nameInSearch": "군산지곡초등학교"
+  },
+  "S130002499": {
+    "uuid": "f6c685fe-3300-477e-8896-b4edd986ef94",
+    "nameInSearch": "군산진포초등학교"
+  },
+  "S130000592": {
+    "uuid": "25f209d1-56ae-4f58-90cd-2375a6538748",
+    "nameInSearch": "군산초등학교"
+  },
+  "S130002606": {
+    "uuid": "9149537c-3466-4486-96a5-f2aeef2739a2",
+    "nameInSearch": "군산푸른솔초등학교"
+  },
+  "S130000593": {
+    "uuid": "cd151563-7cf8-4973-a641-de8039e8b016",
+    "nameInSearch": "군산풍문초등학교"
+  },
+  "S130000595": {
+    "uuid": "84fab326-0e74-4ce6-92f6-d871653476a9",
+    "nameInSearch": "군산흥남초등학교"
+  },
+  "S130000596": {
+    "uuid": "68675e0a-7dba-431f-95de-a4121ef96634",
+    "nameInSearch": "금암초등학교"
+  },
+  "S130000598": {
+    "uuid": "458dc71f-56d7-435d-b567-3eed2f67d286",
+    "nameInSearch": "나포초등학교"
+  },
+  "S130000599": {
+    "uuid": "58973052-ad99-4d4f-b736-20bca753c11f",
+    "nameInSearch": "당북초등학교"
+  },
+  "S130000600": {
+    "uuid": "40683eec-886c-4806-b851-dfeb62ab5896",
+    "nameInSearch": "대야남초등학교"
+  },
+  "S130000601": {
+    "uuid": "706e1af3-a910-463c-8c83-1643b7d015b6",
+    "nameInSearch": "대야초등학교"
+  },
+  "S130000602": {
+    "uuid": "6027f297-e6d1-4f96-a5f1-c5c20ba1d8f1",
+    "nameInSearch": "대야초등학교광산분교장"
+  },
+  "S130000603": {
+    "uuid": "f6acfe0e-ef7a-41c5-a5da-68165c4f283c",
+    "nameInSearch": "마룡초등학교"
+  },
+  "S130000604": {
+    "uuid": "a4fd441a-3ce7-4edd-a682-100e2afcd50e",
+    "nameInSearch": "무녀도초등학교"
+  },
+  "S130000605": {
+    "uuid": "92b80990-ded1-447e-a07b-16550afb5fa3",
+    "nameInSearch": "문창초등학교"
+  },
+  "S130000606": {
+    "uuid": "49ab9d60-594f-46d2-87bf-bff4a03e75c5",
+    "nameInSearch": "미룡초등학교"
+  },
+  "S130000607": {
+    "uuid": "a7fc2a7a-cb76-48c5-8e49-ce48f00675df",
+    "nameInSearch": "발산초등학교"
+  },
+  "S130000608": {
+    "uuid": "32d6bcfb-ee26-431f-826f-42c483748a1e",
+    "nameInSearch": "비안도초등학교"
+  },
+  "S130002690": {
+    "uuid": "6dfb318d-2d3a-4d3c-ba10-dc8bda0014fd",
+    "nameInSearch": "새만금초등학교"
+  },
+  "S130000610": {
+    "uuid": "dd1eb572-86a8-4e12-a143-4ceec8c7868a",
+    "nameInSearch": "서수초등학교"
+  },
+  "S130000611": {
+    "uuid": "305c8a6e-ef31-4f42-b472-39a83ba83aef",
+    "nameInSearch": "선연초등학교"
+  },
+  "S130000613": {
+    "uuid": "eefd5adc-9ac1-4521-b08d-6b097681737b",
+    "nameInSearch": "성산초등학교"
+  },
+  "S130000585": {
+    "uuid": "d1ab878f-39d2-4458-999e-c68713f83722",
+    "nameInSearch": "소룡초등학교"
+  },
+  "S130000615": {
+    "uuid": "2b5d213d-c424-446f-bfd1-f38a3f5b0ae9",
+    "nameInSearch": "술산초등학교"
+  },
+  "S130000616": {
+    "uuid": "fb0eed59-b4ee-460a-be7c-c8a1c12a038a",
+    "nameInSearch": "신시도초등학교"
+  },
+  "S130000617": {
+    "uuid": "89e515bf-8f63-4359-bb29-69667e7979de",
+    "nameInSearch": "신시도초등학교야미도분교장"
+  },
+  "S130000619": {
+    "uuid": "50af7419-5a75-4025-98e2-3e551eb5b13e",
+    "nameInSearch": "어청도초등학교"
+  },
+  "S130000621": {
+    "uuid": "070d9ef8-931c-40aa-be0c-15bec8461e7d",
+    "nameInSearch": "오봉초등학교"
+  },
+  "S130000622": {
+    "uuid": "e58ad919-f433-4899-9c3c-a80b72cc9302",
+    "nameInSearch": "옥구초등학교"
+  },
+  "S130000623": {
+    "uuid": "54d39feb-e87b-4854-94b8-cc636b46777f",
+    "nameInSearch": "옥봉초등학교"
+  },
+  "S130000624": {
+    "uuid": "30fa5d1a-10a2-4092-89d3-c318939e7952",
+    "nameInSearch": "옥산초등학교"
+  },
+  "S130000626": {
+    "uuid": "6d2c946b-6e1d-4293-a7be-0fde10b1a62c",
+    "nameInSearch": "임피초등학교"
+  },
+  "S000003522": {
+    "uuid": "3fdfde79-68ed-48a3-80b6-0dd491556c27",
+    "nameInSearch": "전주교육대학교군산부설초등학교"
+  },
+  "S130000627": {
+    "uuid": "f1f927f6-114f-48da-b084-1ad91e22eb18",
+    "nameInSearch": "창오초등학교"
+  },
+  "S130000594": {
+    "uuid": "1bdd7f47-a57e-4e49-8eb8-f8f53971770d",
+    "nameInSearch": "해성초등학교"
+  },
+  "S130000628": {
+    "uuid": "c0c9c715-aec7-4cc2-b3f0-ab5d4de82a9b",
+    "nameInSearch": "해성초등학교내초분교장"
+  },
+  "S130000629": {
+    "uuid": "97711952-aa05-4c1d-bb84-1b5f851ebad8",
+    "nameInSearch": "회현초등학교"
+  },
+  "S130002501": {
+    "uuid": "71b45b7b-81f8-480b-9c45-b0855d4badbd",
+    "nameInSearch": "군산금강중학교"
+  },
+  "S130000545": {
+    "uuid": "62eea8ea-a0bd-4d42-bd2d-4f818093a5ac",
+    "nameInSearch": "군산남중학교"
+  },
+  "S130000562": {
+    "uuid": "c4e6dd91-5bb4-4042-9c18-d3dd20979dba",
+    "nameInSearch": "군산대성중학교"
+  },
+  "S130002500": {
+    "uuid": "dc595c9d-2be7-4dbc-890d-d28c33518b5c",
+    "nameInSearch": "군산동산중학교"
+  },
+  "S130002004": {
+    "uuid": "707e9892-1360-4434-ac14-d45267cb4758",
+    "nameInSearch": "군산동원중학교"
+  },
+  "S130000547": {
+    "uuid": "e1f19cc5-1408-4e7b-9ab0-737061cca87f",
+    "nameInSearch": "군산산북중학교"
+  },
+  "S130000548": {
+    "uuid": "b1d03623-d3e3-459f-ac4f-2f6838fac9ee",
+    "nameInSearch": "군산서흥중학교"
+  },
+  "S130000551": {
+    "uuid": "57a66c42-b6f4-40f3-8b98-3f72746b9305",
+    "nameInSearch": "군산영광중학교"
+  },
+  "S130000553": {
+    "uuid": "6b9b0041-9b8c-440a-9509-4f8506047c29",
+    "nameInSearch": "군산월명중학교"
+  },
+  "S130000554": {
+    "uuid": "033ed73c-1161-45ab-a362-5185c341d039",
+    "nameInSearch": "군산자양중학교"
+  },
+  "S130000555": {
+    "uuid": "5492753e-a377-44b8-a7d0-bc82a863688d",
+    "nameInSearch": "군산제일중학교"
+  },
+  "S130000557": {
+    "uuid": "1cd7b4a3-dc48-4b0a-8430-438ad7a2d2c6",
+    "nameInSearch": "군산중앙중학교"
+  },
+  "S130000558": {
+    "uuid": "6359f4bd-78ed-4a2b-9152-1f257cab04e0",
+    "nameInSearch": "군산중학교"
+  },
+  "S130000559": {
+    "uuid": "6091611e-84e9-482f-a043-59e4e1bca470",
+    "nameInSearch": "군산진포중학교"
+  },
+  "S130000561": {
+    "uuid": "e2322b9e-a3ef-43bc-a369-ba736cd686d2",
+    "nameInSearch": "나포중학교"
+  },
+  "S130000563": {
+    "uuid": "f381bed4-7546-4b0e-a91d-f641eeb35256",
+    "nameInSearch": "선유도중학교"
+  },
+  "S130000566": {
+    "uuid": "2743f11b-96ef-4451-8e70-3cffab996e70",
+    "nameInSearch": "옥구중학교"
+  },
+  "S130000567": {
+    "uuid": "5cf36998-000e-4714-bc01-39131a55f5e7",
+    "nameInSearch": "임피중학교"
+  },
+  "S130000569": {
+    "uuid": "68625746-2a8a-42c5-bc99-618ace182195",
+    "nameInSearch": "회현중학교"
+  },
+  "S130000305": {
+    "uuid": "408b1e56-8a74-46da-aa17-59ed7406e08a",
+    "nameInSearch": "군산고등학교"
+  },
+  "S130000306": {
+    "uuid": "68ad397b-712e-429a-a57f-89d0b8c62f6b",
+    "nameInSearch": "군산기계공업고등학교"
+  },
+  "S130000308": {
+    "uuid": "7a2720c6-c575-4804-beed-160d8f6a9e18",
+    "nameInSearch": "군산동고등학교"
+  },
+  "S130000309": {
+    "uuid": "05aaf379-73d7-451c-91da-fe0a07ee2f56",
+    "nameInSearch": "군산상일고등학교"
+  },
+  "S130000310": {
+    "uuid": "a053c900-a8b9-4603-b3b8-dc2818e5abcc",
+    "nameInSearch": "군산여자고등학교"
+  },
+  "S130000311": {
+    "uuid": "feab0f58-0837-467c-98ed-87eb6c15bea3",
+    "nameInSearch": "군산여자상업고등학교"
+  },
+  "S130000312": {
+    "uuid": "68caa9cb-a9de-4268-9aba-0e244a005f9d",
+    "nameInSearch": "군산영광여자고등학교"
+  },
+  "S130000313": {
+    "uuid": "629fe19c-2985-4c66-95f9-fedef2947583",
+    "nameInSearch": "군산제일고등학교"
+  },
+  "S130000314": {
+    "uuid": "d5654ad4-2ada-4a0e-9b98-341e0c3fb7ac",
+    "nameInSearch": "군산중앙고등학교"
+  },
+  "S130000315": {
+    "uuid": "7cef649c-88d9-44ae-b9fb-d3a2504bf91b",
+    "nameInSearch": "군산중앙여자고등학교"
+  },
+  "S130002489": {
+    "uuid": "e8058846-de44-45bc-97d5-c8b95022aa19",
+    "nameInSearch": "전북외국어고등학교"
+  },
+  "S130000307": {
+    "uuid": "ec819d02-69bd-4f3e-92b5-d0351309437b",
+    "nameInSearch": "한들고등학교"
+  },
+  "S130001151": {
+    "uuid": "2da0cae6-e10c-46e3-896c-f548185d1c86",
+    "nameInSearch": "금마초등학교"
+  },
+  "S130001152": {
+    "uuid": "9c0612be-fd17-4dc1-9a53-bd5a72062f32",
+    "nameInSearch": "금성초등학교"
+  },
+  "S130001153": {
+    "uuid": "ffd63ece-67f4-47b6-b766-dc2288b8f406",
+    "nameInSearch": "낭산초등학교"
+  },
+  "S130001154": {
+    "uuid": "45bebcdf-744a-4f56-a958-b2900f3e2416",
+    "nameInSearch": "다송초등학교"
+  },
+  "S130001155": {
+    "uuid": "5d4b6e1f-ea33-4f9b-bcf6-fe99191b83cf",
+    "nameInSearch": "망성초등학교"
+  },
+  "S130001156": {
+    "uuid": "96bf7d13-cf37-489d-a097-236a580353da",
+    "nameInSearch": "미륵초등학교"
+  },
+  "S130001157": {
+    "uuid": "2dea01cd-d375-423b-97b2-e54f01254b24",
+    "nameInSearch": "삼기초등학교"
+  },
+  "S130001158": {
+    "uuid": "db6e0eae-d939-4822-8f57-8d16d4821972",
+    "nameInSearch": "석불초등학교"
+  },
+  "S130001159": {
+    "uuid": "bda18a1f-b6f2-4970-8de5-f70bdad4e07b",
+    "nameInSearch": "성남초등학교"
+  },
+  "S130001160": {
+    "uuid": "b73ab5ea-8d0d-454b-872c-c1307f8c550f",
+    "nameInSearch": "성당초등학교"
+  },
+  "S130001162": {
+    "uuid": "32d687b3-078f-4f94-a689-b2abc72f1250",
+    "nameInSearch": "성북초등학교"
+  },
+  "S130001166": {
+    "uuid": "da4eb06e-6f49-4e05-a2d8-f9ff4cf30717",
+    "nameInSearch": "여산초등학교"
+  },
+  "S130001167": {
+    "uuid": "bbf50a9e-f4a3-4c66-9d37-39d73738f091",
+    "nameInSearch": "영만초등학교"
+  },
+  "S130001168": {
+    "uuid": "e0e3c94b-3e7a-4a44-acf1-3279836d5bcf",
+    "nameInSearch": "오산남초등학교"
+  },
+  "S130001169": {
+    "uuid": "2211aac6-ad2b-4a25-a832-112b6700fa53",
+    "nameInSearch": "오산초등학교"
+  },
+  "S130001170": {
+    "uuid": "2d46df1a-c084-4f01-a04a-ffc69c3e3cda",
+    "nameInSearch": "왕궁남초등학교"
+  },
+  "S130001171": {
+    "uuid": "8c3f5876-2d87-47c1-adfc-68829ef25d56",
+    "nameInSearch": "왕궁초등학교"
+  },
+  "S130001172": {
+    "uuid": "cea07045-ea46-44a9-9b4b-92f6a3a0b21a",
+    "nameInSearch": "왕북초등학교"
+  },
+  "S130001173": {
+    "uuid": "ec4a1265-e973-45e0-9bfe-a85b7f20b9eb",
+    "nameInSearch": "용남초등학교"
+  },
+  "S130001174": {
+    "uuid": "285d040d-1851-4897-9e66-c12432ec18f0",
+    "nameInSearch": "용북초등학교"
+  },
+  "S130001175": {
+    "uuid": "44ec7a51-aded-411e-b91f-c5e01f8f21c1",
+    "nameInSearch": "용산초등학교"
+  },
+  "S130001176": {
+    "uuid": "4331d352-1d6b-4803-8cb6-1f60992122f5",
+    "nameInSearch": "용성초등학교"
+  },
+  "S130001177": {
+    "uuid": "55704f0e-6345-48cc-a465-9f26ed6d9f74",
+    "nameInSearch": "용안초등학교"
+  },
+  "S130001179": {
+    "uuid": "cb3c00c8-efca-460b-8384-48b0c0e06caa",
+    "nameInSearch": "웅포초등학교"
+  },
+  "S130001180": {
+    "uuid": "ac75a425-2076-4d9d-b8fb-0aa9b70c492b",
+    "nameInSearch": "이리계문초등학교"
+  },
+  "S130001181": {
+    "uuid": "7be2a278-aa92-4c46-9231-98392091a54a",
+    "nameInSearch": "이리고현초등학교"
+  },
+  "S130001182": {
+    "uuid": "d7687312-e70d-49ce-af8b-3a441d9f81a6",
+    "nameInSearch": "이리남창초등학교"
+  },
+  "S130001183": {
+    "uuid": "4f23bc98-6486-45fb-937d-8f01738db34b",
+    "nameInSearch": "이리남초등학교"
+  },
+  "S130001184": {
+    "uuid": "dbb7057a-c957-42ae-be9c-8164396ac6d6",
+    "nameInSearch": "이리동남초등학교"
+  },
+  "S130001185": {
+    "uuid": "ee6dee39-6320-4fd8-a66b-7d6bec708c6e",
+    "nameInSearch": "이리동북초등학교"
+  },
+  "S130001186": {
+    "uuid": "548e9233-06b8-4152-b266-033bda3df9a5",
+    "nameInSearch": "이리동산초등학교"
+  },
+  "S130001187": {
+    "uuid": "f2b5cc98-05d8-4825-9475-2638b57a0403",
+    "nameInSearch": "이리동초등학교"
+  },
+  "S130001188": {
+    "uuid": "6f39326d-5825-46c6-8996-5bb93f7f65a5",
+    "nameInSearch": "이리마한초등학교"
+  },
+  "S130001189": {
+    "uuid": "615417f2-acb1-4a6e-a9c3-c98db1fb8218",
+    "nameInSearch": "이리모현초등학교"
+  },
+  "S130001190": {
+    "uuid": "f3a86025-d1d5-483d-8d8f-b70ebe9d115c",
+    "nameInSearch": "이리백제초등학교"
+  },
+  "S130001191": {
+    "uuid": "47baaf95-0ef5-46d0-ab85-dbe26d2cba76",
+    "nameInSearch": "이리부송초등학교"
+  },
+  "S130001192": {
+    "uuid": "64cbabc5-e2cf-41a0-89f0-de80ab23a11a",
+    "nameInSearch": "이리부천초등학교"
+  },
+  "S130001193": {
+    "uuid": "a5f45896-4da8-4628-9398-74d690998fae",
+    "nameInSearch": "이리북일초등학교"
+  },
+  "S130001194": {
+    "uuid": "fc1fdade-1775-4aec-8d60-e2ee1ef6630b",
+    "nameInSearch": "이리북초등학교"
+  },
+  "S130001195": {
+    "uuid": "66c9e2c3-5d01-45b2-bb75-542db451998b",
+    "nameInSearch": "이리삼성초등학교"
+  },
+  "S130001196": {
+    "uuid": "1a2df370-e3ae-4b18-bc9b-9032e4d6ab6d",
+    "nameInSearch": "이리서초등학교"
+  },
+  "S130001197": {
+    "uuid": "5b27f88b-b2ff-47a8-9a8c-49f04ffc1c90",
+    "nameInSearch": "이리석암초등학교"
+  },
+  "S130001198": {
+    "uuid": "aa80c563-a203-46f1-8760-9c381da41052",
+    "nameInSearch": "이리송학초등학교"
+  },
+  "S130001199": {
+    "uuid": "05bd96e6-a1a3-47a2-92a7-ce9b603534ac",
+    "nameInSearch": "이리신동초등학교"
+  },
+  "S130001200": {
+    "uuid": "55b026a6-f345-4f77-af7f-d517d8f09eaa",
+    "nameInSearch": "이리신흥초등학교"
+  },
+  "S130001202": {
+    "uuid": "6de0220d-8c38-43ac-b6bd-c43354488050",
+    "nameInSearch": "이리영등초등학교"
+  },
+  "S130001203": {
+    "uuid": "3986e3a1-3e71-457d-859e-b00021f8047e",
+    "nameInSearch": "이리중앙초등학교"
+  },
+  "S130001204": {
+    "uuid": "cd3483a6-1638-4e75-8565-1bd8d01756af",
+    "nameInSearch": "이리초등학교"
+  },
+  "S130001205": {
+    "uuid": "5375c031-8dcc-4c71-93b5-d9daade1ca73",
+    "nameInSearch": "이리팔봉초등학교"
+  },
+  "S130002735": {
+    "uuid": "a06c34e4-eac0-4f13-a376-2d4ff6365767",
+    "nameInSearch": "익산가온초등학교"
+  },
+  "S130002454": {
+    "uuid": "f6dd4693-5b85-4ce8-a5d0-6da85d37a6df",
+    "nameInSearch": "익산궁동초등학교"
+  },
+  "S130001201": {
+    "uuid": "013789f7-5e23-43be-bd0a-1705e2f515b2",
+    "nameInSearch": "익산어양초등학교"
+  },
+  "S130002502": {
+    "uuid": "5c9f96c5-8a1e-4d3c-92af-8478fe153449",
+    "nameInSearch": "익산옥야초등학교"
+  },
+  "S130001206": {
+    "uuid": "5077c797-ebcb-4c12-b493-d5c5090fb143",
+    "nameInSearch": "익산초등학교"
+  },
+  "S130002542": {
+    "uuid": "77a05fc0-0012-402f-9cf5-1eba342a54b8",
+    "nameInSearch": "익산한벌초등학교"
+  },
+  "S130001207": {
+    "uuid": "695f177d-fef2-40c2-92ee-539da18ff970",
+    "nameInSearch": "천서초등학교"
+  },
+  "S130001208": {
+    "uuid": "c9f83465-2a78-4dd6-998c-fee658816cb7",
+    "nameInSearch": "춘포초등학교"
+  },
+  "S130001209": {
+    "uuid": "0588ac36-9a80-46eb-834b-c57576b39df6",
+    "nameInSearch": "함라초등학교"
+  },
+  "S130001210": {
+    "uuid": "fa955741-a891-4273-a6e6-0ac8c323a239",
+    "nameInSearch": "함열초등학교"
+  },
+  "S130001211": {
+    "uuid": "7444d931-bb17-421c-a6f2-3a3beceea5e4",
+    "nameInSearch": "황등남초등학교"
+  },
+  "S130001212": {
+    "uuid": "1f6ace4d-95d2-4152-939d-5bd454e950b3",
+    "nameInSearch": "황등초등학교"
+  },
+  "S130001213": {
+    "uuid": "f901cffc-b031-443a-a815-32433709a95a",
+    "nameInSearch": "흥왕초등학교"
+  },
+  "S130001127": {
+    "uuid": "077041d4-30e4-4e81-9bf8-fa5dc5d750be",
+    "nameInSearch": "남성중학교"
+  },
+  "S130001128": {
+    "uuid": "1a77b32a-5f1b-4ca5-b32c-932c80d403b8",
+    "nameInSearch": "삼기중학교"
+  },
+  "S130001129": {
+    "uuid": "f0e70759-7cf9-4233-acef-15ac71003051",
+    "nameInSearch": "성당중학교"
+  },
+  "S130001130": {
+    "uuid": "cb6d8840-0830-4af5-9514-861653dabe2b",
+    "nameInSearch": "여산중학교"
+  },
+  "S130001132": {
+    "uuid": "fbb7452d-f73e-45f7-b1ed-52c152d2d214",
+    "nameInSearch": "왕궁중학교"
+  },
+  "S130001133": {
+    "uuid": "8d119a01-f2a8-424b-a379-45bdcf3164e5",
+    "nameInSearch": "용안중학교"
+  },
+  "S130001134": {
+    "uuid": "8078c056-8bef-4054-93e0-603a1d42ab4b",
+    "nameInSearch": "웅포중학교"
+  },
+  "S130001135": {
+    "uuid": "2e9ce07e-6a6a-4d29-920f-0b74ce30cc1f",
+    "nameInSearch": "원광여자중학교"
+  },
+  "S130001136": {
+    "uuid": "ca3e2bfe-34aa-4f60-96db-63ce3a47ef17",
+    "nameInSearch": "원광중학교"
+  },
+  "S130001126": {
+    "uuid": "a38f3ae9-3b75-425f-b795-cda33344fa87",
+    "nameInSearch": "이리남성여자중학교"
+  },
+  "S130001137": {
+    "uuid": "8f0a43cb-36ab-4e47-8c74-76337e5acf7c",
+    "nameInSearch": "이리남중학교"
+  },
+  "S130001138": {
+    "uuid": "0408ef37-188f-4aec-949f-0773df465b19",
+    "nameInSearch": "이리동중학교"
+  },
+  "S130001139": {
+    "uuid": "f9c59448-4d89-40e4-b235-ffe24bd2bc3a",
+    "nameInSearch": "이리북중학교"
+  },
+  "S130001141": {
+    "uuid": "ddc615fd-01bb-407e-ba78-d03f0d6b5c93",
+    "nameInSearch": "이리영등중학교"
+  },
+  "S130001142": {
+    "uuid": "35a2fb6e-470a-4f68-91f0-b06fcf1b5c09",
+    "nameInSearch": "이리중학교"
+  },
+  "S130001143": {
+    "uuid": "3dffa094-2026-4547-a424-c5a34c7e2eff",
+    "nameInSearch": "이일여자중학교"
+  },
+  "S130002541": {
+    "uuid": "14ffb643-677f-4e34-b9b6-0943ddfc96d6",
+    "nameInSearch": "익산부송중학교"
+  },
+  "S130002575": {
+    "uuid": "404a9bf4-0008-4288-9c6b-d2359e675516",
+    "nameInSearch": "익산부천중학교"
+  },
+  "S130002472": {
+    "uuid": "1660f7c8-5c4b-4a18-8e17-f73d9bc93269",
+    "nameInSearch": "익산어양중학교"
+  },
+  "S130001144": {
+    "uuid": "1320290a-08cf-4f15-9c94-2e3d67254aa3",
+    "nameInSearch": "익산중학교"
+  },
+  "S130001145": {
+    "uuid": "940e9aea-b6d5-4693-b002-02a9c3e5489c",
+    "nameInSearch": "익산지원중학교"
+  },
+  "S130001146": {
+    "uuid": "1f1a4984-d8fc-4228-831a-66396732a2c6",
+    "nameInSearch": "진경여자중학교"
+  },
+  "S130001147": {
+    "uuid": "225f7f74-2eb9-4d93-891e-985440042b0d",
+    "nameInSearch": "함라중학교"
+  },
+  "S130001148": {
+    "uuid": "00e2f44e-83a3-49bd-89cf-7388336f10b1",
+    "nameInSearch": "함열여자중학교"
+  },
+  "S130001149": {
+    "uuid": "0231fe5e-0ab3-4a4b-9723-7377e28a8901",
+    "nameInSearch": "함열중학교"
+  },
+  "S130001150": {
+    "uuid": "0f69a68b-d71a-4726-ae9e-f6e9c1ef6763",
+    "nameInSearch": "황등중학교"
+  },
+  "S130000324": {
+    "uuid": "d554d766-0533-4154-90cb-d749e208b0c2",
+    "nameInSearch": "남성고등학교"
+  },
+  "S130000359": {
+    "uuid": "f887323d-944c-4a01-aaf5-529d24dda244",
+    "nameInSearch": "성일고등학교"
+  },
+  "S130000367": {
+    "uuid": "5881cb85-750b-4a0b-b391-3367c2bcdfd8",
+    "nameInSearch": "여산고등학교"
+  },
+  "S130000382": {
+    "uuid": "d06414ac-175a-4779-a158-55db07bc190d",
+    "nameInSearch": "원광고등학교"
+  },
+  "S130000385": {
+    "uuid": "436ce2e3-9f3a-4127-adf3-6bc19c29afd9",
+    "nameInSearch": "원광보건고등학교"
+  },
+  "S130000383": {
+    "uuid": "12d3b16a-40c6-4fed-a466-2102da03af91",
+    "nameInSearch": "원광여자고등학교"
+  },
+  "S130000388": {
+    "uuid": "26a06e87-9b58-497b-a0e7-cefe2f627ba9",
+    "nameInSearch": "이리고등학교"
+  },
+  "S130000389": {
+    "uuid": "35c006ca-64c0-4f11-9c8a-72748f60a37a",
+    "nameInSearch": "이리공업고등학교"
+  },
+  "S130000390": {
+    "uuid": "40d54524-1940-4478-a760-fbc47faa4b49",
+    "nameInSearch": "이리남성여자고등학교"
+  },
+  "S130000392": {
+    "uuid": "171156b7-2c6d-4eed-8157-4ba10eba33b1",
+    "nameInSearch": "이리여자고등학교"
+  },
+  "S130000394": {
+    "uuid": "c6d9ad87-7d95-4992-8a0f-331f237e88c0",
+    "nameInSearch": "이일여자고등학교"
+  },
+  "S130000395": {
+    "uuid": "e190c75d-7de1-4cd3-a413-9c2f63e4820d",
+    "nameInSearch": "익산고등학교"
+  },
+  "S130000408": {
+    "uuid": "b244b053-030a-417d-a9b3-af15cb94f956",
+    "nameInSearch": "전북과학고등학교"
+  },
+  "S000003550": {
+    "uuid": "0457c71f-3d43-47cf-b329-48c2eccba382",
+    "nameInSearch": "전북기계공업고등학교"
+  },
+  "S130000410": {
+    "uuid": "52fdb3bf-7754-4de5-a420-f91acf87e019",
+    "nameInSearch": "전북제일고등학교"
+  },
+  "S130000443": {
+    "uuid": "74155311-bf4e-4be7-981c-c879cde2c68b",
+    "nameInSearch": "진경여자고등학교"
+  },
+  "S130000460": {
+    "uuid": "3ed8dfeb-6afb-496d-a9c0-72dd0fdcec90",
+    "nameInSearch": "함열고등학교"
+  },
+  "S130000461": {
+    "uuid": "f041a5fc-61f7-4419-a7ce-9154bb0673d3",
+    "nameInSearch": "함열여자고등학교"
+  },
+  "S130001604": {
+    "uuid": "edc4f412-3a8e-4280-b33d-3e8c458927e4",
+    "nameInSearch": "감곡초등학교"
+  },
+  "S130001605": {
+    "uuid": "62617c05-5659-4e2b-a56f-a5a36194b653",
+    "nameInSearch": "고부초등학교"
+  },
+  "S130001606": {
+    "uuid": "3047f245-f60a-4612-894b-5a1eae05f702",
+    "nameInSearch": "관청초등학교"
+  },
+  "S130001607": {
+    "uuid": "d698bd80-511b-4ac1-88f8-fafea0bbbe8e",
+    "nameInSearch": "교암초등학교"
+  },
+  "S130001608": {
+    "uuid": "5cda50be-2045-4e30-9f8d-f72db2aa6ea9",
+    "nameInSearch": "내장초등학교"
+  },
+  "S130001609": {
+    "uuid": "eb2b6168-2ea6-4866-add3-7e3114ae9a89",
+    "nameInSearch": "능교초등학교"
+  },
+  "S130001611": {
+    "uuid": "b740c4fa-c629-4bd2-81b3-9d7cb44145bb",
+    "nameInSearch": "대흥초등학교"
+  },
+  "S130001612": {
+    "uuid": "d7e2355c-562e-49c4-8c30-81deea8126ea",
+    "nameInSearch": "덕천초등학교"
+  },
+  "S130001613": {
+    "uuid": "d7009c0f-e4f0-42ec-9b8e-59e392fc317e",
+    "nameInSearch": "도학초등학교"
+  },
+  "S130001614": {
+    "uuid": "a2c37805-dd04-4ff9-b3a5-b3cd69c4c14b",
+    "nameInSearch": "동신초등학교"
+  },
+  "S130001616": {
+    "uuid": "e31e2beb-6209-43bb-a9a2-3778699defb1",
+    "nameInSearch": "백암초등학교"
+  },
+  "S130001618": {
+    "uuid": "e7837e51-bbc7-4380-bed4-c979d70ace41",
+    "nameInSearch": "보성초등학교"
+  },
+  "S130001619": {
+    "uuid": "f90c30e9-dc72-4be3-b326-b98d68745acc",
+    "nameInSearch": "북면초등학교"
+  },
+  "S130001620": {
+    "uuid": "65e80321-0656-43cb-a3a3-d3ea03914f47",
+    "nameInSearch": "산외초등학교"
+  },
+  "S130001622": {
+    "uuid": "6e80bba4-c89d-4a99-965e-a198c1dde8d9",
+    "nameInSearch": "서신초등학교"
+  },
+  "S130001623": {
+    "uuid": "d12ee46c-7b1f-42fc-9dfe-90bcc58dc8dc",
+    "nameInSearch": "소성초등학교"
+  },
+  "S130001624": {
+    "uuid": "9c6a98ea-473c-4e23-a997-ebfdc72e5b5d",
+    "nameInSearch": "수곡초등학교"
+  },
+  "S130001627": {
+    "uuid": "258220b0-4e51-49d2-9af7-abd816ed9e53",
+    "nameInSearch": "신태인초등학교"
+  },
+  "S130001629": {
+    "uuid": "2b5ad1d1-eee9-4641-b80f-f3d0ee31b8ce",
+    "nameInSearch": "영산초등학교"
+  },
+  "S130001630": {
+    "uuid": "28e9d324-e8a6-434a-a3eb-64d82d43c82b",
+    "nameInSearch": "영원초등학교"
+  },
+  "S130001632": {
+    "uuid": "389083ef-ab73-48cc-9a96-6a6a0a548cdf",
+    "nameInSearch": "옹동초등학교"
+  },
+  "S130001633": {
+    "uuid": "36b4e077-e913-43da-9542-5565fecf1be3",
+    "nameInSearch": "용곽초등학교"
+  },
+  "S130001636": {
+    "uuid": "95e8a89b-e8c6-4b93-8ce1-37c518210a6a",
+    "nameInSearch": "이평초등학교"
+  },
+  "S130001637": {
+    "uuid": "e772e420-4d8c-4fed-9aeb-1d38ee5173a8",
+    "nameInSearch": "입암초등학교"
+  },
+  "S130001638": {
+    "uuid": "564e6294-de4e-4815-8039-f1c7d65eb49f",
+    "nameInSearch": "정남초등학교"
+  },
+  "S130001639": {
+    "uuid": "deb48ecb-7f6e-4560-9bf9-0a68f631e3e9",
+    "nameInSearch": "정우초등학교"
+  },
+  "S130001640": {
+    "uuid": "b4020d54-377d-4c28-acd0-7dfd4b3c2969",
+    "nameInSearch": "정읍남초등학교"
+  },
+  "S130001641": {
+    "uuid": "21ab2fe1-a04b-4ae9-9a1d-f5962a0124e9",
+    "nameInSearch": "정읍동초등학교"
+  },
+  "S130001642": {
+    "uuid": "ad0d0001-0146-40b0-9b93-716ba5372442",
+    "nameInSearch": "정읍북초등학교"
+  },
+  "S130001643": {
+    "uuid": "e4dce3a5-09e4-4a77-aa5b-6514c574c829",
+    "nameInSearch": "정읍서초등학교"
+  },
+  "S130001644": {
+    "uuid": "c6424032-4e1e-4ddd-9b5a-6e5fecd35b2b",
+    "nameInSearch": "정읍수성초등학교"
+  },
+  "S130002462": {
+    "uuid": "cdcb7fde-21b9-4cd9-8dbe-76253dbd7777",
+    "nameInSearch": "정읍초등학교"
+  },
+  "S130001645": {
+    "uuid": "f6c2606a-be8d-4abf-8c88-bbaff3488288",
+    "nameInSearch": "정일초등학교"
+  },
+  "S130001646": {
+    "uuid": "d38da2c9-7f2b-4483-84e9-c39a236bcacb",
+    "nameInSearch": "칠보초등학교"
+  },
+  "S130001647": {
+    "uuid": "402a15b0-fa8a-4c86-9514-fb79933176b7",
+    "nameInSearch": "태인초등학교"
+  },
+  "S130002543": {
+    "uuid": "3316b5fd-0c0e-4dde-ac61-274795811c08",
+    "nameInSearch": "한솔초등학교"
+  },
+  "S130001650": {
+    "uuid": "c4ac7e58-adf5-4c56-9ee6-243ef95d9ffc",
+    "nameInSearch": "회룡초등학교"
+  },
+  "S130001582": {
+    "uuid": "0feeb84d-583c-4bde-bab3-4e13c840b90b",
+    "nameInSearch": "감곡중학교"
+  },
+  "S130001584": {
+    "uuid": "2de35dbf-ec81-41b8-b20b-c52fa3571caa",
+    "nameInSearch": "고부중학교"
+  },
+  "S130001585": {
+    "uuid": "862b7d7c-2d29-42f3-8384-4b4e551e27cf",
+    "nameInSearch": "배영중학교"
+  },
+  "S130001586": {
+    "uuid": "281d33f9-06db-47b1-b549-33fc7c8cab2e",
+    "nameInSearch": "산외중학교"
+  },
+  "S130001595": {
+    "uuid": "00a6b546-9ce6-40a2-a676-bea32801f945",
+    "nameInSearch": "샘고을중학교"
+  },
+  "S130001587": {
+    "uuid": "9639e788-63c7-4526-850d-f243d25838c2",
+    "nameInSearch": "소성중학교"
+  },
+  "S130001588": {
+    "uuid": "288d9612-abd5-455c-a0de-de690cbb3d2f",
+    "nameInSearch": "신태인중학교"
+  },
+  "S130001589": {
+    "uuid": "acb8ad02-6f30-4402-8502-1389eba342ee",
+    "nameInSearch": "왕신여자중학교"
+  },
+  "S130001590": {
+    "uuid": "1555089b-ee30-446d-a4b7-3634205c5053",
+    "nameInSearch": "이평중학교"
+  },
+  "S130001592": {
+    "uuid": "4f109346-ba1c-4663-a91b-6d54e5a72940",
+    "nameInSearch": "입암중학교"
+  },
+  "S130002636": {
+    "uuid": "6e535dff-7785-49de-bf71-a86d81165a66",
+    "nameInSearch": "전북동화중학교"
+  },
+  "S130001593": {
+    "uuid": "87a1d624-94d6-413b-994e-bc0e931cd998",
+    "nameInSearch": "정산중학교"
+  },
+  "S130001594": {
+    "uuid": "b1ba446f-0bbf-484b-a475-95bc6580ea18",
+    "nameInSearch": "정우중학교"
+  },
+  "S130001596": {
+    "uuid": "ce04943b-c7ae-46b5-a171-3ee43e2bbe43",
+    "nameInSearch": "정읍중학교"
+  },
+  "S130001597": {
+    "uuid": "0eea8ec6-53a8-4d24-b28b-35df274a0be1",
+    "nameInSearch": "정일중학교"
+  },
+  "S130001598": {
+    "uuid": "fbe09a05-f602-4bbf-9012-24d469e76347",
+    "nameInSearch": "칠보중학교"
+  },
+  "S130001600": {
+    "uuid": "46729cbd-bccc-401f-b30e-503c233c2e21",
+    "nameInSearch": "태인중학교"
+  },
+  "S130001601": {
+    "uuid": "2be9584b-1f2c-4916-b436-b8e9bcb8ad51",
+    "nameInSearch": "학산중학교"
+  },
+  "S130001603": {
+    "uuid": "5b24ba64-c077-4a8c-8128-d24d4e68f6d9",
+    "nameInSearch": "호남중학교"
+  },
+  "S130000454": {
+    "uuid": "486d6aca-9dfa-4326-a5a8-32127160014e",
+    "nameInSearch": "글로벌학산고등학교"
+  },
+  "S130000344": {
+    "uuid": "79b9217c-f25d-49d8-9347-2129f7f38764",
+    "nameInSearch": "배영고등학교"
+  },
+  "S130000356": {
+    "uuid": "521c2e23-a2fb-4df1-bb50-53620c51f691",
+    "nameInSearch": "서영여자고등학교"
+  },
+  "S130000364": {
+    "uuid": "56251100-058d-46bf-bbff-1687c4cb9e2a",
+    "nameInSearch": "신태인고등학교"
+  },
+  "S130000378": {
+    "uuid": "265813ec-0775-44b2-b9f6-a19980ad4632",
+    "nameInSearch": "왕신여자고등학교"
+  },
+  "S130000397": {
+    "uuid": "5c0c4c03-fa68-47f4-b448-c31f28121b29",
+    "nameInSearch": "인상고등학교"
+  },
+  "S130000435": {
+    "uuid": "04d96084-f909-4db9-8d14-56d4e73f58f1",
+    "nameInSearch": "정읍고등학교"
+  },
+  "S130000437": {
+    "uuid": "217aaa1e-c8e4-4e33-bede-8586ada61508",
+    "nameInSearch": "정읍여자고등학교"
+  },
+  "S130000436": {
+    "uuid": "cc3b6699-51fd-4201-b221-28f5a2b796f2",
+    "nameInSearch": "정읍제일고등학교"
+  },
+  "S130000438": {
+    "uuid": "2c998689-2233-4ec1-8c42-1d11a280d54d",
+    "nameInSearch": "정주고등학교"
+  },
+  "S130000448": {
+    "uuid": "fff47522-d079-4ac6-9f58-c562f3f1cf38",
+    "nameInSearch": "칠보고등학교"
+  },
+  "S130000450": {
+    "uuid": "0730b8c2-23f2-425c-a571-a3a158dbf669",
+    "nameInSearch": "태인고등학교"
+  },
+  "S130000464": {
+    "uuid": "bc300ff0-f043-4e4e-bf5a-844d86cf298b",
+    "nameInSearch": "호남고등학교"
+  },
+  "S130000806": {
+    "uuid": "ca75ced4-196e-4130-bc4c-4205089076bc",
+    "nameInSearch": "금지동초등학교"
+  },
+  "S130000807": {
+    "uuid": "4a16602d-baad-47c1-85f2-a51f3cab044f",
+    "nameInSearch": "금지초등학교"
+  },
+  "S130000805": {
+    "uuid": "d77e1863-0463-4fce-b372-c5f0523428ca",
+    "nameInSearch": "남원교룡초등학교"
+  },
+  "S130000809": {
+    "uuid": "d8622cb1-a388-490b-8d03-d00e160be433",
+    "nameInSearch": "남원노암초등학교"
+  },
+  "S130000823": {
+    "uuid": "28b13054-0b45-46fe-aab5-c71d2681e8a7",
+    "nameInSearch": "남원대산초등학교"
+  },
+  "S130000810": {
+    "uuid": "b49b3b41-df41-4f38-8929-64cf14a97f7b",
+    "nameInSearch": "남원도통초등학교"
+  },
+  "S130000814": {
+    "uuid": "fb8003e0-09f5-4596-893d-01a14831dba7",
+    "nameInSearch": "남원서원초등학교"
+  },
+  "S130000817": {
+    "uuid": "5b8fd31e-6730-4276-98a1-2622a59c3169",
+    "nameInSearch": "남원왕치초등학교"
+  },
+  "S130000835": {
+    "uuid": "9db7de32-1305-4c1a-a235-3273efe5d920",
+    "nameInSearch": "남원용성초등학교"
+  },
+  "S130000818": {
+    "uuid": "9f713888-fe52-4116-ad7e-4e8f0d48b224",
+    "nameInSearch": "남원월락초등학교"
+  },
+  "S130000819": {
+    "uuid": "036930de-1d22-4f36-9516-b32bda220785",
+    "nameInSearch": "남원중앙초등학교"
+  },
+  "S130000820": {
+    "uuid": "170d6246-b454-46df-b15b-d9e7ffba5ca1",
+    "nameInSearch": "남원초등학교"
+  },
+  "S130000822": {
+    "uuid": "02756baf-9fd9-4e24-868e-ebe24bf4b240",
+    "nameInSearch": "대강초등학교"
+  },
+  "S130000824": {
+    "uuid": "7b0f7e87-f831-4576-afde-059a21963e7b",
+    "nameInSearch": "덕과초등학교"
+  },
+  "S130000827": {
+    "uuid": "1bafcd96-009e-4c97-806a-a1bbb92c041d",
+    "nameInSearch": "보절초등학교"
+  },
+  "S130000829": {
+    "uuid": "8f3941df-bb41-47f7-b6d8-03eb0dc055d3",
+    "nameInSearch": "사매초등학교"
+  },
+  "S130000813": {
+    "uuid": "2ee18f5c-9441-45af-a69a-d8d97661bc56",
+    "nameInSearch": "산내초등학교"
+  },
+  "S130000830": {
+    "uuid": "4b8cdd90-10ef-48b7-950f-05ecae0c986c",
+    "nameInSearch": "산동초등학교"
+  },
+  "S130000831": {
+    "uuid": "602e94ba-512e-41be-a9ed-99f47c67af4b",
+    "nameInSearch": "송동초등학교"
+  },
+  "S130000832": {
+    "uuid": "c7dbe22d-dc48-4ed7-8968-3101d5ca8ca1",
+    "nameInSearch": "수지초등학교"
+  },
+  "S130000833": {
+    "uuid": "cdb35570-4fd5-43eb-907f-836b422f5ff0",
+    "nameInSearch": "아영초등학교"
+  },
+  "S130000834": {
+    "uuid": "2b1d11ff-4482-491a-a9c4-01cc4fa6940e",
+    "nameInSearch": "오동초등학교"
+  },
+  "S130000837": {
+    "uuid": "ececc64c-2cfd-4a79-8b4b-d71335422ee3",
+    "nameInSearch": "운봉초등학교"
+  },
+  "S130000840": {
+    "uuid": "1216a6ba-c013-43b0-b284-49017272352f",
+    "nameInSearch": "원천초등학교"
+  },
+  "S130000841": {
+    "uuid": "b8e76126-acf7-44b4-9fb8-11a3b46d2982",
+    "nameInSearch": "이백초등학교"
+  },
+  "S130000842": {
+    "uuid": "9ec1f16b-2242-46ad-8359-1f4755c430b8",
+    "nameInSearch": "인월초등학교"
+  },
+  "S130000845": {
+    "uuid": "9fb1a86b-a7d9-44fa-9267-3f49a890b6ae",
+    "nameInSearch": "주생초등학교"
+  },
+  "S130000787": {
+    "uuid": "1e0bca39-8cb6-487a-ab97-32df0c53aedf",
+    "nameInSearch": "금지중학교"
+  },
+  "S130000790": {
+    "uuid": "828cfdeb-b34b-4ad9-9b01-3dbdce0d87d5",
+    "nameInSearch": "남원용성중학교"
+  },
+  "S130000791": {
+    "uuid": "3412c8a8-80f6-4e25-9206-9c04de8b9eeb",
+    "nameInSearch": "남원중학교"
+  },
+  "S130000792": {
+    "uuid": "4dc432dc-d6f9-4880-a3ba-d858aaf48cab",
+    "nameInSearch": "남원하늘중학교"
+  },
+  "S130000793": {
+    "uuid": "c093b995-38ae-4b0e-ab1f-db14466f3726",
+    "nameInSearch": "남원한빛중학교"
+  },
+  "S130000794": {
+    "uuid": "bf495006-f008-4735-ad8a-00efb1f03b3c",
+    "nameInSearch": "대강중학교"
+  },
+  "S130000795": {
+    "uuid": "500f3327-3d81-42d8-8ba4-928359fbb208",
+    "nameInSearch": "보절중학교"
+  },
+  "S130000796": {
+    "uuid": "a2942743-943d-4eb8-9ea6-9f225d078f36",
+    "nameInSearch": "산내중학교"
+  },
+  "S130000797": {
+    "uuid": "65c72e5c-86ee-4cb6-b77d-42ee111dc66e",
+    "nameInSearch": "송동중학교"
+  },
+  "S130000799": {
+    "uuid": "d4fbbf46-cb62-41cd-8b6a-445bc34e426a",
+    "nameInSearch": "아영중학교"
+  },
+  "S130000800": {
+    "uuid": "fb4c1161-9017-468a-9e99-7fc0a5a69c74",
+    "nameInSearch": "용북중학교"
+  },
+  "S130000802": {
+    "uuid": "c4cd7280-5f5d-42ae-939f-ab6b957ec27f",
+    "nameInSearch": "운봉중학교"
+  },
+  "S130000803": {
+    "uuid": "28961438-db3e-49b8-b00e-3e124193d0e3",
+    "nameInSearch": "인월중학교"
+  },
+  "S130000325": {
+    "uuid": "f539b299-7da5-425e-b156-817fa268bd0e",
+    "nameInSearch": "남원고등학교"
+  },
+  "S130000332": {
+    "uuid": "f2e934ee-6783-43da-8582-26e71be16751",
+    "nameInSearch": "남원국악예술고등학교"
+  },
+  "S130000328": {
+    "uuid": "76354fd2-9ecf-433e-9476-70a33b9a2afe",
+    "nameInSearch": "남원서진고등학교"
+  },
+  "S130000329": {
+    "uuid": "b8f71848-039b-4a08-8754-18c6e8449e93",
+    "nameInSearch": "남원여자고등학교"
+  },
+  "S130000326": {
+    "uuid": "ce465db0-1048-4cdc-a547-7f55f3c879dd",
+    "nameInSearch": "남원용성고등학교"
+  },
+  "S130000331": {
+    "uuid": "4f3facd7-4bac-422a-b952-49dd364031bd",
+    "nameInSearch": "남원제일고등학교"
+  },
+  "S130000358": {
+    "uuid": "900b036b-d183-470e-880b-5cacd2653588",
+    "nameInSearch": "성원고등학교"
+  },
+  "S130000398": {
+    "uuid": "aff9607a-50b1-4b82-b863-32317df68fe8",
+    "nameInSearch": "인월고등학교"
+  },
+  "S130000457": {
+    "uuid": "7baca947-1508-4038-9424-806f8aec92ce",
+    "nameInSearch": "한국경마축산고등학교"
+  },
+  "S130000700": {
+    "uuid": "0aa37bbb-3975-4d9b-8a0e-ed307aa827cd",
+    "nameInSearch": "공덕초등학교"
+  },
+  "S130000701": {
+    "uuid": "1037b354-2515-4717-9795-63ca851bbb18",
+    "nameInSearch": "광활초등학교"
+  },
+  "S130000702": {
+    "uuid": "f8818a3c-0512-4dde-9c6c-99c714daa4f2",
+    "nameInSearch": "금구초등학교"
+  },
+  "S130000703": {
+    "uuid": "530eec9c-64e0-4f19-b8cb-dbca10128d16",
+    "nameInSearch": "금남초등학교"
+  },
+  "S130000704": {
+    "uuid": "2c8e89a4-54b2-4643-82fa-447f05f52fad",
+    "nameInSearch": "금산초등학교"
+  },
+  "S130000705": {
+    "uuid": "ad0a34b5-3162-4d74-9dca-b3dd43e3b83f",
+    "nameInSearch": "김제검산초등학교"
+  },
+  "S130000706": {
+    "uuid": "0c4ec20c-78e0-4ecd-9cf5-3b7da32f2ae2",
+    "nameInSearch": "김제동초등학교"
+  },
+  "S130000707": {
+    "uuid": "247d424f-b276-420e-9f31-940722ee9998",
+    "nameInSearch": "김제북초등학교"
+  },
+  "S130000708": {
+    "uuid": "9a8c6a87-986d-4e99-8a28-6feb2c77ec3d",
+    "nameInSearch": "김제중앙초등학교"
+  },
+  "S130000710": {
+    "uuid": "43fc0b29-b2c8-4f33-84b9-1b8cfb49fefe",
+    "nameInSearch": "김제초등학교"
+  },
+  "S130000711": {
+    "uuid": "9d22d2a6-e789-47a3-94cf-dd7979785af0",
+    "nameInSearch": "난산초등학교"
+  },
+  "S130000712": {
+    "uuid": "dc3b7cf5-b845-41ce-861c-ba484768e668",
+    "nameInSearch": "남양초등학교"
+  },
+  "S130000713": {
+    "uuid": "d81ab054-9f88-444b-a392-cf16cef9e51d",
+    "nameInSearch": "만경초등학교"
+  },
+  "S130000715": {
+    "uuid": "00091693-91a6-41a9-b587-4aaaba02b53f",
+    "nameInSearch": "백구초등학교"
+  },
+  "S130000716": {
+    "uuid": "7183982b-c7be-414b-8102-025260d16593",
+    "nameInSearch": "백석초등학교"
+  },
+  "S130000717": {
+    "uuid": "1ac685b7-4983-43e5-846e-0bf803cc7458",
+    "nameInSearch": "벽량초등학교"
+  },
+  "S130000719": {
+    "uuid": "f5393135-13e1-451d-a0ea-fb5e5613be23",
+    "nameInSearch": "봉남초등학교"
+  },
+  "S130000720": {
+    "uuid": "dbabf204-3c94-4ac9-bf9d-6224630dbfe7",
+    "nameInSearch": "부용초등학교"
+  },
+  "S130000721": {
+    "uuid": "738348d1-ab07-43f6-9341-bfa1cfd906e2",
+    "nameInSearch": "비룡초등학교"
+  },
+  "S130000722": {
+    "uuid": "a17770a3-b38f-401d-a743-cfb3f5873cfd",
+    "nameInSearch": "성덕초등학교"
+  },
+  "S130000726": {
+    "uuid": "50d06a0f-fcda-4c6b-8e79-4a9d3c330b62",
+    "nameInSearch": "심창초등학교"
+  },
+  "S130000727": {
+    "uuid": "1cd974b0-3e25-4639-aaf0-9195d21b045f",
+    "nameInSearch": "용동초등학교"
+  },
+  "S130000729": {
+    "uuid": "ae3372a2-d733-45b6-8b3f-62c40c69483f",
+    "nameInSearch": "용지초등학교"
+  },
+  "S130000730": {
+    "uuid": "e064166c-8442-450a-852c-e59a5667e6f3",
+    "nameInSearch": "원평초등학교"
+  },
+  "S130000732": {
+    "uuid": "09e678da-91ab-49b8-ab07-885b9ed8ad8a",
+    "nameInSearch": "월성초등학교"
+  },
+  "S130000733": {
+    "uuid": "534726ae-83d4-4df2-8b66-08fd01ba45a2",
+    "nameInSearch": "월촌초등학교"
+  },
+  "S130000734": {
+    "uuid": "3b531271-9d05-4201-9e76-190b7fd754bc",
+    "nameInSearch": "종정초등학교"
+  },
+  "S130000736": {
+    "uuid": "7fefb30f-dfdc-48c5-a79d-0fddb912581e",
+    "nameInSearch": "죽산초등학교"
+  },
+  "S130000737": {
+    "uuid": "969eba13-d668-46f8-870a-25a19f21e745",
+    "nameInSearch": "진봉초등학교"
+  },
+  "S130000738": {
+    "uuid": "621e9783-4e61-4f64-8a92-f016566ce5b5",
+    "nameInSearch": "청운초등학교"
+  },
+  "S130000740": {
+    "uuid": "e3ae3188-7e17-436b-997c-08294eccd8ce",
+    "nameInSearch": "청하초등학교"
+  },
+  "S130000741": {
+    "uuid": "b26c8471-e70d-4b16-9f18-5f1d81f76529",
+    "nameInSearch": "초처초등학교"
+  },
+  "S130000742": {
+    "uuid": "2e06a418-c226-4f27-a7b2-ec3f804e34b1",
+    "nameInSearch": "치문초등학교"
+  },
+  "S130000731": {
+    "uuid": "198afd19-e6a3-4818-953c-b5bb22be0ae6",
+    "nameInSearch": "화율초등학교"
+  },
+  "S130000743": {
+    "uuid": "5a2d8725-2ca6-4d21-8ec6-1436503d0c02",
+    "nameInSearch": "황강초등학교"
+  },
+  "S130000744": {
+    "uuid": "95c3647e-f7a1-4317-b354-749c92eca276",
+    "nameInSearch": "황산초등학교"
+  },
+  "S130000685": {
+    "uuid": "e4f23f3e-3cc8-4c2c-9d4e-57b76258ee45",
+    "nameInSearch": "금구중학교"
+  },
+  "S130000687": {
+    "uuid": "8647ddfa-b0c7-4e72-bd97-30a9da6e7ef5",
+    "nameInSearch": "금성중학교"
+  },
+  "S130000691": {
+    "uuid": "93b5fea6-7372-4eca-aa98-715cd5a1fe5c",
+    "nameInSearch": "김제중앙중학교"
+  },
+  "S130000692": {
+    "uuid": "e8e76407-e23d-4f15-b10d-9db6abfcf1f8",
+    "nameInSearch": "김제중학교"
+  },
+  "S130000694": {
+    "uuid": "64a707d4-43c5-4b0f-aacf-ac8c2bd9f38d",
+    "nameInSearch": "덕암중학교"
+  },
+  "S130000686": {
+    "uuid": "9694a05a-85f2-41e4-ae82-44990c560a37",
+    "nameInSearch": "동국대학교사범대학부속금산중학교"
+  },
+  "S130000695": {
+    "uuid": "dac19403-5ccc-4e6e-93d0-52919ddcff31",
+    "nameInSearch": "만경여자중학교"
+  },
+  "S130000696": {
+    "uuid": "fbe30978-2fc4-4989-8b10-c7bbc029f7f1",
+    "nameInSearch": "만경중학교"
+  },
+  "S130000697": {
+    "uuid": "1d139206-064f-4b96-b362-63dac3643b88",
+    "nameInSearch": "봉남중학교"
+  },
+  "S130000698": {
+    "uuid": "94b36fcb-7449-41b4-97bd-4f39890d2d75",
+    "nameInSearch": "용지중학교"
+  },
+  "S130002455": {
+    "uuid": "1ad8a582-3348-409a-bde0-8ee9371b50b0",
+    "nameInSearch": "지평선중학교"
+  },
+  "S130000699": {
+    "uuid": "7f4565d8-2e4e-41d0-a9d4-b48504fe5adf",
+    "nameInSearch": "청하중학교"
+  },
+  "S130000690": {
+    "uuid": "b7650d8e-1600-4392-9f6d-4838a4c8cd99",
+    "nameInSearch": "한들중학교"
+  },
+  "S130000317": {
+    "uuid": "2c7dcc44-fe9e-444e-9795-3617a184a2ca",
+    "nameInSearch": "김제고등학교"
+  },
+  "S130000323": {
+    "uuid": "2e772bc9-feb2-499d-aa70-a95e3b66fffb",
+    "nameInSearch": "김제농생명마이스터고등학교"
+  },
+  "S130000321": {
+    "uuid": "2efed7ee-0aae-418d-b988-dcbe63863e79",
+    "nameInSearch": "김제서고등학교"
+  },
+  "S130000322": {
+    "uuid": "a4f097a8-22b2-490e-b0da-3f867872b93b",
+    "nameInSearch": "김제여자고등학교"
+  },
+  "S130000333": {
+    "uuid": "b686381c-01e7-4ad6-88c8-3cc09f8ee67e",
+    "nameInSearch": "덕암고등학교"
+  },
+  "S130000334": {
+    "uuid": "8f4be2df-935d-4f35-b3f9-4244e0f1d200",
+    "nameInSearch": "덕암정보고등학교"
+  },
+  "S130000316": {
+    "uuid": "410abe2b-24ca-4bbf-a2cf-4db6365fe679",
+    "nameInSearch": "동국대학교사범대학부속금산고등학교"
+  },
+  "S130000339": {
+    "uuid": "4357d233-9af0-43ae-97d7-a7bee419f2c0",
+    "nameInSearch": "만경고등학교"
+  },
+  "S130000340": {
+    "uuid": "0901dfca-1348-488a-ad92-8f798f2042b3",
+    "nameInSearch": "만경여자고등학교"
+  },
+  "S130002634": {
+    "uuid": "16f94911-405f-48bb-a583-eb953296c85d",
+    "nameInSearch": "지평선고등학교"
+  },
+  "S130001058": {
+    "uuid": "977b3b8b-1e63-40c5-863d-5dede96cf2dd",
+    "nameInSearch": "가천초등학교"
+  },
+  "S130001059": {
+    "uuid": "97af4051-7b4e-477c-a16b-c130bde943ad",
+    "nameInSearch": "간중초등학교"
+  },
+  "S130001060": {
+    "uuid": "fbfa1c97-3258-4c46-bf11-df65d6ae59dd",
+    "nameInSearch": "고산동초등학교"
+  },
+  "S130001062": {
+    "uuid": "9b3ca191-193a-4bf8-b171-5cb4f3efafc8",
+    "nameInSearch": "고산초등학교"
+  },
+  "S130001064": {
+    "uuid": "178ad509-d07e-4a41-966f-1a7b7574aca9",
+    "nameInSearch": "구이초등학교"
+  },
+  "S130001065": {
+    "uuid": "abc196d7-84e1-4e0d-aa21-12bbeb4638c3",
+    "nameInSearch": "남관초등학교"
+  },
+  "S130001066": {
+    "uuid": "ac4316fa-986f-463c-8b63-3b249f4dac72",
+    "nameInSearch": "대덕초등학교"
+  },
+  "S130001067": {
+    "uuid": "a2458d48-6181-46dd-866e-5d8e86ba1793",
+    "nameInSearch": "동상초등학교"
+  },
+  "S130001068": {
+    "uuid": "fd928fae-ab72-4017-9ab4-5d18d6569141",
+    "nameInSearch": "동양초등학교"
+  },
+  "S130001069": {
+    "uuid": "7a046e56-e45b-478c-8bb3-6c9518635ccf",
+    "nameInSearch": "봉동초등학교"
+  },
+  "S130001070": {
+    "uuid": "c244eed0-eed4-4ff1-859a-0c153a58a75c",
+    "nameInSearch": "봉동초등학교양화분교장"
+  },
+  "S130001071": {
+    "uuid": "f26e917d-713a-4821-bf43-f4335f7c21fa",
+    "nameInSearch": "봉서초등학교"
+  },
+  "S130001072": {
+    "uuid": "bc726aba-b639-469e-8619-30d3a9546ae6",
+    "nameInSearch": "봉성초등학교"
+  },
+  "S130001073": {
+    "uuid": "e5b00b16-c512-4ab0-84c7-a1112c7ee2bc",
+    "nameInSearch": "비봉초등학교"
+  },
+  "S130001075": {
+    "uuid": "d95e0fc7-1882-42de-81b5-32c8f6eb3515",
+    "nameInSearch": "삼례동초등학교"
+  },
+  "S130001076": {
+    "uuid": "76e449de-8570-465a-8b16-e2fbd9c02dc3",
+    "nameInSearch": "삼례중앙초등학교"
+  },
+  "S130001077": {
+    "uuid": "873049ea-038e-4a19-824e-64df1b02250b",
+    "nameInSearch": "삼례초등학교"
+  },
+  "S130001061": {
+    "uuid": "de8b5ddc-ebb6-46ed-814e-00948f3f479a",
+    "nameInSearch": "삼우초등학교"
+  },
+  "S130001078": {
+    "uuid": "37994118-fdce-48dd-9684-ce428a1c29bc",
+    "nameInSearch": "상관초등학교"
+  },
+  "S130001079": {
+    "uuid": "527576b9-9e9b-4330-a2fa-fc5b8def0d3c",
+    "nameInSearch": "소양서초등학교"
+  },
+  "S130001080": {
+    "uuid": "4428b07b-3f9d-4289-88af-c7b50c2ff4e1",
+    "nameInSearch": "소양초등학교"
+  },
+  "S130001081": {
+    "uuid": "91a32d9d-d184-4cc5-b2c7-69a3422cfb16",
+    "nameInSearch": "송광초등학교"
+  },
+  "S130001082": {
+    "uuid": "7f300c64-c1d5-4d52-8b9c-9026657dad64",
+    "nameInSearch": "용봉초등학교"
+  },
+  "S130001083": {
+    "uuid": "7e53a0dc-a8a0-4630-8d78-3672832df053",
+    "nameInSearch": "용진초등학교"
+  },
+  "S130001084": {
+    "uuid": "ed727cf2-0482-4b92-b425-71934c771967",
+    "nameInSearch": "운주초등학교"
+  },
+  "S130001086": {
+    "uuid": "625e3a6a-3970-4569-b6f1-07f1ac49aaa4",
+    "nameInSearch": "이서초등학교"
+  },
+  "S130001087": {
+    "uuid": "f66b3bfb-9878-46cf-ae18-1a189cec8c51",
+    "nameInSearch": "이성초등학교"
+  },
+  "S130001088": {
+    "uuid": "698b6fac-eb65-453b-bc5f-2a9b93170703",
+    "nameInSearch": "청명초등학교"
+  },
+  "S130001089": {
+    "uuid": "366eddf6-2c4a-4bdb-a33a-dc4bef51c694",
+    "nameInSearch": "청완초등학교"
+  },
+  "S130001090": {
+    "uuid": "e9a63ea1-7ebf-4d8d-a0e6-2485a9f714e5",
+    "nameInSearch": "태봉초등학교"
+  },
+  "S130001091": {
+    "uuid": "fffa3510-b639-4d76-804d-5f7d4952a324",
+    "nameInSearch": "화산초등학교"
+  },
+  "S130001045": {
+    "uuid": "ba875fe7-5562-4508-bed4-83af880c4799",
+    "nameInSearch": "고산중학교"
+  },
+  "S130001046": {
+    "uuid": "ac8defed-493f-415f-8952-fd5611d8f6ff",
+    "nameInSearch": "구이중학교"
+  },
+  "S130002581": {
+    "uuid": "1b7f374e-b304-4fce-93ef-d55534eab6ce",
+    "nameInSearch": "봉서중학교"
+  },
+  "S130001047": {
+    "uuid": "85b672d9-969b-43c5-b70d-94e70ed90fe1",
+    "nameInSearch": "삼례여자중학교"
+  },
+  "S130001048": {
+    "uuid": "a81d1f4c-d00f-4d43-a51c-6c0c2c814fb5",
+    "nameInSearch": "삼례중학교"
+  },
+  "S130001049": {
+    "uuid": "61da7f00-3cee-45eb-8d6e-81489bceac4d",
+    "nameInSearch": "삼우중학교"
+  },
+  "S130001050": {
+    "uuid": "16836f90-b89d-4544-ba48-998b71902edd",
+    "nameInSearch": "상관중학교"
+  },
+  "S130001051": {
+    "uuid": "8b3094a2-9733-4f4e-a0b8-f086318e5b0f",
+    "nameInSearch": "소양중학교"
+  },
+  "S130001053": {
+    "uuid": "df76b528-8830-477b-a147-1d8cc62ef6c7",
+    "nameInSearch": "완주중학교"
+  },
+  "S130001054": {
+    "uuid": "32aa7109-e5a4-4851-830d-a44eed47c11c",
+    "nameInSearch": "용진중학교"
+  },
+  "S130001055": {
+    "uuid": "a85f5969-e407-4fc0-86ab-17ec0607dd65",
+    "nameInSearch": "운주중학교"
+  },
+  "S130002557": {
+    "uuid": "9824df7d-5961-4edf-a089-9921c6d323e4",
+    "nameInSearch": "전북체육중학교"
+  },
+  "S130001056": {
+    "uuid": "f5a38d6c-4a6b-42fb-af0c-fc6ec64e413f",
+    "nameInSearch": "전주예술중학교"
+  },
+  "S130001057": {
+    "uuid": "f877dff3-8129-46e1-9ade-f010e68e1152",
+    "nameInSearch": "화산중학교"
+  },
+  "S130000300": {
+    "uuid": "9a45a0f5-8601-440a-a789-61d0fef2cf53",
+    "nameInSearch": "고산고등학교"
+  },
+  "S130000360": {
+    "uuid": "1139fc5a-b6be-421b-a647-007d54f87e05",
+    "nameInSearch": "세인고등학교"
+  },
+  "S130000353": {
+    "uuid": "aabdfa7c-7ac8-444c-8024-99f0ab8a4ecb",
+    "nameInSearch": "수소에너지고등학교"
+  },
+  "S130000377": {
+    "uuid": "3d7ea331-dcd8-4698-bacb-5363d44e84df",
+    "nameInSearch": "완주고등학교"
+  },
+  "S130000411": {
+    "uuid": "083cd374-c010-43c8-9524-9992ac590576",
+    "nameInSearch": "전북체육고등학교"
+  },
+  "S130000430": {
+    "uuid": "338f04cd-afb7-417c-b516-f0b7e8feffdf",
+    "nameInSearch": "전주예술고등학교"
+  },
+  "S130002471": {
+    "uuid": "8d36a189-c3df-41bf-9c0e-22f84384797a",
+    "nameInSearch": "한국게임과학고등학교"
+  },
+  "S130000459": {
+    "uuid": "699ffde4-06c9-453c-94ac-42bda7e10501",
+    "nameInSearch": "한별고등학교"
+  },
+  "S130001721": {
+    "uuid": "f08fae25-6a2d-442b-a6be-3f9f682fbf3b",
+    "nameInSearch": "동향초등학교"
+  },
+  "S130001722": {
+    "uuid": "6f37a793-9f35-4da8-aa40-c29a8ab5917c",
+    "nameInSearch": "마령초등학교"
+  },
+  "S130001723": {
+    "uuid": "0db29dd8-aa34-400f-a710-d12b544f1917",
+    "nameInSearch": "백운초등학교"
+  },
+  "S130001724": {
+    "uuid": "5b14b291-ac3e-41bb-963e-4ce295ad4fc7",
+    "nameInSearch": "부귀초등학교"
+  },
+  "S130001727": {
+    "uuid": "ec584d9e-e099-4664-ae31-3f75a8d96c55",
+    "nameInSearch": "송풍초등학교"
+  },
+  "S130001728": {
+    "uuid": "8a54182d-1b0f-4c3a-8da7-f266cb416e7f",
+    "nameInSearch": "안천초등학교"
+  },
+  "S130001730": {
+    "uuid": "cf7518e6-a224-4e05-8e73-88867830fe85",
+    "nameInSearch": "오천초등학교"
+  },
+  "S130001731": {
+    "uuid": "3636cc7e-fb6a-49d7-8298-eec7c02910b2",
+    "nameInSearch": "외궁초등학교"
+  },
+  "S130001733": {
+    "uuid": "ed4ac340-27a7-4ff9-b912-f2669f0f7eca",
+    "nameInSearch": "장승초등학교"
+  },
+  "S130001734": {
+    "uuid": "e7e96c61-7e78-46fd-967a-b873988ac23d",
+    "nameInSearch": "조림초등학교"
+  },
+  "S130001737": {
+    "uuid": "28fd25eb-3dc5-464f-872c-d487bf5fccfb",
+    "nameInSearch": "주천초등학교"
+  },
+  "S130001741": {
+    "uuid": "9894404a-4b23-4263-81e5-bb8d4262f52e",
+    "nameInSearch": "진안중앙초등학교"
+  },
+  "S130001742": {
+    "uuid": "fe0c649f-d4c5-47b3-aeea-a01b1c1beae8",
+    "nameInSearch": "진안초등학교"
+  },
+  "S130001709": {
+    "uuid": "83ee7adf-e3d7-4c0f-9301-e25985c96972",
+    "nameInSearch": "동향중학교"
+  },
+  "S130001710": {
+    "uuid": "0eecfce2-9057-4e04-b9d3-2d4f85c8a2c1",
+    "nameInSearch": "마령중학교"
+  },
+  "S130001711": {
+    "uuid": "39f732b1-1886-4e33-b659-a13c63668e24",
+    "nameInSearch": "백운중학교"
+  },
+  "S130001712": {
+    "uuid": "c32c9fa5-ba22-4ce9-9bbe-443593b258d6",
+    "nameInSearch": "부귀중학교"
+  },
+  "S130001713": {
+    "uuid": "eb368585-aa56-4b58-a23b-e30f26d64888",
+    "nameInSearch": "안천중학교"
+  },
+  "S130001714": {
+    "uuid": "f9f18a5d-15e4-46b9-abaa-4ef539ba6f37",
+    "nameInSearch": "용담중학교"
+  },
+  "S130001716": {
+    "uuid": "e4c4ab81-e8b0-4903-9e65-901557a7a9b5",
+    "nameInSearch": "주천중학교"
+  },
+  "S130001717": {
+    "uuid": "965d42f4-90ca-439c-86d3-c3d092a894a4",
+    "nameInSearch": "진성중학교"
+  },
+  "S130001718": {
+    "uuid": "4f719735-d833-4eaf-a3a5-bace435cd09e",
+    "nameInSearch": "진안여자중학교"
+  },
+  "S130001719": {
+    "uuid": "f9d0845f-7201-4924-88be-96154ecaa03d",
+    "nameInSearch": "진안중학교"
+  },
+  "S130000338": {
+    "uuid": "9d0495a0-56e4-4af0-a2a3-9dac30a11d5e",
+    "nameInSearch": "마령고등학교"
+  },
+  "S130000366": {
+    "uuid": "0f821fb9-f5e0-422b-ab3f-a4ec3931f8fa",
+    "nameInSearch": "안천고등학교"
+  },
+  "S130000447": {
+    "uuid": "e59bf7ed-6e5c-45e9-b557-376b9c9245ce",
+    "nameInSearch": "진안제일고등학교"
+  },
+  "S130000446": {
+    "uuid": "a84c5c9b-058c-47c1-a70f-d107975afcdc",
+    "nameInSearch": "한국기술부사관고등학교"
+  },
+  "S130002635": {
+    "uuid": "bc4a8037-295b-4a84-ab75-82fdbd8f896a",
+    "nameInSearch": "한국한방고등학교"
+  },
+  "S130000893": {
+    "uuid": "2049ba93-9df1-4465-9bc5-b8e41b1fc4e3",
+    "nameInSearch": "괴목초등학교"
+  },
+  "S130000894": {
+    "uuid": "576d35fd-ebbc-483b-86f3-9d56a67d9636",
+    "nameInSearch": "구천초등학교"
+  },
+  "S130000897": {
+    "uuid": "54332a57-3092-4cbf-803c-b4f0ef7061f5",
+    "nameInSearch": "무주중앙초등학교"
+  },
+  "S130000898": {
+    "uuid": "f4b8f8be-9654-453a-9f41-c159dd6d8305",
+    "nameInSearch": "무주초등학교"
+  },
+  "S130000899": {
+    "uuid": "b0de6e9d-e05e-4370-b1e8-556d3fe3a2bc",
+    "nameInSearch": "무풍초등학교"
+  },
+  "S130000900": {
+    "uuid": "64dbd2a1-7877-48c7-a884-dfde0e6af090",
+    "nameInSearch": "부남초등학교"
+  },
+  "S130000901": {
+    "uuid": "ad6eadb8-3604-4fb4-8596-de10b8a6be7c",
+    "nameInSearch": "부당초등학교"
+  },
+  "S130000903": {
+    "uuid": "56c04137-6fa3-466e-b7e4-55f463e68a13",
+    "nameInSearch": "설천초등학교"
+  },
+  "S130000904": {
+    "uuid": "b40dc7ff-d386-40e6-903f-6207e9c65e82",
+    "nameInSearch": "안성초등학교"
+  },
+  "S130000905": {
+    "uuid": "3b16781e-96e0-49c9-9a96-415a16ad10bf",
+    "nameInSearch": "적상초등학교"
+  },
+  "S130000884": {
+    "uuid": "d58223bb-b65d-4e99-98db-7423de391708",
+    "nameInSearch": "무주중학교"
+  },
+  "S130000886": {
+    "uuid": "4c373061-dae0-4970-8ead-ce42836e717e",
+    "nameInSearch": "무풍중학교"
+  },
+  "S130000887": {
+    "uuid": "207e00aa-70ab-4b63-a51b-9cff7509b374",
+    "nameInSearch": "부남중학교"
+  },
+  "S130000888": {
+    "uuid": "5697ba7c-ac6b-415c-a7a0-405f13f3ed6b",
+    "nameInSearch": "설천중학교"
+  },
+  "S130000889": {
+    "uuid": "cdb59de8-5b72-4216-bc34-0c2ed45d10a8",
+    "nameInSearch": "안성중학교"
+  },
+  "S130000890": {
+    "uuid": "9b0752c5-ef66-43f1-94e2-2bbabb386612",
+    "nameInSearch": "적상중학교"
+  },
+  "S130000342": {
+    "uuid": "f3738c74-aaf0-4e0c-9e13-f9a7f9a12d29",
+    "nameInSearch": "무주고등학교"
+  },
+  "S130000343": {
+    "uuid": "d2f183d4-6f2b-457e-bf11-fc7a0f2861ed",
+    "nameInSearch": "무풍고등학교"
+  },
+  "S130000357": {
+    "uuid": "38d38281-de0e-4a50-b631-9c92950ea092",
+    "nameInSearch": "설천고등학교"
+  },
+  "S130000365": {
+    "uuid": "d87c29fe-7535-415e-be8e-47ca299ee339",
+    "nameInSearch": "안성고등학교"
+  },
+  "S130000452": {
+    "uuid": "eb29f13a-b197-440e-8b68-59fdf9c68e08",
+    "nameInSearch": "푸른꿈고등학교"
+  },
+  "S130001352": {
+    "uuid": "188a5311-cb65-42c0-a097-4629d0ea60d2",
+    "nameInSearch": "계남초등학교"
+  },
+  "S130001353": {
+    "uuid": "e117bd9b-fd05-49bb-8e99-2db60cc28c38",
+    "nameInSearch": "계북초등학교"
+  },
+  "S130001358": {
+    "uuid": "8701b6cd-2f14-4d0e-bc78-29f1a7331e90",
+    "nameInSearch": "번암초등학교"
+  },
+  "S130001359": {
+    "uuid": "f2bc3c7f-38fb-4129-9005-3a9cb7511b8d",
+    "nameInSearch": "번암초등학교동화분교장"
+  },
+  "S130001360": {
+    "uuid": "09cb1e74-9519-48be-894d-aef441e9cd8d",
+    "nameInSearch": "산서초등학교"
+  },
+  "S130001361": {
+    "uuid": "417bcbf2-a9fa-48c5-9d00-4624a7da80ef",
+    "nameInSearch": "수남초등학교"
+  },
+  "S130001362": {
+    "uuid": "91f0b37a-1cfd-43ed-86ed-0d305e9d9fc9",
+    "nameInSearch": "원촌초등학교"
+  },
+  "S130001365": {
+    "uuid": "624ea959-82b1-4a9c-9523-d2d1d79623e9",
+    "nameInSearch": "장계초등학교"
+  },
+  "S130001366": {
+    "uuid": "c9742528-4eda-4711-905d-8f1a258008ac",
+    "nameInSearch": "장수초등학교"
+  },
+  "S130001368": {
+    "uuid": "f1b13cd5-deae-438c-bc20-68ffb6580daa",
+    "nameInSearch": "천천초등학교"
+  },
+  "S130001345": {
+    "uuid": "fe150ce5-32d0-43ff-b08b-343949fdd488",
+    "nameInSearch": "계남중학교"
+  },
+  "S130001346": {
+    "uuid": "07b6692d-2461-42cd-a66d-84962f4fdd4f",
+    "nameInSearch": "계북중학교"
+  },
+  "S130001347": {
+    "uuid": "0b7574d0-1bdc-4811-9050-762461484aa6",
+    "nameInSearch": "번암중학교"
+  },
+  "S130001348": {
+    "uuid": "055a9ea1-56e9-4ac6-9690-efacac380eae",
+    "nameInSearch": "산서중학교"
+  },
+  "S130001349": {
+    "uuid": "796af187-7ba3-4b4c-83ef-b43cb85f647c",
+    "nameInSearch": "장계중학교"
+  },
+  "S130001350": {
+    "uuid": "2550afd8-98fc-46dc-adac-bcabbdda3e7b",
+    "nameInSearch": "장수중학교"
+  },
+  "S130001351": {
+    "uuid": "544cc8b1-27a1-4821-9a75-5e2ddc7c403a",
+    "nameInSearch": "천천중학교"
+  },
+  "S130000346": {
+    "uuid": "ae9bb45b-1426-45a1-86e6-6bd812946079",
+    "nameInSearch": "백화고등학교"
+  },
+  "S130000352": {
+    "uuid": "30951584-99d6-41c0-ae6b-a429bb73ab30",
+    "nameInSearch": "산서고등학교"
+  },
+  "S130000402": {
+    "uuid": "dde984d8-3c4e-4aff-9f18-361e788b6b7b",
+    "nameInSearch": "장수고등학교"
+  },
+  "S130000401": {
+    "uuid": "f2f1ae6e-d7a6-4a44-8572-f26fac02d683",
+    "nameInSearch": "전북유니텍고등학교"
+  },
+  "S130002456": {
+    "uuid": "889687db-b0ec-43ad-8ff3-fb35b2fab7f8",
+    "nameInSearch": "한국마사고등학교"
+  },
+  "S130001308": {
+    "uuid": "fbe335c5-489c-40d7-97ad-626809b6dad7",
+    "nameInSearch": "갈담초등학교"
+  },
+  "S130001311": {
+    "uuid": "51d5f821-8d36-4f73-89e6-9d2c227c92e2",
+    "nameInSearch": "관촌초등학교"
+  },
+  "S130001313": {
+    "uuid": "e78b8e73-1584-4443-9477-0601cce35568",
+    "nameInSearch": "대리초등학교"
+  },
+  "S130001314": {
+    "uuid": "3c455786-7535-4d54-a1c2-e39fcac9b91b",
+    "nameInSearch": "덕치초등학교"
+  },
+  "S130001324": {
+    "uuid": "f9e3ad12-d67e-4d7e-9c43-e0fcb3b1df36",
+    "nameInSearch": "마암초등학교"
+  },
+  "S130001316": {
+    "uuid": "af58d904-256d-4eb4-91d0-31394c226e76",
+    "nameInSearch": "삼계초등학교"
+  },
+  "S130001318": {
+    "uuid": "5f1c9a00-fc2b-4eaf-9c7d-1ff6a3b5bc28",
+    "nameInSearch": "성수초등학교"
+  },
+  "S130001320": {
+    "uuid": "9f795603-ab8f-4794-96aa-a10b9b07b9ac",
+    "nameInSearch": "신평초등학교"
+  },
+  "S130001322": {
+    "uuid": "298da70d-878a-49c9-a974-4f5cab8c6a54",
+    "nameInSearch": "오수초등학교"
+  },
+  "S130001323": {
+    "uuid": "7f27a12e-5a43-4f6a-94d5-d960ffa6dffb",
+    "nameInSearch": "운암초등학교"
+  },
+  "S130001325": {
+    "uuid": "999d7a94-0285-47b9-8b99-988d55e8867e",
+    "nameInSearch": "임실기림초등학교"
+  },
+  "S130001327": {
+    "uuid": "609d05c7-c594-431b-a6aa-acf06d082ca1",
+    "nameInSearch": "임실초등학교"
+  },
+  "S130001328": {
+    "uuid": "0959de4f-c8f9-4375-abcb-a689e4ecea3e",
+    "nameInSearch": "지사초등학교"
+  },
+  "S130001329": {
+    "uuid": "83882a66-416d-430f-aeb7-8f2cf45fed8e",
+    "nameInSearch": "청웅초등학교"
+  },
+  "S130001298": {
+    "uuid": "0ff9e9e2-7ad3-4ad5-9365-797f3e6af6bd",
+    "nameInSearch": "관촌중학교"
+  },
+  "S130001299": {
+    "uuid": "f8f5ad04-0293-4f1c-baae-9898b45a3727",
+    "nameInSearch": "삼계중학교"
+  },
+  "S130001300": {
+    "uuid": "e104d26f-8ef9-46ad-abe5-2d723025736f",
+    "nameInSearch": "섬진중학교"
+  },
+  "S130001301": {
+    "uuid": "6038fdee-8ae0-46f8-862a-a27dfa33e55f",
+    "nameInSearch": "성수중학교"
+  },
+  "S130001303": {
+    "uuid": "8d30fcd0-2add-43e0-a54d-83d736c0c20a",
+    "nameInSearch": "오수중학교"
+  },
+  "S130001304": {
+    "uuid": "2f734e6b-c011-4e8c-861d-4d97d7172b53",
+    "nameInSearch": "운암중학교"
+  },
+  "S130001305": {
+    "uuid": "2b37034d-b45c-4636-9a73-f33e86f96d18",
+    "nameInSearch": "임실동중학교"
+  },
+  "S130001306": {
+    "uuid": "26738a1d-15b4-4f56-8207-f0c031d58641",
+    "nameInSearch": "지사중학교"
+  },
+  "S130001307": {
+    "uuid": "a50ffaea-bde8-4701-9f97-6356abb2a648",
+    "nameInSearch": "청웅중학교"
+  },
+  "S130000399": {
+    "uuid": "d6140713-93e5-4856-8135-8835be918bb5",
+    "nameInSearch": "임실고등학교"
+  },
+  "S130000372": {
+    "uuid": "1828d7eb-f264-4662-8946-40b43752fa05",
+    "nameInSearch": "전북펫고등학교"
+  },
+  "S130000400": {
+    "uuid": "b24c72e7-8cf7-48b4-9d28-d7e2872d9f66",
+    "nameInSearch": "한국치즈과학고등학교"
+  },
+  "S130001009": {
+    "uuid": "cd4e1a85-1083-4031-b479-58d021225198",
+    "nameInSearch": "구림초등학교"
+  },
+  "S130001010": {
+    "uuid": "5e86b989-4f1e-4a32-ab77-4d6666210e08",
+    "nameInSearch": "금과초등학교"
+  },
+  "S130001013": {
+    "uuid": "aba43705-49ac-45ad-946d-3995ee986a42",
+    "nameInSearch": "동계초등학교"
+  },
+  "S130001014": {
+    "uuid": "b5f499bf-889f-4bd0-abe3-afd2f25f3a82",
+    "nameInSearch": "동산초등학교"
+  },
+  "S130001015": {
+    "uuid": "90ce4549-9aea-4c73-ae20-e81f77d49f29",
+    "nameInSearch": "복흥초등학교"
+  },
+  "S130001017": {
+    "uuid": "2ef2fb63-98ea-45c1-b8b4-b68a49a743c5",
+    "nameInSearch": "순창중앙초등학교"
+  },
+  "S130001018": {
+    "uuid": "e060e0ea-a465-4f2b-993f-b0602249bc1b",
+    "nameInSearch": "순창초등학교"
+  },
+  "S130001019": {
+    "uuid": "b1e301fd-2035-4c35-b6ca-5dca323159f3",
+    "nameInSearch": "시산초등학교"
+  },
+  "S130001020": {
+    "uuid": "825979f9-d265-4241-88a9-d6f75fdf1c92",
+    "nameInSearch": "쌍치초등학교"
+  },
+  "S130001022": {
+    "uuid": "d8adc600-2edc-4948-8ce9-0fc698d06a3f",
+    "nameInSearch": "옥천초등학교"
+  },
+  "S130001024": {
+    "uuid": "c12690d5-076e-4501-9f90-414654f4684c",
+    "nameInSearch": "유등초등학교"
+  },
+  "S130001025": {
+    "uuid": "f51c184f-d4fa-45d6-a9b0-dfdc0b68e525",
+    "nameInSearch": "인계초등학교"
+  },
+  "S130001026": {
+    "uuid": "cc3ab1e4-409b-4db0-8278-4b9b6b202053",
+    "nameInSearch": "적성초등학교"
+  },
+  "S130001027": {
+    "uuid": "4fa78408-bd21-42e8-aaf2-b5e51f808424",
+    "nameInSearch": "팔덕초등학교"
+  },
+  "S130001028": {
+    "uuid": "d5712053-c380-4768-b185-8da562d2d3b7",
+    "nameInSearch": "풍산초등학교"
+  },
+  "S130001001": {
+    "uuid": "dff486dc-5319-4455-9545-3f1d182d9697",
+    "nameInSearch": "구림중학교"
+  },
+  "S130001003": {
+    "uuid": "4897b014-afae-4cea-a053-981cf4ee983a",
+    "nameInSearch": "동계중학교"
+  },
+  "S130001004": {
+    "uuid": "0d04c3ae-f5d6-4c80-8d8e-bfe36d5d89f4",
+    "nameInSearch": "복흥중학교"
+  },
+  "S130001006": {
+    "uuid": "f24de62d-01dd-436b-93bc-a79deab9716c",
+    "nameInSearch": "새솔중학교"
+  },
+  "S130001005": {
+    "uuid": "0c9fda52-6535-4cb1-be61-368241eddf94",
+    "nameInSearch": "순창북중학교"
+  },
+  "S130001007": {
+    "uuid": "b50e30b2-1e63-4eaa-b216-ad9e2a18abd6",
+    "nameInSearch": "순창중학교"
+  },
+  "S130001008": {
+    "uuid": "d84b751f-6f78-4d40-b7c7-31f2f7942316",
+    "nameInSearch": "쌍치중학교"
+  },
+  "S130000336": {
+    "uuid": "3f160b5a-7ddd-4e43-8740-e21440a834ed",
+    "nameInSearch": "동계고등학교"
+  },
+  "S130000362": {
+    "uuid": "842c8092-55e2-477c-8020-3ac1121e2697",
+    "nameInSearch": "순창고등학교"
+  },
+  "S130000363": {
+    "uuid": "79a5b013-2bc4-4b68-b610-fbbc64b3759e",
+    "nameInSearch": "순창제일고등학교"
+  },
+  "S130000480": {
+    "uuid": "a1925bea-1212-401d-84fd-52ee7b27570a",
+    "nameInSearch": "가평초등학교"
+  },
+  "S130000481": {
+    "uuid": "067d82ce-82a7-467a-a74a-4bf457ef1363",
+    "nameInSearch": "고수초등학교"
+  },
+  "S130000482": {
+    "uuid": "a8491c88-323a-4baf-b8b2-cee968891bf7",
+    "nameInSearch": "고창남초등학교"
+  },
+  "S130000493": {
+    "uuid": "dadd284a-c8f0-476d-93e3-176ddb3ddc7f",
+    "nameInSearch": "고창부안초등학교"
+  },
+  "S130000484": {
+    "uuid": "420ff1c7-d0a7-4c2d-8a37-564f905831fd",
+    "nameInSearch": "고창초등학교"
+  },
+  "S130000485": {
+    "uuid": "07feb8f4-611c-40eb-9796-ae6418c9477b",
+    "nameInSearch": "공음초등학교"
+  },
+  "S130000486": {
+    "uuid": "e06d1838-a649-4d37-a775-e81968a8a8ce",
+    "nameInSearch": "대산초등학교"
+  },
+  "S130000487": {
+    "uuid": "9e3e84ff-b2d1-42ff-a7f9-46cd2801d879",
+    "nameInSearch": "대아초등학교"
+  },
+  "S130000489": {
+    "uuid": "e706c489-8234-41ad-a522-a6e95c66b63e",
+    "nameInSearch": "동호초등학교"
+  },
+  "S130000490": {
+    "uuid": "5a116b23-8913-4261-85d7-2e24eee91238",
+    "nameInSearch": "매산초등학교"
+  },
+  "S130000491": {
+    "uuid": "06fa0382-bc0d-4574-afd3-6bdf5fafdd45",
+    "nameInSearch": "무장초등학교"
+  },
+  "S130000492": {
+    "uuid": "862ce1cb-bc41-4928-abaf-13785a017271",
+    "nameInSearch": "봉암초등학교"
+  },
+  "S130000495": {
+    "uuid": "b5a2fe58-394c-44cc-86ab-199ddd8538c2",
+    "nameInSearch": "상하초등학교"
+  },
+  "S130000498": {
+    "uuid": "9fab8f20-a68a-40a3-8801-94ee42c768c3",
+    "nameInSearch": "선동초등학교"
+  },
+  "S130000500": {
+    "uuid": "9e0f70f9-6df2-4520-a478-5d8b9e9e919d",
+    "nameInSearch": "성내초등학교"
+  },
+  "S130000501": {
+    "uuid": "41859b5b-2b8e-4920-afc7-22cf220c7092",
+    "nameInSearch": "성송초등학교"
+  },
+  "S130000502": {
+    "uuid": "e249b9f3-9ce3-48a2-b3da-a4323a3e12f9",
+    "nameInSearch": "신림초등학교"
+  },
+  "S130000504": {
+    "uuid": "34f88215-b584-40d8-91ba-cf5e2e9c9026",
+    "nameInSearch": "심원초등학교"
+  },
+  "S130000505": {
+    "uuid": "577f092d-07d5-4c9b-9d6d-4cdea4d09d57",
+    "nameInSearch": "아산초등학교"
+  },
+  "S130000510": {
+    "uuid": "c5c3a98e-f486-42c9-8c06-8e329baefde5",
+    "nameInSearch": "해리초등학교"
+  },
+  "S130000512": {
+    "uuid": "d0fc713c-4621-48de-9b37-3bb3d11ee5c7",
+    "nameInSearch": "흥덕초등학교"
+  },
+  "S130000466": {
+    "uuid": "b91b4c2b-2dd3-4188-ae50-6119beaea7dd",
+    "nameInSearch": "고창남중학교"
+  },
+  "S130000467": {
+    "uuid": "4d89e577-7276-4056-b7c5-777f0f629078",
+    "nameInSearch": "고창북중학교"
+  },
+  "S130000469": {
+    "uuid": "eaad667b-c58a-4286-b98f-539cdd1dc205",
+    "nameInSearch": "고창중학교"
+  },
+  "S130000470": {
+    "uuid": "2eb7d2fe-93a4-4178-9dcb-a08752ea5800",
+    "nameInSearch": "공음중학교"
+  },
+  "S130000471": {
+    "uuid": "699bf9e3-133e-442e-9651-25fc4534a0f7",
+    "nameInSearch": "대성중학교"
+  },
+  "S130000472": {
+    "uuid": "c18be8ee-0d6f-4569-bc46-bfbf9228e699",
+    "nameInSearch": "상하중학교"
+  },
+  "S130000473": {
+    "uuid": "90e2ca08-4adc-42af-bfac-3567206fc9d8",
+    "nameInSearch": "성내중학교"
+  },
+  "S130000474": {
+    "uuid": "3b0c98be-eda3-413c-ba10-1ede226c52aa",
+    "nameInSearch": "신림중학교"
+  },
+  "S130000475": {
+    "uuid": "886901ca-c93d-4cc6-8abb-95838d3e2e07",
+    "nameInSearch": "심원중학교"
+  },
+  "S130000476": {
+    "uuid": "672207bd-f4d1-4971-a429-ca39089d5f9c",
+    "nameInSearch": "아산중학교"
+  },
+  "S130000477": {
+    "uuid": "9920f666-2921-466f-9b06-374e578881ba",
+    "nameInSearch": "영선중학교"
+  },
+  "S130000468": {
+    "uuid": "0e7416ae-9ff0-4884-bf00-f16c80122874",
+    "nameInSearch": "자유중학교"
+  },
+  "S130000478": {
+    "uuid": "16332cdd-2792-4454-ab94-fc76a9f05654",
+    "nameInSearch": "해리중학교"
+  },
+  "S130000479": {
+    "uuid": "02e94078-3d7d-4c56-83b0-8bfac05d5baa",
+    "nameInSearch": "흥덕중학교"
+  },
+  "S130000299": {
+    "uuid": "92b21328-c63f-4017-85f4-bebdca338683",
+    "nameInSearch": "강호항공고등학교"
+  },
+  "S130000301": {
+    "uuid": "5828ffd7-7e70-4fea-9925-548c3ce8b450",
+    "nameInSearch": "고창고등학교"
+  },
+  "S130000303": {
+    "uuid": "5cc6f4ff-f807-4302-b007-16842056b83c",
+    "nameInSearch": "고창북고등학교"
+  },
+  "S130000304": {
+    "uuid": "a90b9bee-8dc1-4f31-9b24-0e62e8269f5a",
+    "nameInSearch": "자유고등학교"
+  },
+  "S130000369": {
+    "uuid": "1045fac1-871a-4204-9b87-03cc1a912a18",
+    "nameInSearch": "전북인공지능고등학교"
+  },
+  "S130000463": {
+    "uuid": "1def1143-534f-4a7f-8177-7b86ffd103a3",
+    "nameInSearch": "해리고등학교"
+  },
+  "S130000934": {
+    "uuid": "1d39c9e6-18fe-4354-9de0-dcc0119d078b",
+    "nameInSearch": "격포초등학교"
+  },
+  "S130000935": {
+    "uuid": "122de9b4-44b5-4e94-8f89-8d6c672b5fd5",
+    "nameInSearch": "계화초등학교"
+  },
+  "S130000937": {
+    "uuid": "0be9af39-7d94-42cc-8257-fa572c9e6cee",
+    "nameInSearch": "곰소초등학교"
+  },
+  "S130000941": {
+    "uuid": "d51f81e0-e2d0-4e64-9bd6-f1105e216990",
+    "nameInSearch": "동북초등학교"
+  },
+  "S130000944": {
+    "uuid": "80ec4ca5-b613-4a0e-9bcd-48d22ab4f2b8",
+    "nameInSearch": "동진초등학교"
+  },
+  "S130000946": {
+    "uuid": "2c82bf9f-dad1-4ce5-9331-1be8cf8a54d9",
+    "nameInSearch": "백련초등학교"
+  },
+  "S130000947": {
+    "uuid": "3c719a16-c2db-40a9-877b-c69d6c6fde60",
+    "nameInSearch": "백룡초등학교"
+  },
+  "S130000948": {
+    "uuid": "a149c5b2-b6a5-4524-8891-131d0d79cde9",
+    "nameInSearch": "백산초등학교"
+  },
+  "S130000949": {
+    "uuid": "81d09e41-5494-42da-910b-2b3662625b42",
+    "nameInSearch": "변산초등학교"
+  },
+  "S130000951": {
+    "uuid": "b160a0b5-73ac-4222-b650-66b51b276fec",
+    "nameInSearch": "보안초등학교"
+  },
+  "S130000952": {
+    "uuid": "8aca9537-c534-4213-b954-ef73ef1f235d",
+    "nameInSearch": "부안남초등학교"
+  },
+  "S130000953": {
+    "uuid": "931647f9-eb3f-4a06-a5e8-3396cd597d6b",
+    "nameInSearch": "부안동초등학교"
+  },
+  "S130000954": {
+    "uuid": "3e643f37-7f01-4a1d-bf18-c3553edce0d7",
+    "nameInSearch": "부안초등학교"
+  },
+  "S130000955": {
+    "uuid": "4d10963d-1138-4207-8865-f4cbd577594f",
+    "nameInSearch": "상서초등학교"
+  },
+  "S130000956": {
+    "uuid": "98a3e1ea-92fb-4061-98af-1d6ddb0aac0c",
+    "nameInSearch": "영전초등학교"
+  },
+  "S130000957": {
+    "uuid": "a7847940-4b91-482d-8d68-db7ab4d006f3",
+    "nameInSearch": "우덕초등학교"
+  },
+  "S130000959": {
+    "uuid": "e5b95d99-a5b2-4654-ba7d-541d363662fd",
+    "nameInSearch": "위도초등학교"
+  },
+  "S130000960": {
+    "uuid": "c0d5d882-a0c0-4613-99f8-a3d90e1ad160",
+    "nameInSearch": "위도초등학교식도분교장"
+  },
+  "S130000964": {
+    "uuid": "ae86479d-0c23-4c33-8409-846cc5046ab0",
+    "nameInSearch": "주산초등학교"
+  },
+  "S130000966": {
+    "uuid": "c39b085b-3fe1-4296-ae9f-e0aa5787eb21",
+    "nameInSearch": "줄포초등학교"
+  },
+  "S130000967": {
+    "uuid": "3ab1a309-7c73-4716-8ed9-20e04df486bf",
+    "nameInSearch": "창북초등학교"
+  },
+  "S130000968": {
+    "uuid": "1f446543-6cb3-47eb-9b55-89dd6f8a1f18",
+    "nameInSearch": "하서초등학교"
+  },
+  "S130000969": {
+    "uuid": "f72b82ca-13cf-4fc4-8296-af62fac5ae04",
+    "nameInSearch": "행안초등학교"
+  },
+  "S130000920": {
+    "uuid": "c6847bae-43df-4e84-ad41-340be113cbcb",
+    "nameInSearch": "계화중학교"
+  },
+  "S130000925": {
+    "uuid": "1aeed5bf-29d4-41cc-95f5-f17a41cddd70",
+    "nameInSearch": "낭주중학교"
+  },
+  "S130000921": {
+    "uuid": "8e6a0358-0827-4c92-ad67-c42056ce7884",
+    "nameInSearch": "백산중학교"
+  },
+  "S130000922": {
+    "uuid": "63889dce-2c29-4d4c-b48b-6fdb840395c7",
+    "nameInSearch": "변산서중학교"
+  },
+  "S130000923": {
+    "uuid": "2bbf9209-d5b9-45ec-a105-293c14ab8da8",
+    "nameInSearch": "변산중학교"
+  },
+  "S130000924": {
+    "uuid": "e4f92812-1816-43d6-88cd-1967a50ac00f",
+    "nameInSearch": "보안중학교"
+  },
+  "S130000926": {
+    "uuid": "470e1f58-98e7-49ae-a9dd-d432756872ab",
+    "nameInSearch": "부안중학교"
+  },
+  "S130000927": {
+    "uuid": "2201f32b-bc67-470f-a29b-27428e24cace",
+    "nameInSearch": "삼남중학교"
+  },
+  "S130000928": {
+    "uuid": "044cf1d3-eded-488c-a968-673cd9548c97",
+    "nameInSearch": "상서중학교"
+  },
+  "S130000929": {
+    "uuid": "72c5cfc8-bf0f-484e-9466-5144a39e9406",
+    "nameInSearch": "위도중학교"
+  },
+  "S130000930": {
+    "uuid": "a79e6dce-1c3b-4aa8-888b-3386eb17921d",
+    "nameInSearch": "주산중학교"
+  },
+  "S130000931": {
+    "uuid": "56f81cc3-55e4-4920-82b5-d9cc3c6d4359",
+    "nameInSearch": "줄포중학교"
+  },
+  "S130000932": {
+    "uuid": "87b100f7-389b-4bac-8b92-b35e01135d14",
+    "nameInSearch": "하서중학교"
+  },
+  "S130000345": {
+    "uuid": "41372588-e914-4765-83f7-6b40d59ef20d",
+    "nameInSearch": "백산고등학교"
+  },
+  "S130000348": {
+    "uuid": "a8f0f72b-0b66-488a-b68e-22d0bd3f7d59",
+    "nameInSearch": "부안고등학교"
+  },
+  "S130000350": {
+    "uuid": "58aad506-87cf-4112-a4fe-41803ff89c67",
+    "nameInSearch": "부안여자고등학교"
+  },
+  "S130000351": {
+    "uuid": "79be6270-2e73-4771-a167-00f081774567",
+    "nameInSearch": "서림고등학교"
+  },
+  "S130000349": {
+    "uuid": "86391001-7a27-4b79-964a-4c8a75232097",
+    "nameInSearch": "전북베이커리고등학교"
+  },
+  "S130000442": {
+    "uuid": "1dff3aac-edb1-4bab-97d3-6016994bc07f",
+    "nameInSearch": "전북자동차고등학교"
+  },
   "S000003504": {
     "uuid": "ad25e964-e687-4dd0-b110-1e5ab1eb91b1",
     "nameInSearch": "광주교육대학교목포부설초등학교"
@@ -47210,5 +50318,149 @@
   "S100000457": {
     "uuid": "f95a16c0-0e5a-4f26-9d8d-29d5b8050766",
     "nameInSearch": "양양여자고등학교"
+  },
+  "S090001031": {
+    "uuid": "6b3d00a9-872a-42cd-bed2-09cb6a56a875",
+    "nameInSearch": "지축초등학교"
+  },
+  "S090004292": {
+    "uuid": "64c464ed-0ff6-4b21-9072-8e516375a349",
+    "nameInSearch": "동탄목동초등학교"
+  },
+  "S090004333": {
+    "uuid": "fb012dee-f950-4742-b007-2416178aa83b",
+    "nameInSearch": "장명초등학교장일분교장"
+  },
+  "S160002127": {
+    "uuid": "60b1f3b6-4863-4c8d-b62c-3795d24d88a9",
+    "nameInSearch": "진해중학교"
+  },
+  "S090004287": {
+    "uuid": "07ef421f-0a88-4d96-9b30-59c272ac1efa",
+    "nameInSearch": "기안초등학교"
+  },
+  "S090004304": {
+    "uuid": "5fb22b30-c39d-424e-903a-5cedff424df6",
+    "nameInSearch": "발안초등학교"
+  },
+  "S090004324": {
+    "uuid": "873fc9d5-51d9-40e8-b076-facbddcdb836",
+    "nameInSearch": "양감초등학교"
+  },
+  "S090004351": {
+    "uuid": "eff7c43b-67ab-4633-9303-887742a10396",
+    "nameInSearch": "화성매송초등학교"
+  },
+  "S090005474": {
+    "uuid": "50967d49-fee3-45c9-8d0d-131fe11b9286",
+    "nameInSearch": "석우초등학교"
+  },
+  "S090006651": {
+    "uuid": "a03d1971-bef6-4c6f-bb99-00c533d9a407",
+    "nameInSearch": "화성반월초등학교"
+  },
+  "S090006931": {
+    "uuid": "3dbe17f8-b21f-493c-8b5d-cf872b687502",
+    "nameInSearch": "화성청계초등학교"
+  },
+  "S090006937": {
+    "uuid": "dce0b48e-233c-4fe2-9050-eaa9b48c41c3",
+    "nameInSearch": "왕배초등학교"
+  },
+  "S090007371": {
+    "uuid": "f7f6e5d1-6138-42f4-adcd-65481fef9429",
+    "nameInSearch": "이솔초등학교"
+  },
+  "S090007604": {
+    "uuid": "19889399-4137-4633-83a5-8f1d53b82101",
+    "nameInSearch": "화성신동초등학교"
+  },
+  "S090004260": {
+    "uuid": "c0226e9c-2ad4-4da2-92e7-a8ee96133bfb",
+    "nameInSearch": "동학중학교"
+  },
+  "S090004263": {
+    "uuid": "7fa31f87-654f-4c22-b586-f071f898e37f",
+    "nameInSearch": "발안중학교"
+  },
+  "S090004266": {
+    "uuid": "cad3720d-03f5-469f-a387-926370409730",
+    "nameInSearch": "비봉중학교"
+  },
+  "S090004278": {
+    "uuid": "deac04e7-6d4a-4ebf-b5dc-dbbd1e0b9d6d",
+    "nameInSearch": "정남중학교"
+  },
+  "S090005175": {
+    "uuid": "a413caae-6d6d-4dab-a1ac-af1aa0377424",
+    "nameInSearch": "기안중학교"
+  },
+  "S090005657": {
+    "uuid": "73bd771a-2c51-4cd3-931a-4c45f1d99c21",
+    "nameInSearch": "와우중학교"
+  },
+  "S090006934": {
+    "uuid": "5ce31115-4310-49f0-93bc-65d285b2ae55",
+    "nameInSearch": "한백중학교"
+  },
+  "S090006944": {
+    "uuid": "f9a90a96-3d7e-4137-b1bd-07bc8d0a1cbd",
+    "nameInSearch": "방교중학교"
+  },
+  "S090007127": {
+    "uuid": "8318c9d1-d0a3-44e2-b68b-f41216e9b1fd",
+    "nameInSearch": "다원중학교"
+  },
+  "S090007256": {
+    "uuid": "96f0abde-8c8f-4432-9d32-feec5536d34b",
+    "nameInSearch": "이산중학교"
+  },
+  "S090007395": {
+    "uuid": "662366bb-c059-4f33-898e-f8cc4fe5df30",
+    "nameInSearch": "수현중학교"
+  },
+  "S090007522": {
+    "uuid": "5c6f759a-2093-45de-9a18-9b538d6798e3",
+    "nameInSearch": "치동중학교"
+  },
+  "S090000546": {
+    "uuid": "33d4464c-93b1-477c-92d0-5c122bcd4f50",
+    "nameInSearch": "두레자연고등학교"
+  },
+  "S090000594": {
+    "uuid": "6a1fcc43-c839-480b-bd0f-06f6f32067c1",
+    "nameInSearch": "비봉고등학교"
+  },
+  "S090004920": {
+    "uuid": "71f0c082-ba69-41c1-acf8-4a66d9c03aa9",
+    "nameInSearch": "병점고등학교"
+  },
+  "S090005578": {
+    "uuid": "4ef7be33-4c2a-46de-8477-108187593564",
+    "nameInSearch": "반송고등학교"
+  },
+  "S090005655": {
+    "uuid": "d5c50949-c4e2-46c6-96b3-887a203d8bdc",
+    "nameInSearch": "나루고등학교"
+  },
+  "S090006577": {
+    "uuid": "ca64e6bb-a215-4962-9c54-88f299c56a35",
+    "nameInSearch": "동탄국제고등학교"
+  },
+  "S090006811": {
+    "uuid": "d1492c35-12fe-453a-867e-093aced637d7",
+    "nameInSearch": "한백고등학교"
+  },
+  "S090006812": {
+    "uuid": "30d79a61-ce36-42df-a986-c92307b3c8ec",
+    "nameInSearch": "동탄중앙고등학교"
+  },
+  "S090007243": {
+    "uuid": "ab7a3f9a-abde-4140-9323-128397f3be32",
+    "nameInSearch": "정현고등학교"
+  },
+  "S090007863": {
+    "uuid": "08c827d7-74a3-47a7-a94b-1b17f828d2ed",
+    "nameInSearch": "치동고등학교"
   }
 }
