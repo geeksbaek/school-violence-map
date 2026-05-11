@@ -4,8 +4,9 @@ import { Menu } from "lucide-react";
 import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import type { Metric } from "@/lib/severity";
 import { computeStat, setToBits, type SchoolStat } from "@/lib/stats";
-import { SchoolDeckLayer } from "@/components/SchoolDeckLayer";
+import { SchoolDeckLayer, type RegionPick } from "@/components/SchoolDeckLayer";
 import { SchoolDetail } from "@/components/SchoolDetail";
+import { RegionDetail } from "@/components/RegionDetail";
 import { Sidebar, type FilterState } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,6 +35,7 @@ export function App() {
   const [adminGeo, setAdminGeo] = useState<any | null>(null);
   const [dongGeo, setDongGeo] = useState<any | null>(null);
   const [selected, setSelected] = useState<School | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<RegionPick | null>(null);
   const [metric, setMetric] = useState<Metric>("rate");
   const [sidebarOpen, setSidebarOpen] = useState(false); // 모바일용
   const [filter, setFilter] = useState<FilterState>({
@@ -158,7 +160,8 @@ export function App() {
               stats={stats}
               metric={metric}
               selectedCode={selected?.code ?? null}
-              onPick={(s) => setSelected(s)}
+              onPick={(s) => { setSelected(s); setSelectedRegion(null); }}
+              onPickRegion={(r) => { setSelectedRegion(r); setSelected(null); }}
               adminGeo={adminGeo}
               dongGeo={dongGeo}
             />
@@ -191,9 +194,7 @@ export function App() {
           <div
             className={cn(
               "absolute z-10 overflow-y-auto",
-              // 모바일: 하단 시트, 화면 70%까지
               "left-2 right-2 bottom-2 max-h-[70dvh]",
-              // 데스크톱: 우상단 카드
               "md:left-auto md:bottom-auto md:right-3 md:top-3 md:w-[340px] md:max-h-[calc(100dvh-1.5rem)]",
             )}
           >
@@ -204,6 +205,26 @@ export function App() {
               metric={metric}
               selectedTypes={filter.types}
               onClose={() => setSelected(null)}
+            />
+          </div>
+        )}
+
+        {selectedRegion && !selected && (
+          <div
+            className={cn(
+              "absolute z-10",
+              "left-2 right-2 bottom-2 max-h-[70dvh]",
+              "md:left-auto md:bottom-auto md:right-3 md:top-3 md:w-[360px] md:max-h-[calc(100dvh-1.5rem)]",
+            )}
+          >
+            <RegionDetail
+              region={selectedRegion}
+              schools={filtered}
+              stats={stats}
+              metric={metric}
+              selectedCode={null}
+              onPickSchool={(s) => { setSelected(s); setSelectedRegion(null); }}
+              onClose={() => setSelectedRegion(null)}
             />
           </div>
         )}

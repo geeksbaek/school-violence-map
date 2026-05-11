@@ -13,14 +13,21 @@ import type { School } from "@/types";
 import { severityOf, SEVERITY_COLOR, type Metric } from "@/lib/severity";
 import type { SchoolStat } from "@/lib/stats";
 
+export interface RegionPick {
+  type: "city" | "district" | "dong";
+  key: string;        // city / `${city}|${district}` / dongCode
+  label: string;      // 표시 텍스트
+}
+
 interface Props {
   schools: School[];
   stats: Map<string, SchoolStat>;
   metric: Metric;
   selectedCode: string | null;
   onPick: (s: School) => void;
-  adminGeo: any | null; // 시·일반구 polygon
-  dongGeo: any | null;  // 행정동 polygon
+  onPickRegion: (r: RegionPick) => void;
+  adminGeo: any | null;
+  dongGeo: any | null;
 }
 
 type AggLevel = "school" | "district" | "city";
@@ -50,15 +57,18 @@ const COLOR_RGBA: Record<string, [number, number, number, number]> = Object.from
 // 학교 종류 → stroke 두께 차별 (모양 대신)
 const KIND_STROKE: Record<string, number> = { 초등: 1, 중학: 2, 고등: 3 };
 
-export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, adminGeo, dongGeo }: Props) {
+export function SchoolDeckLayer({
+  schools, stats, metric, selectedCode, onPick, onPickRegion, adminGeo, dongGeo,
+}: Props) {
   const map = useMap();
   const overlayRef = useRef<GoogleMapsOverlay | null>(null);
   const [zoom, setZoom] = useState<number>(11);
   const aggLevel = aggLevelFor(zoom);
 
-  // 클릭 핸들러는 stale closure 방지 위해 ref로
   const onPickRef = useRef(onPick);
+  const onPickRegionRef = useRef(onPickRegion);
   onPickRef.current = onPick;
+  onPickRegionRef.current = onPickRegion;
 
   // 줌 변화 추적
   useEffect(() => {
@@ -138,12 +148,34 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
     if (!map) return;
     if (!overlayRef.current) {
       overlayRef.current = new GoogleMapsOverlay({
-        // 클릭 가능한 deck.gl 레이어
         onClick: (info) => {
-          const code = (info.object as any)?.code;
-          if (!code) return;
-          const s = schools.find((x) => x.code === code);
-          if (s) onPickRef.current(s);
+          const lid = info.layer?.id;
+          if (lid === "schools") {
+            const code = (info.object as any)?.code;
+            if (!code) return;
+            const s = schools.find((x) => x.code === code);
+            if (s) onPickRef.current(s);
+            return;
+          }
+          if (lid === "polygon-city" || lid === "polygon-district" || lid === "polygon-dong") {
+            const p = (info.object as any)?.properties ?? {};
+            if (lid === "polygon-city") {
+              onPickRegionRef.current({ type: "city", key: p.city, label: p.city });
+            } else if (lid === "polygon-district") {
+              const label = p.district ? `${p.city} ${p.district}` : p.city;
+              onPickRegionRef.current({
+                type: "district",
+                key: `${p.city}|${p.district}`,
+                label,
+              });
+            } else {
+              onPickRegionRef.current({
+                type: "dong",
+                key: p.code,
+                label: `${p.city ?? ""} ${p.district ?? ""} ${p.name ?? ""}`.trim(),
+              });
+            }
+          }
         },
       });
       overlayRef.current.setMap(map);
@@ -251,7 +283,7 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
           data: adminGeo,
           stroked: true,
           filled: true,
-          pickable: false,
+          pickable: true,
           getFillColor: (f: any) => {
             const c = featureSeverity(f.properties.city, f.properties.district, true);
             const m = c.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)!;
@@ -274,7 +306,7 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
           data: adminGeo,
           stroked: true,
           filled: true,
-          pickable: false,
+          pickable: true,
           getFillColor: (f: any) => {
             const [r, g, b] = hexToRgb(featureSeverity(f.properties.city, f.properties.district, false));
             return [r, g, b, distAlpha];
@@ -296,7 +328,7 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
           data: dongGeo,
           stroked: true,
           filled: true,
-          pickable: false,
+          pickable: true,
           getFillColor: (f: any) => {
             const [r, g, b] = hexToRgb(dongSeverity(f.properties.code));
             return [r, g, b, dongAlpha];
