@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { initAnalytics, trackSelection } from "@/lib/analytics";
 
 const KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string;
 
@@ -45,6 +46,10 @@ export function App() {
     query: "",
     types: new Set([0, 1, 2, 3, 4, 5, 6, 7]),
   });
+
+  useEffect(() => {
+    initAnalytics();
+  }, []);
 
   useEffect(() => {
     fetch(DATA_URL, { cache: "no-cache" })
@@ -159,6 +164,7 @@ export function App() {
       onPick={(s) => {
         setSelected(s);
         setSidebarOpen(false);
+        trackSelection("school", s.name, { school_kind: s.kind, city: s.city, source: "list" });
       }}
       metric={metric}
       setMetric={setMetric}
@@ -202,8 +208,16 @@ export function App() {
                 metric={metric}
                 selectedCode={selected?.code ?? null}
                 selectedRegion={selectedRegion}
-                onPick={(s) => { setSelected(s); setSelectedRegion(null); }}
-                onPickRegion={(r) => { setSelectedRegion(r); setSelected(null); }}
+                onPick={(s) => {
+                  setSelected(s);
+                  setSelectedRegion(null);
+                  trackSelection("school", s.name, { school_kind: s.kind, city: s.city });
+                }}
+                onPickRegion={(r) => {
+                  setSelectedRegion(r);
+                  setSelected(null);
+                  trackSelection("region", r.label, { region_type: r.type });
+                }}
                 adminGeo={adminGeo}
                 dongGeo={dongGeo}
               />
