@@ -21,6 +21,14 @@ const DEFAULT_CENTER = { lat: 37.32, lng: 127.05 };
 const ALL_KINDS: SchoolKind[] = ["초등", "중학", "고등"];
 const ALL_GENDERS: SchoolGender[] = ["공학", "여", "남"];
 
+// 상점·카페·관공서 등 POI 시각·클릭 모두 숨김 (학교 마커만 클릭 가능)
+const MAP_STYLES: google.maps.MapTypeStyle[] = [
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.school", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.business", stylers: [{ visibility: "off" }] },
+  { featureType: "transit.station", stylers: [{ visibility: "off" }] },
+];
+
 export function App() {
   const [data, setData] = useState<DataSet | null>(null);
   const [adminGeo, setAdminGeo] = useState<any | null>(null);
@@ -141,6 +149,8 @@ export function App() {
             mapTypeControl={false}
             streetViewControl={false}
             fullscreenControl={false}
+            clickableIcons={false}
+            styles={MAP_STYLES}
             className="absolute inset-0"
           >
             <SchoolDeckLayer
