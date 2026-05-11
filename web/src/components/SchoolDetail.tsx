@@ -219,6 +219,28 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
   type Section = { key: string; title: string; body: React.ReactNode };
   const sections: Section[] = [];
 
+  if (details.studentTrend?.length) {
+    const max = Math.max(1, ...details.studentTrend.map((t) => t.total));
+    sections.push({
+      key: "trend",
+      title: "학생수 추이",
+      body: (
+        <div className="flex items-end gap-1.5 h-24 px-0.5">
+          {details.studentTrend.map((t) => {
+            const h = Math.max(2, (t.total / max) * 60);
+            return (
+              <div key={t.year} className="flex-1 flex flex-col items-center gap-1">
+                <div className="text-[10px] tabular-nums leading-none h-3">{t.total.toLocaleString()}</div>
+                <div className="w-full rounded-sm" style={{ height: h, background: color, opacity: 0.7 }} />
+                <div className="text-[10px] text-muted-foreground leading-none">{t.year}</div>
+              </div>
+            );
+          })}
+        </div>
+      ),
+    });
+  }
+
   if (details.grades?.length) {
     sections.push({
       key: "grades",

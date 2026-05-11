@@ -28,6 +28,9 @@ const info: Record<string, any> = existsSync(join(DATA_DIR, "school_info.json"))
 const violence: Record<string, Record<string, any>> = existsSync(join(DATA_DIR, "violence.json"))
   ? await Bun.file(join(DATA_DIR, "violence.json")).json()
   : {};
+const studentTrend: Record<string, Record<string, number>> = existsSync(join(DATA_DIR, "student_trend.json"))
+  ? await Bun.file(join(DATA_DIR, "student_trend.json")).json()
+  : {};
 
 // 동 polygon 로드 + bbox 사전 계산 (학교 좌표 → 동 매핑용)
 const dongPath = join(ROOT, "web/public/dong.geojson");
@@ -199,7 +202,7 @@ function safetyCatLabel(prefix: string): string {
   } as Record<string, string>)[prefix] ?? prefix;
 }
 
-function extractDetails(i: any, kind: "초등" | "중학" | "고등"): SchoolDetails {
+function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: string): SchoolDetails {
   const d: SchoolDetails = {};
   const grade = i["09"];
   const gender = i["10"];
@@ -229,8 +232,15 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등"): SchoolDet
     if (arr.length > 0) d.grades = arr;
   }
 
-  // STDNT_SUM_NN은 연도가 아닌 학년 코드(2X=초, 3X=중, 4X=고)라 추이 그래프로 부적절.
-  // 학년별 분포는 d.grades(apiType 09)가 이미 정확히 노출함.
+  // 학생수 다년치 추이 — student_trend.json (collect_student_trend로 별도 수집)
+  const tr = studentTrend[code];
+  if (tr && Object.keys(tr).length >= 2) {
+    const arr = Object.entries(tr)
+      .map(([y, t]) => ({ year: parseInt(y), total: t }))
+      .filter((x) => Number.isFinite(x.year) && Number.isFinite(x.total))
+      .sort((a, b) => a.year - b.year);
+    if (arr.length >= 2) d.studentTrend = arr;
+  }
 
   // 수업/교사
   if (wkly) {
@@ -448,7 +458,7 @@ for (const code of Object.keys(schools)) {
     violenceTotal,
     violenceYears: yearsWithData,
     violenceRatePer100,
-    details: extractDetails(i, s.kind),
+    details: extractDetails(i, s.kind, code),
   });
 }
 
