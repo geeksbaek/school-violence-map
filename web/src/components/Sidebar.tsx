@@ -105,6 +105,7 @@ export function Sidebar({
         onValueChange={(v) => v && setMetric(v as Metric)}
         variant="outline"
         size="sm"
+        spacing={1}
         className="w-full"
       >
         <ToggleGroupItem value="rate" className="flex-1">비율</ToggleGroupItem>
