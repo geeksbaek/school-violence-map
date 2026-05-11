@@ -30,6 +30,35 @@ async function initSession() {
   SESSION = [wm, js].filter(Boolean).join("; ");
 }
 
+// 학교명 키워드 검색 — 결과 HTML에서 UUID 추출. 종류별 카드 분리.
+async function searchByName(keyword: string): Promise<{ kind: "초등" | "중학" | "고등"; uuid: string }[]> {
+  const params = new URLSearchParams({
+    SEARCH_KEYWORD: keyword, SEARCH_SCHUL_NM: keyword, SEARCH_TYPE: "1",
+    SEARCH_GS_HANGMOK_CD: "", SEARCH_GS_HANGMOK_NM: "", SEARCH_GS_BURYU_CD: "",
+    SEARCH_SIGUNGU: "", SEARCH_SIDO: "", SEARCH_FOND_SC_CODE: "", SEARCH_MODE: "",
+  });
+  const res = await fetch(`${BASE}/ei/ss/Pneiss_f01_l0.do`, {
+    method: "POST",
+    headers: {
+      Cookie: SESSION,
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+      Referer: `${BASE}/Main.do`,
+      "User-Agent": "Mozilla/5.0",
+    },
+    body: params.toString(),
+  });
+  const html = new TextDecoder("euc-kr").decode(await res.arrayBuffer());
+  // 종류별 결과 섹션: srDiv1=초등, srDiv2=중학, srDiv3=고등. 각 안에 bi<UUID> 클래스.
+  const out: { kind: "초등" | "중학" | "고등"; uuid: string }[] = [];
+  for (const [div, kind] of [["srDiv1", "초등"], ["srDiv2", "중학"], ["srDiv3", "고등"]] as const) {
+    const sec = html.match(new RegExp(`search_result ${div}[\\s\\S]*?(?=<div class=\"search_result|<!--검색결과 end|$)`));
+    if (!sec) continue;
+    const uuids = [...sec[0].matchAll(/basicInfo bi([0-9a-fA-F]{8}-[0-9a-fA-F\-]{27})/g)].map((m) => m[1]);
+    for (const u of uuids) out.push({ kind, uuid: u });
+  }
+  return out;
+}
+
 async function getList(sido10: string, sgg10: string, hgJongryu: string) {
   // hgJongryu: 02 초등 / 03 중등 / 04 고등
   const url = `${BASE}/ei/ss/pneiss_a05_s0/selectSchoolListLocation.do`;
@@ -190,10 +219,32 @@ async function main() {
   }
   console.log(`보강 매칭: +${extraAdded}`);
 
+  // ── 보강 3: 미매핑 학교 학교명 직접 검색 (Pneiss_f01_l0.do) ──
+  stillMissing = allActive.filter((s: any) => !out[s.code]);
+  console.log(`\n학교명 직접 검색 fallback: ${stillMissing.length}개 시도`);
+  let nameSearchAdded = 0;
+  for (let i = 0; i < stillMissing.length; i++) {
+    const s = stillMissing[i] as any;
+    const keyword = normalize(s.name); // suffix 떼고 검색
+    if (keyword.length < 2) continue;
+    try {
+      const results = await searchByName(keyword);
+      const candidates = results.filter((r) => r.kind === s.kind);
+      if (candidates.length === 1) {
+        out[s.code] = { uuid: candidates[0].uuid, nameInSearch: s.name };
+        nameSearchAdded++;
+      }
+      // 여러 후보면 모호 → 스킵 (안정성 우선)
+    } catch {}
+    if ((i + 1) % 50 === 0) process.stdout.write(`  ${i+1}/${stillMissing.length} (+${nameSearchAdded})\n`);
+    await sleep(150);
+  }
+  console.log(`학교명 검색 보강: +${nameSearchAdded}`);
+
   await Bun.write(join(DATA_DIR, "school_ids.json"), JSON.stringify(out, null, 2));
 
   stillMissing = allActive.filter((s: any) => !out[s.code]);
-  console.log(`\n매칭: ${matched + extraAdded} / 검색 미매칭 row(통합만): ${unmatched}`);
+  console.log(`\n매칭: ${matched + extraAdded + nameSearchAdded} / 검색 미매칭 row(통합만): ${unmatched}`);
   console.log(`최종 schools.json 기준 매핑 없음: ${stillMissing.length}개`);
   if (stillMissing.length > 0 && stillMissing.length <= 30) {
     for (const m of stillMissing.slice(0, 30)) console.log(`  - ${m.kind} ${m.name} (${m.sgg})`);
