@@ -143,6 +143,8 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
       overlayRef.current.setMap(map);
     }
 
+    // opacity는 layer 생성 시 prop으로 — 사후 mutation은 frozen으로 throw
+    const schoolAlpha0 = Math.round(255 * smoothstep(zoom, 12.5, 13.5));
     const layer = new ScatterplotLayer({
       id: "schools",
       data: layerData,
@@ -151,6 +153,8 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
       filled: true,
       radiusUnits: "pixels",
       lineWidthUnits: "pixels",
+      opacity: Math.max(0.02, schoolAlpha0 / 255),
+      visible: schoolAlpha0 > 5,
       // 줌·집계 레벨에 따라 city/district centroid로 모임 → transitions로 부드럽게 보간
       getPosition: (d: any) => {
         if (aggLevel === "city") {
@@ -205,7 +209,6 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
       // district polygon: 11 <= zoom < 14 일 때 fade in
       const cityAlpha = Math.round(160 * (1 - smoothstep(zoom, 10.5, 12.5)));
       const distAlpha = Math.round(170 * smoothstep(zoom, 10.5, 12) * (1 - smoothstep(zoom, 12.8, 14)));
-      const schoolAlpha = Math.round(255 * smoothstep(zoom, 12.5, 13.5));
 
       const featureSeverity = (city: string, district: string, useCity: boolean) => {
         const key = useCity ? city : `${city}|${district}`;
@@ -264,11 +267,8 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick, 
         }));
       }
 
-      // 학교 마커는 zoom 따라 fade in (z >= 12.5부터 보이기 시작)
-      if (schoolAlpha > 5) {
-        layer.props.opacity = schoolAlpha / 255;
-        layers.push(layer);
-      }
+      // 학교 마커 layer는 위에서 이미 opacity/visible 설정됨
+      layers.push(layer);
     } else {
       layers.push(layer);
     }
