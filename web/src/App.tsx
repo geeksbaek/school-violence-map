@@ -247,6 +247,9 @@ export function App() {
                 dongGeo={dongGeo}
               />
               <FlyToSelected school={selected} />
+              <MobileInitialLocate
+                hasInitialSelection={!!selected || !!selectedRegion}
+              />
               <LocateMeButton />
             </GMap>
           </APIProvider>
@@ -330,6 +333,31 @@ function nearestInDirection(from: School, all: School[], dir: "left" | "right" |
     if (d2 < bestD2) { bestD2 = d2; best = s; }
   }
   return best;
+}
+
+// 모바일 진입 시 1회: 현재 위치로 이동 + 마커 단위 줌. URL 딥링크 있으면 스킵.
+function MobileInitialLocate({ hasInitialSelection }: { hasInitialSelection: boolean }) {
+  const map = useMap();
+  const ranRef = useRef(false);
+  useEffect(() => {
+    if (!map || ranRef.current) return;
+    if (hasInitialSelection) { ranRef.current = true; return; }
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    if (!isMobile) { ranRef.current = true; return; }
+    if (!navigator.geolocation) { ranRef.current = true; return; }
+    ranRef.current = true;
+    trackEvent("initial_locate_request");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        map.setZoom(15); // 학교 마커 개별 표시 (클러스터링 X)
+        trackEvent("initial_locate_success");
+      },
+      (e) => trackEvent("initial_locate_fail", { reason: e.code }),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 },
+    );
+  }, [map, hasInitialSelection]);
+  return null;
 }
 
 function LocateMeButton() {
