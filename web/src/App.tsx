@@ -23,6 +23,7 @@ const ALL_GENDERS: SchoolGender[] = ["공학", "여", "남"];
 
 export function App() {
   const [data, setData] = useState<DataSet | null>(null);
+  const [adminGeo, setAdminGeo] = useState<any | null>(null);
   const [selected, setSelected] = useState<School | null>(null);
   const [metric, setMetric] = useState<Metric>("rate");
   const [sidebarOpen, setSidebarOpen] = useState(false); // 모바일용
@@ -91,6 +92,12 @@ export function App() {
         }
       })
       .catch((e) => console.error("data load fail", e));
+
+    // 행정구역 polygon
+    fetch(`${import.meta.env.BASE_URL}admin.geojson`)
+      .then((r) => r.json())
+      .then(setAdminGeo)
+      .catch(() => setAdminGeo(null));
   }, []);
 
   const filtered = useMemo(() => {
@@ -187,6 +194,7 @@ export function App() {
               metric={metric}
               selectedCode={selected?.code ?? null}
               onPick={(s) => setSelected(s)}
+              adminGeo={adminGeo}
             />
             <FlyToSelected school={selected} />
             <MapControl position={ControlPosition.TOP_RIGHT}>
