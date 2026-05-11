@@ -71,6 +71,23 @@ function normalize(s: string): string {
   return s.replace(/\s+/g, "").replace(/초등학교$|중학교$|고등학교$|초등$|중등$|고등$|초$|중$|고$/, "");
 }
 
+// 도시명 prefix(예: "화성", "수원") 떼고 normalize — fuzzy 매칭용
+function relaxName(name: string, city: string): string {
+  const n = normalize(name);
+  const cityShort = city.replace(/(특별자치도|특별시|광역시|시|도|군|구)$/, "");
+  if (cityShort && n.startsWith(cityShort)) return n.slice(cityShort.length);
+  return n;
+}
+
+// 일반구 sgg10 후보 — base sgg10이 XX590 같은 통합코드면 XX591~XX599 시도
+function neighborSgg10s(sgg10: string): string[] {
+  // 4159000000 → 4159100000, 4159200000, ..., 4159900000
+  const prefix = sgg10.slice(0, 4);
+  const out: string[] = [];
+  for (let i = 1; i <= 9; i++) out.push(`${prefix}${i}00000000`.slice(0, 10));
+  return out;
+}
+
 async function main() {
   await initSession();
 
@@ -120,18 +137,69 @@ async function main() {
     }
   }
 
+  // ── 보강 1: 미매핑 학교가 있는 도시만 일반구 sgg10 추가 호출 ──
+  const allActiveFirst = Object.values(schools).filter((s: any) => s.closeYn === "N");
+  const missingCities = new Set<string>();
+  for (const s of allActiveFirst) if (!out[s.code]) missingCities.add((s as any).city);
+  console.log(`\n미매핑 학교가 있는 도시: ${missingCities.size}개 → 일반구 sgg10 후보 호출`);
+
+  const cityRegion = new Map<string, typeof REGIONS[number]>();
+  for (const r of REGIONS) if (!cityRegion.has(r.city)) cityRegion.set(r.city, r);
+
+  const cityPool = new Map<string, Array<{ kind: string; rawName: string; norm: string; relax: string; uuid: string }>>();
+  let extraCalls = 0, extraAdded = 0;
+  for (const city of missingCities) {
+    const r = cityRegion.get(city);
+    if (!r) continue;
+    const sido10 = r.sido + "00000000";
+    const candidates = neighborSgg10s(r.sgg10);
+    for (const sgg10alt of candidates) {
+      for (const kind of ["초등", "중학", "고등"] as const) {
+        const list = await getList(sido10, sgg10alt, KIND_TO_HG[kind]);
+        extraCalls++;
+        if (list.length === 0) continue;
+        const arr = cityPool.get(city) ?? [];
+        for (const s of list) {
+          arr.push({ kind, rawName: s.SHL_NM, norm: normalize(s.SHL_NM), relax: relaxName(s.SHL_NM, city), uuid: s.SHL_IDF_CD });
+        }
+        cityPool.set(city, arr);
+        await sleep(80);
+      }
+    }
+  }
+  console.log(`일반구 추가 호출: ${extraCalls}회, 도시별 풀 ${cityPool.size}개`);
+
+  // ── 보강 2: 미매핑 학교에 대해 cityPool fuzzy match ──
+  const allActive = Object.values(schools).filter((s: any) => s.closeYn === "N");
+  let stillMissing = allActive.filter((s: any) => !out[s.code]);
+  for (const s of stillMissing) {
+    const pool = cityPool.get((s as any).city);
+    if (!pool) continue;
+    const schoolNorm = normalize(s.name);
+    const schoolRelax = relaxName(s.name, (s as any).city);
+    // 1차: kind 일치 + norm 정확
+    let hit = pool.find((p) => p.kind === s.kind && p.norm === schoolNorm);
+    // 2차: kind 일치 + relax 정확
+    if (!hit) hit = pool.find((p) => p.kind === s.kind && p.relax === schoolRelax);
+    // 3차: kind 일치 + 한쪽이 다른쪽 substring (양방향)
+    if (!hit) hit = pool.find((p) => p.kind === s.kind && (p.norm.includes(schoolNorm) || schoolNorm.includes(p.norm)));
+    if (hit) {
+      out[s.code] = { uuid: hit.uuid, nameInSearch: hit.rawName };
+      extraAdded++;
+    }
+  }
+  console.log(`보강 매칭: +${extraAdded}`);
+
   await Bun.write(join(DATA_DIR, "school_ids.json"), JSON.stringify(out, null, 2));
 
-  // 매칭 누락 학교 보고
-  const allActive = Object.values(schools).filter((s: any) => s.closeYn === "N");
-  const missing = allActive.filter((s: any) => !out[s.code]);
-  console.log(`\n매칭: ${matched} / 검색 미매칭 row: ${unmatched}`);
-  console.log(`schools.json 기준 매핑 없음: ${missing.length}개`);
-  if (missing.length > 0 && missing.length <= 30) {
-    for (const m of missing.slice(0, 30)) console.log(`  - ${m.kind} ${m.name} (${m.sgg})`);
-  } else if (missing.length > 0) {
+  stillMissing = allActive.filter((s: any) => !out[s.code]);
+  console.log(`\n매칭: ${matched + extraAdded} / 검색 미매칭 row(통합만): ${unmatched}`);
+  console.log(`최종 schools.json 기준 매핑 없음: ${stillMissing.length}개`);
+  if (stillMissing.length > 0 && stillMissing.length <= 30) {
+    for (const m of stillMissing.slice(0, 30)) console.log(`  - ${m.kind} ${m.name} (${m.sgg})`);
+  } else if (stillMissing.length > 0) {
     console.log(`샘플 10개:`);
-    for (const m of missing.slice(0, 10)) console.log(`  - ${m.kind} ${m.name} (${m.sgg})`);
+    for (const m of stillMissing.slice(0, 10)) console.log(`  - ${m.kind} ${m.name} (${m.sgg})`);
   }
 }
 
