@@ -106,8 +106,8 @@ export function Sidebar({
         onValueChange={(v) => { if (v) { setMetric(v as Metric); trackMetric(v); } }}
         variant="outline"
         size="sm"
-        spacing={1}
-        className="w-full gap-1"
+        spacing={2}
+        className="w-full !gap-2"
       >
         <ToggleGroupItem value="rate" className="flex-1">비율</ToggleGroupItem>
         <ToggleGroupItem value="count" className="flex-1">건수</ToggleGroupItem>
