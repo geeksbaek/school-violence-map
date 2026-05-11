@@ -11,7 +11,6 @@ import type { SchoolStat } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 
 interface FilterState {
-  cities: Set<string>;
   kinds: Set<SchoolKind>;
   genders: Set<SchoolGender>;
   query: string;
@@ -37,8 +36,6 @@ const GENDER_LIST: SchoolGender[] = ["공학", "여", "남"];
 export function Sidebar({
   data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, onClose,
 }: Props) {
-  const cityList = useMemo(() => Array.from(new Set(data.schools.map((s) => s.city))).sort(), [data]);
-
   const sortedTop = useMemo(() => {
     return [...filtered].sort((a, b) => {
       const sa = stats.get(a.code);
@@ -160,27 +157,6 @@ export function Sidebar({
             );
           })}
         </div>
-      </div>
-
-      {/* 시 필터 */}
-      <div className="flex flex-wrap gap-1">
-        {cityList.map((c) => {
-          const active = filter.cities.has(c);
-          return (
-            <Badge
-              key={c}
-              variant={active ? "default" : "outline"}
-              onClick={() => {
-                const next = new Set(filter.cities);
-                if (active) next.delete(c); else next.add(c);
-                setFilter({ ...filter, cities: next });
-              }}
-              className="cursor-pointer"
-            >
-              {c}
-            </Badge>
-          );
-        })}
       </div>
 
       {/* 학폭 유형 필터 */}
