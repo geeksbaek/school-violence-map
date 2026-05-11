@@ -31,7 +31,7 @@ interface Props {
 }
 
 const KIND_LIST: SchoolKind[] = ["초등", "중학", "고등"];
-const GENDER_LIST: SchoolGender[] = ["공학", "여", "남"];
+const GENDER_LIST: SchoolGender[] = ["공학", "여"];
 
 export function Sidebar({
   data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, onClose,
@@ -71,7 +71,7 @@ export function Sidebar({
 
   const labels = severityLabel(metric);
   const allTypesOn = filter.types.size === 8;
-  const allGendersOn = filter.genders.size === 3;
+  const allGendersOn = filter.genders.size === 2;
 
   // 학교 성별별 카운트 (현재 다른 필터 무시한 전체 기준 — 정보용)
   const genderCounts = useMemo(() => {
@@ -140,7 +140,7 @@ export function Sidebar({
       {/* 학교 성별 필터 */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-          <span>학교 성별 ({filter.genders.size}/3)</span>
+          <span>학교 성별 ({filter.genders.size}/2)</span>
           <button
             type="button"
             onClick={() =>
@@ -169,7 +169,7 @@ export function Sidebar({
                 }}
                 className="flex-1 text-xs"
               >
-                {g === "여" ? "여학교" : g === "남" ? "남학교" : "공학"} ({genderCounts[g]})
+                {g === "여" ? "여학교" : "공학"} ({genderCounts[g]})
               </Button>
             );
           })}

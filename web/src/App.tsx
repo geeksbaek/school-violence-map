@@ -20,7 +20,7 @@ const DATA_URL = `${import.meta.env.BASE_URL}data.json?v=${BUILD_TS}`;
 
 const DEFAULT_CENTER = { lat: 37.32, lng: 127.05 };
 const ALL_KINDS: SchoolKind[] = ["초등", "중학", "고등"];
-const ALL_GENDERS: SchoolGender[] = ["공학", "여", "남"];
+const ALL_GENDERS: SchoolGender[] = ["공학", "여"];
 
 // 상점·카페·관공서 등 POI 시각·클릭 모두 숨김 (학교 마커만 클릭 가능)
 const MAP_STYLES: google.maps.MapTypeStyle[] = [
@@ -50,7 +50,8 @@ export function App() {
       .then((r) => r.json())
       .then((d: DataSet) => {
         for (const s of d.schools) {
-          if (!s.gender) (s as any).gender = "공학";
+          // "남"은 학교명(전남/경남) 오인식 케이스만 존재 → 공학으로 정규화
+          if (!s.gender || s.gender === "남") (s as any).gender = "공학";
         }
         setData(d);
       })
