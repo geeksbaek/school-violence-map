@@ -1,8 +1,11 @@
 /**
- * violence_part_*.json + 기존 violence.json 머지 → violence.json.
+ * {base}_part_*.json + 기존 {base}.json 머지 → {base}.json.
  * 같은 (학교, 년도) 키가 여러 part에 있으면 "성공한 결과" 우선.
  *
- * Usage: bun src/merge_violence.ts
+ * Usage:
+ *   bun src/merge_violence.ts                # 기본 violence
+ *   bun src/merge_violence.ts --base self_resolved
+ *   bun src/merge_violence.ts --base prevention_edu
  */
 import { join } from "node:path";
 import { existsSync, readdirSync } from "node:fs";
@@ -13,13 +16,17 @@ function isSuccess(v: any): boolean {
   return !v.error && !v.skipped && !v.parseError;
 }
 
-const mainPath = join(DATA_DIR, "violence.json");
+const args = process.argv.slice(2);
+const BASE = args.includes("--base") ? args[args.indexOf("--base") + 1] : "violence";
+
+const mainPath = join(DATA_DIR, `${BASE}.json`);
 const merged: Record<string, Record<string, any>> = existsSync(mainPath)
   ? await Bun.file(mainPath).json()
   : {};
 
-const parts = readdirSync(DATA_DIR).filter((f) => /^violence_part_.*\.json$/.test(f));
-console.log(`머지 대상 part 파일: ${parts.length}개\n`);
+const partRegex = new RegExp(`^${BASE}_part_.*\\.json$`);
+const parts = readdirSync(DATA_DIR).filter((f) => partRegex.test(f));
+console.log(`머지 대상 part 파일 (${BASE}): ${parts.length}개\n`);
 
 let added = 0, updated = 0;
 for (const file of parts) {

@@ -28,9 +28,10 @@ const kindArg = args.includes("--kind") ? args[args.indexOf("--kind") + 1] : nul
 const startIdx = args.includes("--from") ? parseInt(args[args.indexOf("--from") + 1]) : 0;
 const limit = args.includes("--limit") ? parseInt(args[args.indexOf("--limit") + 1]) : Infinity;
 const debugCaptcha = args.includes("--debug-captcha"); // 캡차 png 보존
-// 병렬 인스턴스 충돌 방지: --part 0..N 으로 별도 파일 (violence_part_N.json)에 저장.
-// 미지정 시 단일 인스턴스로 violence.json에 직접.
 const partArg = args.includes("--part") ? args[args.indexOf("--part") + 1] : null;
+// GS_HANGMOK_CD: 69(심의·기본) / 75(자체해결) / 66(예방교육)
+const CD = args.includes("--cd") ? args[args.indexOf("--cd") + 1] : "69";
+const OUT_BASE = ({ "69": "violence", "75": "self_resolved", "66": "prevention_edu" } as Record<string, string>)[CD] ?? `gs${CD}`;
 
 const YEARS = yearArg ? [yearArg] : ["2026", "2025", "2024", "2023"];
 
@@ -97,8 +98,12 @@ const MAX_CAPTCHA_ATTEMPTS = 6; // 한 (학교, 년도)당 최대 캡차 시도 
 const ATTEMPT_KEY = (s: string) => `${process.pid}_${s}`;
 
 async function fetchData(school: SchoolEntry, year: string, attempt = 0): Promise<any> {
+  return _fetchData(school, year, attempt, CD);
+}
+
+async function _fetchData(school: SchoolEntry, year: string, attempt: number, cd: string): Promise<any> {
   const baseParams = {
-    GS_HANGMOK_CD: "69",
+    GS_HANGMOK_CD: cd,
     GS_HANGMOK_NO: "11-다",
     GS_HANGMOK_NM: "학교폭력대책심의위원회 심의 결과",
     GS_BURYU_CD: "JG160",
@@ -114,7 +119,7 @@ async function fetchData(school: SchoolEntry, year: string, attempt = 0): Promis
     PRE_JG_YEAR: year,
     LOAD_TYPE: "single",
   };
-  const html = await fetchEucKr(`${BASE}/ei/pp/Pneipp_b69_s0p.do?${new URLSearchParams(baseParams)}`);
+  const html = await fetchEucKr(`${BASE}/ei/pp/Pneipp_b${cd}_s0p.do?${new URLSearchParams(baseParams)}`);
 
   if (html.includes("제외 처리함") || html.includes("없으므로") || html.includes("공시제외")) return { zero: true };
   if (html.includes("데이터가 없습니다") || html.includes("입력된 데이터가")) return { noData: true };
@@ -127,7 +132,7 @@ async function fetchData(school: SchoolEntry, year: string, attempt = 0): Promis
 
   // CAPTCHA 필요 — 이미지 다운로드 + OCR + 제출
   const png = tmpCaptcha(ATTEMPT_KEY(`${school.code}_${year}_${attempt}`));
-  const captchaUrl = `${BASE}/captcha/CaptChaImg.jsp?rand=${Math.random()}&gsHangmokCd=69`;
+  const captchaUrl = `${BASE}/captcha/CaptChaImg.jsp?rand=${Math.random()}&gsHangmokCd=${cd}`;
   const imgRes = await fetch(captchaUrl, { headers: { Cookie: SESSION } });
   await Bun.write(png, await imgRes.arrayBuffer());
 
@@ -143,7 +148,7 @@ async function fetchData(school: SchoolEntry, year: string, attempt = 0): Promis
   }
 
   // 캡차 제출
-  await fetch(`${BASE}/ei/pp/Pneipp_b69_s0p.do`, {
+  await fetch(`${BASE}/ei/pp/Pneipp_b${cd}_s0p.do`, {
     method: "POST",
     headers: {
       Cookie: SESSION,
@@ -158,20 +163,83 @@ async function fetchData(school: SchoolEntry, year: string, attempt = 0): Promis
   // 데이터 GET
   const dataParams = {
     SHL_IDF_CD: school.code,
-    GS_BURYU_CD: "JG160", GS_HANGMOK_CD: "69",
+    GS_BURYU_CD: "JG160", GS_HANGMOK_CD: cd,
     JG_BURYU_CD: "JG110", JG_HANGMOK_CD: "97", JG_GUBUN: "1",
     JG_YEAR: year, JG_CHASU: "1",
     adminYN: "N", isCaptcha: "N", JG_INVE_TME: "1",
     CHOSEN_JG_YEAR: year, LOAD_TYPE: "single", passLine: ans,
   };
-  const dataHtml = await fetchEucKr(`${BASE}/ei/pp/Pneipp_b69_s0p.do?${new URLSearchParams(dataParams)}`);
+  const dataHtml = await fetchEucKr(`${BASE}/ei/pp/Pneipp_b${cd}_s0p.do?${new URLSearchParams(dataParams)}`);
 
-  if (dataHtml.includes("숫자를 입력") || (!dataHtml.includes("심의건수") && !dataHtml.includes("제외") && !dataHtml.includes("데이터가"))) {
+  // CD별 데이터 keyword 검증
+  const dataKeyword = cd === "75" ? "자체해결" : cd === "66" ? "교육 시간" : "심의건수";
+  if (dataHtml.includes("숫자를 입력") || (!dataHtml.includes(dataKeyword) && !dataHtml.includes("제외") && !dataHtml.includes("데이터가"))) {
     process.stdout.write(` ❌(${via} ${ans})`);
-    return fetchData(school, year, attempt + 1);
+    return _fetchData(school, year, attempt + 1, cd);
   }
   process.stdout.write(`[${via}]`);
-  return parseHtml(dataHtml);
+  return parseHtmlByCd(dataHtml, cd);
+}
+
+function parseHtmlByCd(html: string, cd: string): any {
+  if (cd === "75") return parseB75(html);
+  if (cd === "66") return parseB66(html);
+  return parseHtml(html); // b69 default
+}
+
+// b75: 학교의 장의 학교폭력사건 자체해결 결과 — 학기별 1개 숫자
+function parseB75(html: string): any {
+  if (html.includes("제외 처리함") || html.includes("없으므로") || html.includes("공시제외")) return { zero: true };
+  if (html.includes("데이터가 없습니다")) return { noData: true };
+  const m = html.match(/학교의 장의 학교폭력사건 자체해결 결과[\s\S]*?(<table[\s\S]*?<\/table>)/);
+  if (!m) return { parseError: true };
+  const tdVals: number[] = [];
+  const re = /<td[^>]*>([\s\S]*?)<\/td>/g;
+  let mm;
+  while ((mm = re.exec(m[1])) !== null) {
+    const v = mm[1].replace(/<[^>]*>/g, "").trim();
+    tdVals.push(+v || 0);
+  }
+  if (tdVals.length < 2) return { parseError: true };
+  return { selfResolved: { s1: tdVals[0], s2: tdVals[1] } };
+}
+
+// b66: 대상별 학교폭력 예방교육 실적 — 3개 표
+function parseB66(html: string): any {
+  if (html.includes("제외 처리함") || html.includes("없으므로") || html.includes("공시제외")) return { zero: true };
+  if (html.includes("데이터가 없습니다")) return { noData: true };
+  const result: any = {};
+  // 표1: 학생 평균 교육시간 (정규/정규외/평균) × 2학기 → 6 td
+  try {
+    const m = html.match(/학생 대상 정규 수업[\s\S]*?(<table[\s\S]*?<\/table>)/);
+    if (m) {
+      const tds = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((x) => x[1].replace(/<[^>]*>/g, "").trim());
+      const nums = tds.map((v) => parseFloat(v.replace(/[,]/g, "")) || 0);
+      if (nums.length >= 6) result.studentEdu = { s1: nums.slice(0, 3), s2: nums.slice(3, 6) };
+    }
+  } catch {}
+  // 표2: 교원·학부모 연수 (횟수, 인원, 비율) × 2대상 × 2학기
+  try {
+    const m = html.match(/교원 및 학부모 대상 연수[\s\S]*?(<table[\s\S]*?<\/table>)/);
+    if (m) {
+      const tds = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((x) => x[1].replace(/<[^>]*>/g, "").trim());
+      const parse = (s: string) => s === "-" ? null : parseFloat(s.replace(/[,]/g, "")) || 0;
+      const nums = tds.map(parse);
+      // 학기당 6개 (교원 3 + 학부모 3): [교원횟수, 교원인원, 교원비율, 학부모횟수, 학부모인원, 학부모비율]
+      if (nums.length >= 12) result.staffEdu = { s1: nums.slice(0, 6), s2: nums.slice(6, 12) };
+    }
+  } catch {}
+  // 표3: 예방프로그램 (동아리·또래·교육주간·기타) × 2지표 × 2학기
+  try {
+    const m = html.match(/학생 중심 예방프로그램[\s\S]*?(<table[\s\S]*?<\/table>)/);
+    if (m) {
+      const tds = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((x) => x[1].replace(/<[^>]*>/g, "").trim());
+      const nums = tds.map((v) => parseInt(v.replace(/[,]/g, "")) || 0);
+      // 학기당 8개 (지도교사 4 + 참여학생 4)
+      if (nums.length >= 16) result.prevProgram = { s1: { teachers: nums.slice(0, 4), students: nums.slice(4, 8) }, s2: { teachers: nums.slice(8, 12), students: nums.slice(12, 16) } };
+    }
+  } catch {}
+  return Object.keys(result).length > 0 ? result : { parseError: true };
 }
 
 // ── HTML 파싱 (home/collect_violence.ts와 동일 로직) ────
@@ -286,12 +354,12 @@ async function main() {
   const slice = targets.slice(startIdx, startIdx + (Number.isFinite(limit) ? limit : targets.length));
   console.log(`전체 ${targets.length} 중 [${startIdx}, ${startIdx + slice.length}) 처리`);
 
-  // 인스턴스별 출력 파일 — 동시 쓰기 race 방지
+  // 인스턴스별 출력 파일 — 동시 쓰기 race 방지 (CD별 분리)
   const outPath = partArg != null
-    ? join(DATA_DIR, `violence_part_${partArg}.json`)
-    : join(DATA_DIR, "violence.json");
+    ? join(DATA_DIR, `${OUT_BASE}_part_${partArg}.json`)
+    : join(DATA_DIR, `${OUT_BASE}.json`);
   // 기존 머지된 메인 파일이 있으면 캐시 정보로 활용 (이미 수집한 학교는 건너뜀)
-  const mergedPath = join(DATA_DIR, "violence.json");
+  const mergedPath = join(DATA_DIR, `${OUT_BASE}.json`);
 
   const uuidToCode: Record<string, string> = {};
   for (const [code, v] of Object.entries(ids)) uuidToCode[v.uuid] = code;
@@ -333,6 +401,10 @@ async function main() {
         else if (res.cases) {
           const total = (res.cases.s1?.n || 0) + (res.cases.s2?.n || 0);
           process.stdout.write(` ${total}건\n`);
+        } else if (res.selfResolved) {
+          process.stdout.write(` 자체${(res.selfResolved.s1 || 0) + (res.selfResolved.s2 || 0)}건\n`);
+        } else if (res.studentEdu || res.staffEdu || res.prevProgram) {
+          process.stdout.write(` 예방교육 OK\n`);
         } else process.stdout.write(" ⚠ parse 실패\n");
       } catch (e: any) {
         data[code][year] = { error: e.message };
