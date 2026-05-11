@@ -3,11 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import type { DataSet, School } from "@/types";
-import { severityOf, SEVERITY_COLOR, SEVERITY_LABEL } from "@/lib/severity";
+import { severityOf, SEVERITY_COLOR, severityLabel, type Metric } from "@/lib/severity";
 
 interface Props {
   school: School;
   data: DataSet;
+  metric: Metric;
   onClose: () => void;
 }
 
@@ -17,9 +18,10 @@ const KIND_VARIANT: Record<string, "default" | "secondary" | "destructive" | "ou
   고등: "outline",
 };
 
-export function SchoolDetail({ school, data, onClose }: Props) {
-  const sev = severityOf(school.violenceRatePer100, school.violenceYears > 0);
+export function SchoolDetail({ school, data, metric, onClose }: Props) {
+  const sev = severityOf(metric, school.violenceRatePer100, school.violenceTotal, school.violenceYears > 0);
   const color = SEVERITY_COLOR[sev];
+  const labels = severityLabel(metric);
 
   const yearsArr = data.years;
   const maxYearTotal = Math.max(1, ...yearsArr.map((y) => school.violence[y]?.total ?? 0));
@@ -60,19 +62,30 @@ export function SchoolDetail({ school, data, onClose }: Props) {
           <Stat label="교원" value={school.teachers?.toString() ?? "—"} />
         </div>
 
-        {/* 학폭 요약 */}
+        {/* 학폭 요약 — 절대건수와 비율 모두 표시 */}
         <div
           className="rounded-md border p-2 text-xs"
           style={{ borderColor: color }}
         >
-          <div className="flex items-center justify-between">
-            <span className="font-medium">{SEVERITY_LABEL[sev]}</span>
-            <span className="text-muted-foreground">
-              4년 합 {school.violenceTotal}건
-              {school.violenceRatePer100 != null && (
-                <> · 학생100명당 {school.violenceRatePer100.toFixed(2)}건/년</>
-              )}
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-medium">{labels[sev]}</span>
+            <span className="text-[10px] text-muted-foreground">
+              {metric === "rate" ? "비율 기준" : "건수 기준"}
             </span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className="rounded bg-muted/50 p-1.5">
+              <div className="text-[10px] text-muted-foreground">4년 합계</div>
+              <div className="text-sm font-semibold tabular-nums">
+                {school.violenceYears > 0 ? `${school.violenceTotal}건` : "—"}
+              </div>
+            </div>
+            <div className="rounded bg-muted/50 p-1.5">
+              <div className="text-[10px] text-muted-foreground">학생100명당/년</div>
+              <div className="text-sm font-semibold tabular-nums">
+                {school.violenceRatePer100 != null ? school.violenceRatePer100.toFixed(2) : "—"}
+              </div>
+            </div>
           </div>
         </div>
 

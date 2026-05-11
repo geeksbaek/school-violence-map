@@ -3,7 +3,9 @@ import type { DataSet, School, SchoolKind } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SEVERITY_COLOR, SEVERITY_LABEL, SEVERITY_ORDER, severityOf } from "@/lib/severity";
+import {
+  SEVERITY_COLOR, SEVERITY_ORDER, severityOf, severityLabel, type Metric,
+} from "@/lib/severity";
 import { cn } from "@/lib/utils";
 
 interface FilterState {
@@ -19,30 +21,42 @@ interface Props {
   setFilter: (f: FilterState) => void;
   selected: School | null;
   onPick: (s: School) => void;
+  metric: Metric;
+  setMetric: (m: Metric) => void;
 }
 
 const KIND_LIST: SchoolKind[] = ["초등", "중학", "고등"];
 
-export function Sidebar({ data, filtered, filter, setFilter, selected, onPick }: Props) {
+export function Sidebar({
+  data, filtered, filter, setFilter, selected, onPick, metric, setMetric,
+}: Props) {
   const cityList = useMemo(() => Array.from(new Set(data.schools.map((s) => s.city))).sort(), [data]);
 
-  // 정렬: 학폭 비율 내림차순 (데이터 없는 건 뒤로)
   const sortedTop = useMemo(() => {
     return [...filtered].sort((a, b) => {
-      const ar = a.violenceYears > 0 ? a.violenceRatePer100 ?? -1 : -1;
-      const br = b.violenceYears > 0 ? b.violenceRatePer100 ?? -1 : -1;
-      return br - ar;
+      if (metric === "rate") {
+        const ar = a.violenceYears > 0 ? a.violenceRatePer100 ?? -1 : -1;
+        const br = b.violenceYears > 0 ? b.violenceRatePer100 ?? -1 : -1;
+        return br - ar;
+      }
+      // count: 데이터 없으면 뒤로
+      const ah = a.violenceYears > 0 ? 1 : 0;
+      const bh = b.violenceYears > 0 ? 1 : 0;
+      if (ah !== bh) return bh - ah;
+      return b.violenceTotal - a.violenceTotal;
     });
-  }, [filtered]);
+  }, [filtered, metric]);
 
   const stats = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const s of filtered) {
-      const sev = severityOf(s.violenceRatePer100, s.violenceYears > 0);
+      const sev = severityOf(metric, s.violenceRatePer100, s.violenceTotal, s.violenceYears > 0);
       counts[sev] = (counts[sev] ?? 0) + 1;
     }
     return counts;
-  }, [filtered]);
+  }, [filtered, metric]);
+
+  const labels = severityLabel(metric);
 
   return (
     <aside className="bg-background flex flex-col gap-3 overflow-hidden border-r p-3 w-[340px] flex-shrink-0">
@@ -105,10 +119,32 @@ export function Sidebar({ data, filtered, filter, setFilter, selected, onPick }:
         })}
       </div>
 
+      {/* 메트릭 토글 */}
+      <div className="flex gap-1 rounded-md border p-0.5 bg-muted/30">
+        <Button
+          variant={metric === "rate" ? "default" : "ghost"}
+          size="sm"
+          onClick={() => setMetric("rate")}
+          className="flex-1 h-7"
+        >
+          비율
+        </Button>
+        <Button
+          variant={metric === "count" ? "default" : "ghost"}
+          size="sm"
+          onClick={() => setMetric("count")}
+          className="flex-1 h-7"
+        >
+          건수
+        </Button>
+      </div>
+
       {/* 범례 */}
       <Card className="py-2">
         <CardHeader className="px-3 pb-1">
-          <CardTitle className="text-xs">학생 100명당 연 사건 비율</CardTitle>
+          <CardTitle className="text-xs">
+            {metric === "rate" ? "학생 100명당 연 사건" : "4년 합계 건수"}
+          </CardTitle>
         </CardHeader>
         <CardContent className="px-3 flex flex-col gap-1 text-[11px]">
           {SEVERITY_ORDER.map((s) => (
@@ -117,7 +153,7 @@ export function Sidebar({ data, filtered, filter, setFilter, selected, onPick }:
                 className="size-2.5 rounded-full border border-white shadow-sm"
                 style={{ background: SEVERITY_COLOR[s] }}
               />
-              <span className="flex-1">{SEVERITY_LABEL[s]}</span>
+              <span className="flex-1">{labels[s]}</span>
               <span className="text-muted-foreground tabular-nums">
                 {stats[s] ?? 0}개
               </span>
@@ -128,12 +164,12 @@ export function Sidebar({ data, filtered, filter, setFilter, selected, onPick }:
 
       {/* 리스트 */}
       <div className="text-muted-foreground text-xs px-1">
-        리스트 ({sortedTop.length}개) — 학폭 비율 ↓
+        리스트 ({sortedTop.length}개) — {metric === "rate" ? "비율" : "건수"} ↓
       </div>
       <div className="flex-1 overflow-y-auto -mx-3 px-3">
         <ul className="flex flex-col gap-1">
           {sortedTop.map((s) => {
-            const sev = severityOf(s.violenceRatePer100, s.violenceYears > 0);
+            const sev = severityOf(metric, s.violenceRatePer100, s.violenceTotal, s.violenceYears > 0);
             const isSel = selected?.code === s.code;
             return (
               <li key={s.code}>
@@ -151,8 +187,12 @@ export function Sidebar({ data, filtered, filter, setFilter, selected, onPick }:
                       style={{ background: SEVERITY_COLOR[sev] }}
                     />
                     <span className="text-sm font-medium truncate flex-1">{s.name}</span>
-                    <span className="text-[10px] text-muted-foreground tabular-nums">
-                      {s.violenceTotal > 0 ? `${s.violenceTotal}건` : ""}
+                    <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
+                      {s.violenceYears > 0 ? (
+                        metric === "rate" && s.violenceRatePer100 != null
+                          ? `${s.violenceRatePer100.toFixed(2)}/100명·년`
+                          : `${s.violenceTotal}건`
+                      ) : "—"}
                     </span>
                   </div>
                   <div className="text-[11px] text-muted-foreground pl-4 truncate">

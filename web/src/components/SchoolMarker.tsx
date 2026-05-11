@@ -1,11 +1,12 @@
 import { useMap } from "@vis.gl/react-google-maps";
 import { useEffect, useRef } from "react";
 import type { School } from "@/types";
-import { severityOf, SEVERITY_COLOR } from "@/lib/severity";
+import { severityOf, SEVERITY_COLOR, type Metric } from "@/lib/severity";
 
 interface Props {
   school: School;
   selected: boolean;
+  metric: Metric;
   onClick: (s: School) => void;
 }
 
@@ -16,15 +17,22 @@ const SHAPE: Record<string, { path: string; scale: number }> = {
   고등: { path: "M 0,-1 L 1,0 L 0,1 L -1,0 Z", scale: 1 },                    // 다이아몬드
 };
 
-export function SchoolMarker({ school, selected, onClick }: Props) {
+export function SchoolMarker({ school, selected, metric, onClick }: Props) {
   const map = useMap();
   const markerRef = useRef<google.maps.Marker | null>(null);
 
-  const sev = severityOf(school.violenceRatePer100, school.violenceYears > 0);
+  const sev = severityOf(metric, school.violenceRatePer100, school.violenceTotal, school.violenceYears > 0);
   const color = SEVERITY_COLOR[sev];
 
-  const st = school.studentTotal ?? 300;
-  const baseScale = st >= 1000 ? 9 : st >= 500 ? 7 : st >= 200 ? 5.5 : 4.5;
+  // 크기: rate 모드 → 학생수 (맥락), count 모드 → 절대 건수 (강조)
+  let baseScale: number;
+  if (metric === "rate") {
+    const st = school.studentTotal ?? 300;
+    baseScale = st >= 1000 ? 9 : st >= 500 ? 7 : st >= 200 ? 5.5 : 4.5;
+  } else {
+    const c = school.violenceTotal;
+    baseScale = c >= 30 ? 11 : c >= 15 ? 8.5 : c >= 5 ? 6.5 : c >= 1 ? 5 : 4;
+  }
   const scale = selected ? baseScale * 1.4 : baseScale;
 
   useEffect(() => {
@@ -42,7 +50,11 @@ export function SchoolMarker({ school, selected, onClick }: Props) {
         strokeWeight: selected ? 2.5 : 1.2,
         scale,
       },
-      zIndex: selected ? 1000 : Math.round(school.violenceRatePer100 ?? 0),
+      zIndex: selected
+        ? 1000
+        : metric === "rate"
+          ? Math.round(school.violenceRatePer100 ?? 0)
+          : school.violenceTotal,
     });
     markerRef.current = marker;
     const listener = marker.addListener("click", () => onClick(school));

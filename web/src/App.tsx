@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { APIProvider, Map, MapControl, ControlPosition, useMap } from "@vis.gl/react-google-maps";
 import type { DataSet, School, SchoolKind } from "@/types";
+import type { Metric } from "@/lib/severity";
 import { SchoolMarker } from "@/components/SchoolMarker";
 import { SchoolDetail } from "@/components/SchoolDetail";
 import { Sidebar, type FilterState } from "@/components/Sidebar";
@@ -16,6 +17,7 @@ const ALL_KINDS: SchoolKind[] = ["초등", "중학", "고등"];
 export function App() {
   const [data, setData] = useState<DataSet | null>(null);
   const [selected, setSelected] = useState<School | null>(null);
+  const [metric, setMetric] = useState<Metric>("rate");
   const [filter, setFilter] = useState<FilterState>({
     cities: new Set(),
     kinds: new Set(ALL_KINDS),
@@ -75,6 +77,8 @@ export function App() {
         setFilter={setFilter}
         selected={selected}
         onPick={(s) => setSelected(s)}
+        metric={metric}
+        setMetric={setMetric}
       />
       <main className="flex-1 relative">
         <APIProvider apiKey={KEY}>
@@ -93,6 +97,7 @@ export function App() {
                 key={s.code}
                 school={s}
                 selected={selected?.code === s.code}
+                metric={metric}
                 onClick={(picked) => setSelected(picked)}
               />
             ))}
@@ -106,7 +111,7 @@ export function App() {
         </APIProvider>
         {selected && (
           <div className="absolute top-3 right-3 w-[340px] max-h-[calc(100vh-1.5rem)] overflow-y-auto z-10">
-            <SchoolDetail school={selected} data={data} onClose={() => setSelected(null)} />
+            <SchoolDetail school={selected} data={data} metric={metric} onClose={() => setSelected(null)} />
           </div>
         )}
       </main>
