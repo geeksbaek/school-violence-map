@@ -5,7 +5,7 @@
  *
  * 1만+ 마커도 60fps 유지 (WebGL).
  */
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 import { GoogleMapsOverlay } from "@deck.gl/google-maps";
 import { ScatterplotLayer } from "@deck.gl/layers";
@@ -19,6 +19,13 @@ interface Props {
   metric: Metric;
   selectedCode: string | null;
   onPick: (s: School) => void;
+}
+
+type AggLevel = "school" | "district" | "city";
+function aggLevelFor(zoom: number): AggLevel {
+  if (zoom >= 13) return "school";
+  if (zoom >= 11) return "district";
+  return "city";
 }
 
 // "#10b981" → [16, 185, 129, 255]
@@ -38,16 +45,51 @@ const KIND_STROKE: Record<string, number> = { 초등: 1, 중학: 2, 고등: 3 };
 export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick }: Props) {
   const map = useMap();
   const overlayRef = useRef<GoogleMapsOverlay | null>(null);
+  const [aggLevel, setAggLevel] = useState<AggLevel>("school");
 
   // 클릭 핸들러는 stale closure 방지 위해 ref로
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
+
+  // 줌 변화에 따라 aggLevel 갱신
+  useEffect(() => {
+    if (!map) return;
+    const update = () => {
+      const z = map.getZoom() ?? 11;
+      setAggLevel(aggLevelFor(z));
+    };
+    update();
+    const lis = map.addListener("zoom_changed", update);
+    return () => lis.remove();
+  }, [map]);
+
+  // city / district 별 centroid 사전 계산
+  const centroids = useMemo(() => {
+    const cityAcc = new Map<string, { lat: number; lng: number; n: number }>();
+    const distAcc = new Map<string, { lat: number; lng: number; n: number }>();
+    for (const s of schools) {
+      const c = cityAcc.get(s.city) ?? { lat: 0, lng: 0, n: 0 };
+      c.lat += s.lat; c.lng += s.lng; c.n++;
+      cityAcc.set(s.city, c);
+      const dk = `${s.city}|${s.district}`;
+      const d = distAcc.get(dk) ?? { lat: 0, lng: 0, n: 0 };
+      d.lat += s.lat; d.lng += s.lng; d.n++;
+      distAcc.set(dk, d);
+    }
+    const city = new Map<string, [number, number]>();
+    for (const [k, v] of cityAcc) city.set(k, [v.lng / v.n, v.lat / v.n]);
+    const district = new Map<string, [number, number]>();
+    for (const [k, v] of distAcc) district.set(k, [v.lng / v.n, v.lat / v.n]);
+    return { city, district };
+  }, [schools]);
 
   // 데이터 가공: deck.gl이 직접 사용할 형태
   const layerData = useMemo(() => {
     return schools.map((s) => ({
       code: s.code,
       kind: s.kind,
+      city: s.city,
+      district: s.district,
       lat: s.lat,
       lng: s.lng,
       studentTotal: s.studentTotal,
@@ -78,7 +120,16 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick }
       filled: true,
       radiusUnits: "pixels",
       lineWidthUnits: "pixels",
-      getPosition: (d: any) => [d.lng, d.lat],
+      // 줌·집계 레벨에 따라 city/district centroid로 모임 → transitions로 부드럽게 보간
+      getPosition: (d: any) => {
+        if (aggLevel === "city") {
+          return centroids.city.get(d.city) ?? [d.lng, d.lat];
+        }
+        if (aggLevel === "district") {
+          return centroids.district.get(`${d.city}|${d.district}`) ?? [d.lng, d.lat];
+        }
+        return [d.lng, d.lat];
+      },
       getFillColor: (d: any) => {
         const sev = severityOf(metric, d.stat?.ratePer100 ?? null, d.stat?.total ?? 0, d.stat?.hasData ?? false);
         const c = COLOR_RGBA[sev];
@@ -100,18 +151,23 @@ export function SchoolDeckLayer({ schools, stats, metric, selectedCode, onPick }
         return isSel ? base * 1.5 : base;
       },
       getLineWidth: (d: any) => (d.code === selectedCode ? 2.5 : KIND_STROKE[d.kind] ?? 1),
-      // 색·크기 변경 시 GPU 재계산
       updateTriggers: {
+        getPosition: [aggLevel, centroids],
         getFillColor: [metric, selectedCode, stats],
         getLineColor: [selectedCode],
         getRadius: [metric, selectedCode, stats],
         getLineWidth: [selectedCode],
       },
-      // 단지 zoom 인 비례 — radiusScale 안 쓰고 픽셀 단위로 고정
+      // 부드러운 보간 — zoom 전환 시 city centroid로 모이거나 펼쳐짐
+      transitions: {
+        getPosition: { duration: 600, type: "interpolation" },
+        getRadius: { duration: 400 },
+        getFillColor: { duration: 300 },
+      },
     });
 
     overlayRef.current.setProps({ layers: [layer] });
-  }, [map, layerData, metric, selectedCode, stats, schools]);
+  }, [map, layerData, metric, selectedCode, stats, schools, aggLevel, centroids]);
 
   // 마운트 해제 시 cleanup
   useEffect(() => {
