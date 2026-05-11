@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { APIProvider, Map as GMap, MapControl, ControlPosition, useMap } from "@vis.gl/react-google-maps";
 import { Menu } from "lucide-react";
 import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
@@ -66,6 +66,55 @@ export function App() {
       .then(setDongGeo)
       .catch(() => setDongGeo(null));
   }, []);
+
+  // URL → state 복원 (1회). school 우선, 없으면 region.
+  // dong region은 dongGeo가 있어야 label 복원 가능 → 둘 다 로드된 후 1회만 실행.
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    if (!data || restoredRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const schoolCode = params.get("school");
+    if (schoolCode) {
+      const s = data.schools.find((x) => x.code === schoolCode);
+      if (s) {
+        setSelected(s);
+        restoredRef.current = true;
+        return;
+      }
+    }
+    const regionParam = params.get("region");
+    if (regionParam) {
+      const colon = regionParam.indexOf(":");
+      if (colon > 0) {
+        const type = regionParam.slice(0, colon) as RegionPick["type"];
+        const key = regionParam.slice(colon + 1);
+        if (type === "dong" && !dongGeo) return; // dongGeo 도착 대기
+        let label = key;
+        if (type === "district") label = key.split("|").join(" ");
+        else if (type === "dong") {
+          const f = dongGeo?.features?.find((x: any) => x.properties.code === key);
+          if (f) label = `${f.properties.city ?? ""} ${f.properties.district ?? ""} ${f.properties.name ?? ""}`.trim();
+        }
+        setSelectedRegion({ type, key, label });
+      }
+      restoredRef.current = true;
+    } else {
+      restoredRef.current = true;
+    }
+  }, [data, dongGeo]);
+
+  // state → URL 동기화 (replaceState로 history 오염 방지)
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    params.delete("school");
+    params.delete("region");
+    if (selected) params.set("school", selected.code);
+    else if (selectedRegion) params.set("region", `${selectedRegion.type}:${selectedRegion.key}`);
+    const qs = params.toString();
+    const url = `${window.location.pathname}${qs ? "?" + qs : ""}${window.location.hash}`;
+    window.history.replaceState(null, "", url);
+  }, [selected, selectedRegion]);
 
   const filtered = useMemo(() => {
     if (!data) return [];
