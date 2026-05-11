@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,13 @@ const GENDER_LIST: SchoolGender[] = ["공학", "여", "남"];
 export function Sidebar({
   data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, onClose,
 }: Props) {
+  // 검색어 입력은 로컬 state — Enter / blur 시점에만 커밋
+  const [queryInput, setQueryInput] = useState(filter.query);
+  useEffect(() => { setQueryInput(filter.query); }, [filter.query]);
+  const commitQuery = (v: string) => {
+    if (v !== filter.query) setFilter({ ...filter, query: v });
+  };
+
   const sortedTop = useMemo(() => {
     return [...filtered].sort((a, b) => {
       const sa = stats.get(a.code);
@@ -89,14 +96,24 @@ export function Sidebar({
         )}
       </div>
 
-      {/* 검색 */}
-      <input
-        type="search"
-        placeholder="학교명 검색..."
-        value={filter.query}
-        onChange={(e) => setFilter({ ...filter, query: e.target.value })}
-        className="border rounded-md px-3 py-2 text-sm bg-background"
-      />
+      {/* 검색 — Enter 시점에만 적용 */}
+      <form
+        onSubmit={(e) => { e.preventDefault(); commitQuery(queryInput.trim()); }}
+      >
+        <input
+          type="search"
+          placeholder="학교명 검색 (Enter)"
+          value={queryInput}
+          onChange={(e) => {
+            const v = e.target.value;
+            setQueryInput(v);
+            // X 버튼으로 비웠을 때(또는 빈 값)는 즉시 적용
+            if (v === "") commitQuery("");
+          }}
+          onBlur={() => commitQuery(queryInput.trim())}
+          className="border rounded-md px-3 py-2 text-sm bg-background w-full"
+        />
+      </form>
 
       {/* 학교 종류 필터 */}
       <div className="flex gap-1.5">
