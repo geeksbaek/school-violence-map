@@ -14,9 +14,17 @@
  *   bun src/collect_violence.ts --skip-existing  # 기존 데이터 스킵 (기본)
  */
 import { join } from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { DATA_DIR, sleep } from "./_env.ts";
+
+// raw HTML 캐시 — 향후 파서 변경 시 재수집(캡차) 없이 재파싱 가능
+const RAW_DIR = join(DATA_DIR, "raw_html");
+function rawPath(cd: string, code: string, year: string): string {
+  const dir = join(RAW_DIR, cd);
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  return join(dir, `${code}_${year}.html`);
+}
 
 const BASE = "https://www.schoolinfo.go.kr";
 // 캡차 png는 시도별로 별개 파일에 저장 (병렬 실행 가능 + 디버깅 용이)
@@ -45,6 +53,7 @@ interface SchoolEntry {
 }
 
 let SESSION = "";
+let uuidToCodeGlobal: Record<string, string> = {};
 
 async function initSession() {
   const res = await fetch(`${BASE}/ei/ss/pneiss_a05_s0.do`, { redirect: "manual" });
@@ -102,6 +111,19 @@ async function fetchData(school: SchoolEntry, year: string, attempt = 0): Promis
 }
 
 async function _fetchData(school: SchoolEntry, year: string, attempt: number, cd: string): Promise<any> {
+  // 캐시된 HTML이 있으면 캡차 스킵하고 바로 파싱
+  const code = uuidToCodeGlobal[school.code];
+  if (attempt === 0 && code) {
+    const cached = rawPath(cd, code, year);
+    if (existsSync(cached)) {
+      const html = await Bun.file(cached).text();
+      const parsed = parseHtmlByCd(html, cd);
+      if (!parsed.parseError) {
+        process.stdout.write(`[cache]`);
+        return parsed;
+      }
+    }
+  }
   const baseParams = {
     GS_HANGMOK_CD: cd,
     GS_HANGMOK_NO: "11-다",
@@ -178,6 +200,10 @@ async function _fetchData(school: SchoolEntry, year: string, attempt: number, cd
     return _fetchData(school, year, attempt + 1, cd);
   }
   process.stdout.write(`[${via}]`);
+  // raw HTML 저장 — 향후 파서 변경 시 재활용
+  if (code) {
+    try { await Bun.write(rawPath(cd, code, year), dataHtml); } catch {}
+  }
   return parseHtmlByCd(dataHtml, cd);
 }
 
@@ -387,6 +413,7 @@ async function main() {
 
   const uuidToCode: Record<string, string> = {};
   for (const [code, v] of Object.entries(ids)) uuidToCode[v.uuid] = code;
+  uuidToCodeGlobal = uuidToCode;
 
   const data: Record<string, Record<string, any>> = existsSync(outPath)
     ? await Bun.file(outPath).json()
