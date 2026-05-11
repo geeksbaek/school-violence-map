@@ -254,8 +254,8 @@ export function App() {
             </GMap>
           </APIProvider>
 
-          {/* 모바일 헤더 */}
-          <div className="md:hidden absolute top-3 left-3 z-10 flex items-center gap-2">
+          {/* 모바일 햄버거 */}
+          <div className="md:hidden absolute top-3 left-3 z-10">
             <Button
               variant="default"
               size="icon"
@@ -264,9 +264,6 @@ export function App() {
             >
               <Menu className="size-5" />
             </Button>
-            <div className="bg-white/90 backdrop-blur rounded-md px-2.5 py-1.5 text-xs shadow-md font-medium border">
-              학교폭력 지도
-            </div>
           </div>
 
           {/* 디테일 패널 */}
