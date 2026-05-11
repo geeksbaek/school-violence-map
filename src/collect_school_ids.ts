@@ -225,17 +225,23 @@ async function main() {
   let nameSearchAdded = 0;
   for (let i = 0; i < stillMissing.length; i++) {
     const s = stillMissing[i] as any;
-    const keyword = normalize(s.name); // suffix 떼고 검색
-    if (keyword.length < 2) continue;
-    try {
-      const results = await searchByName(keyword);
-      const candidates = results.filter((r) => r.kind === s.kind);
-      if (candidates.length === 1) {
-        out[s.code] = { uuid: candidates[0].uuid, nameInSearch: s.name };
-        nameSearchAdded++;
-      }
-      // 여러 후보면 모호 → 스킵 (안정성 우선)
-    } catch {}
+    // 1) 풀 학교명으로 정확 검색 → 결과 적으면 명확
+    // 2) 결과 0이면 normalize한 키워드(suffix 제거)로 재시도
+    const tryKeywords = [s.name, normalize(s.name)].filter((k, i, a) => k.length >= 2 && a.indexOf(k) === i);
+    let matched = false;
+    for (const keyword of tryKeywords) {
+      try {
+        const results = await searchByName(keyword);
+        const candidates = results.filter((r) => r.kind === s.kind);
+        if (candidates.length === 1) {
+          out[s.code] = { uuid: candidates[0].uuid, nameInSearch: s.name };
+          nameSearchAdded++;
+          matched = true;
+          break;
+        }
+      } catch {}
+      if (matched) break;
+    }
     if ((i + 1) % 50 === 0) process.stdout.write(`  ${i+1}/${stillMissing.length} (+${nameSearchAdded})\n`);
     await sleep(150);
   }

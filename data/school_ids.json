@@ -50462,5 +50462,21 @@
   "S090007863": {
     "uuid": "08c827d7-74a3-47a7-a94b-1b17f828d2ed",
     "nameInSearch": "치동고등학교"
+  },
+  "S090004271": {
+    "uuid": "8009e5ad-b2be-4e1b-a064-a7d7df319573",
+    "nameInSearch": "안용중학교"
+  },
+  "S090004280": {
+    "uuid": "61e7643f-cb60-42d2-be87-fdefaba33d92",
+    "nameInSearch": "화도중학교"
+  },
+  "S090000518": {
+    "uuid": "485116a1-2df8-4fec-94c4-ee915e3c5ecc",
+    "nameInSearch": "남양고등학교"
+  },
+  "S090005459": {
+    "uuid": "e45fee0d-c88a-484a-8d9f-496d920e4b02",
+    "nameInSearch": "동탄고등학교"
   }
 }
