@@ -44,7 +44,9 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
     return { total, avgRate, hasData };
   }, [inRegion, stats]);
 
-  const sev = severityOf(metric, summary.avgRate, summary.total, summary.hasData);
+  // 폴리곤 색상과 일관성 위해 학교당 평균 건수 사용
+  const avgTotalPerSchool = inRegion.length > 0 ? summary.total / inRegion.length : 0;
+  const sev = severityOf(metric, summary.avgRate, avgTotalPerSchool, summary.hasData);
   const labels = severityLabel(metric);
   const color = SEVERITY_COLOR[sev];
 

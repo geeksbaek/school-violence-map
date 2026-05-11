@@ -18,10 +18,11 @@ export function severityOfRate(rate: number | null, hasData: boolean): Severity 
 export function severityOfCount(total: number, hasData: boolean): Severity {
   if (!hasData) return "unknown";
   if (total === 0) return "none";
-  if (total < 5) return "low";
-  if (total < 15) return "moderate";
-  if (total < 30) return "high";
-  return "severe";
+  // 분포 기반 (전국 4년 합계: p25=3, p50=8, p75=17, p90=30, p95=39, p99=62)
+  if (total < 5) return "low";        // ~p25
+  if (total < 20) return "moderate";  // ~p75
+  if (total < 40) return "high";      // ~p95
+  return "severe";                    // p95+
 }
 
 export function severityOf(
@@ -57,9 +58,9 @@ export const SEVERITY_LABEL_COUNT: Record<Severity, string> = {
   unknown: "데이터 없음",
   none: "발생 없음",
   low: "낮음 (1–4건)",
-  moderate: "보통 (5–14건)",
-  high: "높음 (15–29건)",
-  severe: "심각 (≥30건)",
+  moderate: "보통 (5–19건)",
+  high: "높음 (20–39건)",
+  severe: "심각 (≥40건)",
 };
 
 export function severityLabel(metric: Metric): Record<Severity, string> {

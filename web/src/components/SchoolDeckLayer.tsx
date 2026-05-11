@@ -81,7 +81,7 @@ export function SchoolDeckLayer({
 
   // city / district / dong 별 합산 stat
   const aggregatedStats = useMemo(() => {
-    type Agg = { total: number; rateSum: number; rateCnt: number; hasData: boolean };
+    type Agg = { total: number; rateSum: number; rateCnt: number; cnt: number; hasData: boolean };
     const cityAgg = new Map<string, Agg>();
     const distAgg = new Map<string, Agg>();
     const dongAgg = new Map<string, Agg>();
@@ -94,8 +94,9 @@ export function SchoolDeckLayer({
       ];
       if (s.dongCode) buckets.push([dongAgg, s.dongCode]);
       for (const [m, k] of buckets) {
-        const cur = m.get(k) ?? { total: 0, rateSum: 0, rateCnt: 0, hasData: false };
+        const cur = m.get(k) ?? { total: 0, rateSum: 0, rateCnt: 0, cnt: 0, hasData: false };
         cur.total += st.total;
+        cur.cnt++;
         if (st.ratePer100 != null) {
           cur.rateSum += st.ratePer100;
           cur.rateCnt++;
@@ -253,12 +254,15 @@ export function SchoolDeckLayer({
       const distAlpha = Math.round(170 * smoothstep(zoom, 10, 11) * (1 - smoothstep(zoom, 11.5, 13)));
       const dongAlpha = dongGeo ? Math.round(180 * smoothstep(zoom, 11.5, 12.5) * (1 - smoothstep(zoom, 13.2, 14.2))) : 0;
 
+      // 폴리곤(시·구·동)은 학교 단위 임계값과 동일하게 보이도록
+      // 합계가 아닌 "학교당 평균 사건수"로 severity 결정 (level 일관성)
       const featureSeverity = (city: string, district: string, useCity: boolean) => {
         const key = useCity ? city : `${city}|${district}`;
         const agg = useCity ? aggregatedStats.city.get(key) : aggregatedStats.district.get(key);
         if (!agg) return SEVERITY_COLOR.unknown;
         const avgRate = agg.rateCnt > 0 ? agg.rateSum / agg.rateCnt : null;
-        const sev = severityOf(metric, avgRate, agg.total, agg.hasData);
+        const avgTotal = agg.cnt > 0 ? agg.total / agg.cnt : 0;
+        const sev = severityOf(metric, avgRate, avgTotal, agg.hasData);
         return SEVERITY_COLOR[sev];
       };
 
@@ -266,7 +270,8 @@ export function SchoolDeckLayer({
         const agg = aggregatedStats.dong.get(dongCode);
         if (!agg) return SEVERITY_COLOR.unknown;
         const avgRate = agg.rateCnt > 0 ? agg.rateSum / agg.rateCnt : null;
-        const sev = severityOf(metric, avgRate, agg.total, agg.hasData);
+        const avgTotal = agg.cnt > 0 ? agg.total / agg.cnt : 0;
+        const sev = severityOf(metric, avgRate, avgTotal, agg.hasData);
         return SEVERITY_COLOR[sev];
       };
 
