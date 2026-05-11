@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 interface FilterState {
   kinds: Set<SchoolKind>;
   genders: Set<SchoolGender>;
-  query: string;
   types: Set<number>; // 학폭 유형 인덱스 (0..7)
 }
 
@@ -40,12 +39,6 @@ const ALL_TYPES = [0, 1, 2, 3, 4, 5, 6, 7];
 export function Sidebar({
   data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, onClose,
 }: Props) {
-  const [queryInput, setQueryInput] = useState(filter.query);
-  useEffect(() => { setQueryInput(filter.query); }, [filter.query]);
-  const commitQuery = (v: string) => {
-    if (v !== filter.query) setFilter({ ...filter, query: v });
-  };
-
   const sortedTop = useMemo(() => {
     return [...filtered].sort((a, b) => {
       const sa = stats.get(a.code);
@@ -97,25 +90,13 @@ export function Sidebar({
         )}
       </header>
 
-      {/* 검색 */}
-      <form
-        onSubmit={(e) => { e.preventDefault(); commitQuery(queryInput.trim()); }}
-        className="relative"
-      >
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-        <Input
-          type="search"
-          placeholder="학교명 검색 (Enter)"
-          value={queryInput}
-          onChange={(e) => {
-            const v = e.target.value;
-            setQueryInput(v);
-            if (v === "") commitQuery("");
-          }}
-          onBlur={() => commitQuery(queryInput.trim())}
-          className="pl-8"
-        />
-      </form>
+      {/* 자동완성 검색 — 학교 1개 선택 */}
+      <SchoolAutocomplete
+        schools={data.schools}
+        stats={stats}
+        metric={metric}
+        onPick={onPick}
+      />
 
       {/* 메트릭 토글 */}
       <ToggleGroup
@@ -310,7 +291,7 @@ export function Sidebar({
           )}
           {sortedTop.length > 200 && (
             <li className="text-center text-[10px] text-muted-foreground py-2">
-              상위 200개만 표시 — 검색·필터로 좁혀주세요
+              상위 200개만 표시 — 필터로 좁히거나 검색으로 직접 선택하세요
             </li>
           )}
         </ul>
@@ -332,6 +313,128 @@ function FilterBlock({
         {action}
       </div>
       {children}
+    </div>
+  );
+}
+
+// ─── 학교 검색 자동완성 ────────────────────────────
+function SchoolAutocomplete({
+  schools, stats, metric, onPick,
+}: {
+  schools: School[];
+  stats: Map<string, SchoolStat>;
+  metric: Metric;
+  onPick: (s: School) => void;
+}) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 시 닫기
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  const matches = useMemo(() => {
+    const query = q.trim();
+    if (!query) return [];
+    const out: School[] = [];
+    for (const s of schools) {
+      if (s.name.includes(query)) {
+        out.push(s);
+        if (out.length >= 50) break;
+      }
+    }
+    return out;
+  }, [q, schools]);
+
+  // 키보드 네비
+  function onKey(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((i) => Math.min(matches.length - 1, i + 1));
+      setOpen(true);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((i) => Math.max(0, i - 1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const s = matches[active];
+      if (s) {
+        onPick(s);
+        setQ("");
+        setOpen(false);
+      }
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  }
+
+  function pick(s: School) {
+    onPick(s);
+    setQ("");
+    setOpen(false);
+  }
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+      <Input
+        type="text"
+        placeholder="학교명 검색"
+        value={q}
+        onChange={(e) => {
+          setQ(e.target.value);
+          setActive(0);
+          setOpen(true);
+        }}
+        onFocus={() => q && setOpen(true)}
+        onKeyDown={onKey}
+        className="pl-8"
+      />
+      {open && q && (
+        <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-popover border rounded-md shadow-lg overflow-hidden">
+          {matches.length === 0 ? (
+            <div className="px-3 py-2 text-xs text-muted-foreground">일치하는 학교 없음</div>
+          ) : (
+            <ul className="max-h-72 overflow-y-auto py-1">
+              {matches.map((s, i) => {
+                const st = stats.get(s.code);
+                const sev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false);
+                return (
+                  <li key={s.code}>
+                    <button
+                      type="button"
+                      onMouseEnter={() => setActive(i)}
+                      onClick={() => pick(s)}
+                      className={cn(
+                        "w-full text-left px-2 py-1.5 flex items-center gap-2 transition-colors",
+                        i === active ? "bg-accent" : "hover:bg-accent/50",
+                      )}
+                    >
+                      <span
+                        className="size-2.5 rounded-full border border-white shadow-sm shrink-0"
+                        style={{ background: SEVERITY_COLOR[sev] }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium truncate">{s.name}</div>
+                        <div className="text-[10px] text-muted-foreground truncate">
+                          {s.kind} · {s.city} {s.district}
+                        </div>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -43,7 +43,6 @@ export function App() {
   const [filter, setFilter] = useState<FilterState>({
     kinds: new Set(ALL_KINDS),
     genders: new Set(ALL_GENDERS),
-    query: "",
     types: new Set([0, 1, 2, 3, 4, 5, 6, 7]),
   });
 
@@ -123,11 +122,9 @@ export function App() {
 
   const filtered = useMemo(() => {
     if (!data) return [];
-    const q = filter.query.trim();
     return data.schools.filter((s) => {
       if (!filter.kinds.has(s.kind)) return false;
       if (!filter.genders.has(s.gender)) return false;
-      if (q && !s.name.includes(q)) return false;
       return true;
     });
   }, [data, filter]);
