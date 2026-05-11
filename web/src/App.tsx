@@ -160,6 +160,7 @@ export function App() {
               stats={stats}
               metric={metric}
               selectedCode={selected?.code ?? null}
+              selectedRegion={selectedRegion}
               onPick={(s) => { setSelected(s); setSelectedRegion(null); }}
               onPickRegion={(r) => { setSelectedRegion(r); setSelected(null); }}
               adminGeo={adminGeo}

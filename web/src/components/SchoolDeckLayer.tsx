@@ -24,6 +24,7 @@ interface Props {
   stats: Map<string, SchoolStat>;
   metric: Metric;
   selectedCode: string | null;
+  selectedRegion: RegionPick | null;
   onPick: (s: School) => void;
   onPickRegion: (r: RegionPick) => void;
   adminGeo: any | null;
@@ -58,7 +59,7 @@ const COLOR_RGBA: Record<string, [number, number, number, number]> = Object.from
 const KIND_STROKE: Record<string, number> = { 초등: 1, 중학: 2, 고등: 3 };
 
 export function SchoolDeckLayer({
-  schools, stats, metric, selectedCode, onPick, onPickRegion, adminGeo, dongGeo,
+  schools, stats, metric, selectedCode, selectedRegion, onPick, onPickRegion, adminGeo, dongGeo,
 }: Props) {
   const map = useMap();
   const overlayRef = useRef<GoogleMapsOverlay | null>(null);
@@ -314,14 +315,17 @@ export function SchoolDeckLayer({
           pickable: true,
           getFillColor: (f: any) => {
             const [r, g, b] = hexToRgb(featureSeverity(f.properties.city, f.properties.district, false));
-            return [r, g, b, distAlpha];
+            const sel = isSelectedDistrict(f.properties);
+            return [r, g, b, sel ? Math.min(220, distAlpha + 70) : distAlpha];
           },
-          getLineColor: [255, 255, 255, Math.min(220, distAlpha + 60)],
-          getLineWidth: 1.5,
+          getLineColor: (f: any) =>
+            isSelectedDistrict(f.properties) ? SEL_LINE : [255, 255, 255, Math.min(220, distAlpha + 60)],
+          getLineWidth: (f: any) => (isSelectedDistrict(f.properties) ? 3 : 1.5),
           lineWidthUnits: "pixels",
           updateTriggers: {
-            getFillColor: [metric, aggregatedStats, distAlpha],
-            getLineColor: [distAlpha],
+            getFillColor: [metric, aggregatedStats, distAlpha, selectedRegion],
+            getLineColor: [distAlpha, selectedRegion],
+            getLineWidth: [selectedRegion],
           },
           transitions: { getFillColor: 300 },
         }));
@@ -336,14 +340,17 @@ export function SchoolDeckLayer({
           pickable: true,
           getFillColor: (f: any) => {
             const [r, g, b] = hexToRgb(dongSeverity(f.properties.code));
-            return [r, g, b, dongAlpha];
+            const sel = isSelectedDong(f.properties);
+            return [r, g, b, sel ? Math.min(220, dongAlpha + 70) : dongAlpha];
           },
-          getLineColor: [255, 255, 255, Math.min(220, dongAlpha + 40)],
-          getLineWidth: 1,
+          getLineColor: (f: any) =>
+            isSelectedDong(f.properties) ? SEL_LINE : [255, 255, 255, Math.min(220, dongAlpha + 40)],
+          getLineWidth: (f: any) => (isSelectedDong(f.properties) ? 3 : 1),
           lineWidthUnits: "pixels",
           updateTriggers: {
-            getFillColor: [metric, aggregatedStats, dongAlpha],
-            getLineColor: [dongAlpha],
+            getFillColor: [metric, aggregatedStats, dongAlpha, selectedRegion],
+            getLineColor: [dongAlpha, selectedRegion],
+            getLineWidth: [selectedRegion],
           },
           transitions: { getFillColor: 300 },
         }));
@@ -355,7 +362,7 @@ export function SchoolDeckLayer({
     }
 
     overlayRef.current.setProps({ layers });
-  }, [map, layerData, metric, selectedCode, stats, schools, aggLevel, centroids, zoom, adminGeo, dongGeo, aggregatedStats]);
+  }, [map, layerData, metric, selectedCode, selectedRegion, stats, schools, aggLevel, centroids, zoom, adminGeo, dongGeo, aggregatedStats]);
 
   // 마운트 해제 시 cleanup
   useEffect(() => {
