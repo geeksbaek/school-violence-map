@@ -229,19 +229,8 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등"): SchoolDet
     if (arr.length > 0) d.grades = arr;
   }
 
-  // 전년도 학생수 추이 (10에서 STDNT_SUM_NN 형태)
-  if (gender) {
-    const trend: NonNullable<SchoolDetails["studentTrend"]> = [];
-    for (const k of Object.keys(gender)) {
-      const m = k.match(/^STDNT_SUM_(\d{2})$/);
-      if (!m) continue;
-      const t = num(gender[k]);
-      if (t == null) continue;
-      trend.push({ year: 2000 + parseInt(m[1]), total: t });
-    }
-    trend.sort((a, b) => a.year - b.year);
-    if (trend.length > 0) d.studentTrend = trend;
-  }
+  // STDNT_SUM_NN은 연도가 아닌 학년 코드(2X=초, 3X=중, 4X=고)라 추이 그래프로 부적절.
+  // 학년별 분포는 d.grades(apiType 09)가 이미 정확히 노출함.
 
   // 수업/교사
   if (wkly) {
