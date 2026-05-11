@@ -59,6 +59,8 @@ function parseB75(html: string): any {
   if (html.includes("데이터가 없습니다")) return { noData: true };
   const m = html.match(/학교의 장의 학교폭력사건 자체해결 결과[\s\S]*?(<table[\s\S]*?<\/table>)/);
   if (!m) return { parseError: true };
+  // 표 안에 td가 전혀 없으면 (헤더만 있음) = noData (학교 미보고)
+  if (!/<td/.test(m[1])) return { noData: true };
   const rows: { label: string; count: number }[] = [];
   const trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/g;
   let trMatch;
@@ -72,7 +74,7 @@ function parseB75(html: string): any {
     if (!label.includes("학기") && !label.includes("학년도")) continue;
     rows.push({ label, count: parseInt(valStr.replace(/[,]/g, "")) || 0 });
   }
-  if (rows.length === 0) return { parseError: true };
+  if (rows.length === 0) return { noData: true };
   const out: any = { selfResolved: { rows } };
   if (rows.length >= 2) { out.selfResolved.s1 = rows[0].count; out.selfResolved.s2 = rows[1].count; }
   else if (rows.length === 1) { out.selfResolved.s1 = rows[0].count; }
@@ -82,6 +84,10 @@ function parseB75(html: string): any {
 function parseB66(html: string): any {
   if (html.includes("제외 처리함") || html.includes("없으므로") || html.includes("공시제외")) return { zero: true };
   if (html.includes("데이터가 없습니다")) return { noData: true };
+  // 모든 표가 헤더만 있고 td 없으면 noData
+  const allTables = [...html.matchAll(/<table[\s\S]*?<\/table>/g)].map((x) => x[0]);
+  const dataTables = allTables.filter((t) => /<td/.test(t));
+  if (allTables.length > 0 && dataTables.length === 0) return { noData: true };
   const result: any = {};
   const extractRows = (tableHtml: string) => {
     const rows: { th: string[]; td: (number | string | null)[] }[] = [];

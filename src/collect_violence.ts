@@ -14,17 +14,9 @@
  *   bun src/collect_violence.ts --skip-existing  # 기존 데이터 스킵 (기본)
  */
 import { join } from "node:path";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { DATA_DIR, sleep } from "./_env.ts";
-
-// raw HTML 캐시 — 향후 파서 변경 시 재수집(캡차) 없이 재파싱 가능
-const RAW_DIR = join(DATA_DIR, "raw_html");
-function rawPath(cd: string, code: string, year: string): string {
-  const dir = join(RAW_DIR, cd);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  return join(dir, `${code}_${year}.html`);
-}
 
 const BASE = "https://www.schoolinfo.go.kr";
 // 캡차 png는 시도별로 별개 파일에 저장 (병렬 실행 가능 + 디버깅 용이)
@@ -53,7 +45,6 @@ interface SchoolEntry {
 }
 
 let SESSION = "";
-let uuidToCodeGlobal: Record<string, string> = {};
 
 async function initSession() {
   const res = await fetch(`${BASE}/ei/ss/pneiss_a05_s0.do`, { redirect: "manual" });
@@ -111,19 +102,6 @@ async function fetchData(school: SchoolEntry, year: string, attempt = 0): Promis
 }
 
 async function _fetchData(school: SchoolEntry, year: string, attempt: number, cd: string): Promise<any> {
-  // 캐시된 HTML이 있으면 캡차 스킵하고 바로 파싱
-  const code = uuidToCodeGlobal[school.code];
-  if (attempt === 0 && code) {
-    const cached = rawPath(cd, code, year);
-    if (existsSync(cached)) {
-      const html = await Bun.file(cached).text();
-      const parsed = parseHtmlByCd(html, cd);
-      if (!parsed.parseError) {
-        process.stdout.write(`[cache]`);
-        return parsed;
-      }
-    }
-  }
   const baseParams = {
     GS_HANGMOK_CD: cd,
     GS_HANGMOK_NO: "11-다",
@@ -200,10 +178,6 @@ async function _fetchData(school: SchoolEntry, year: string, attempt: number, cd
     return _fetchData(school, year, attempt + 1, cd);
   }
   process.stdout.write(`[${via}]`);
-  // raw HTML 저장 — 향후 파서 변경 시 재활용
-  if (code) {
-    try { await Bun.write(rawPath(cd, code, year), dataHtml); } catch {}
-  }
   return parseHtmlByCd(dataHtml, cd);
 }
 
@@ -220,7 +194,7 @@ function parseB75(html: string): any {
   if (html.includes("데이터가 없습니다")) return { noData: true };
   const m = html.match(/학교의 장의 학교폭력사건 자체해결 결과[\s\S]*?(<table[\s\S]*?<\/table>)/);
   if (!m) return { parseError: true };
-  // 행 단위 파싱: <tr>...<th>학기 라벨</th>...<td>건수</td></tr>
+  if (!/<td/.test(m[1])) return { noData: true };
   const rows: { label: string; count: number }[] = [];
   const trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/g;
   let trMatch;
@@ -234,7 +208,7 @@ function parseB75(html: string): any {
     if (!label.includes("학기") && !label.includes("학년도")) continue;
     rows.push({ label, count: parseInt(valStr.replace(/[,]/g, "")) || 0 });
   }
-  if (rows.length === 0) return { parseError: true };
+  if (rows.length === 0) return { noData: true };
   // 호환: s1/s2도 첫 두 행 (가능한 경우)
   const out: any = { selfResolved: { rows } };
   if (rows.length >= 2) {
@@ -251,6 +225,9 @@ function parseB75(html: string): any {
 function parseB66(html: string): any {
   if (html.includes("제외 처리함") || html.includes("없으므로") || html.includes("공시제외")) return { zero: true };
   if (html.includes("데이터가 없습니다")) return { noData: true };
+  const allTables = [...html.matchAll(/<table[\s\S]*?<\/table>/g)].map((x) => x[0]);
+  const dataTables = allTables.filter((t) => /<td/.test(t));
+  if (allTables.length > 0 && dataTables.length === 0) return { noData: true };
   const result: any = {};
 
   // 공통: 행 단위로 (label/values) 추출하는 헬퍼
@@ -413,7 +390,6 @@ async function main() {
 
   const uuidToCode: Record<string, string> = {};
   for (const [code, v] of Object.entries(ids)) uuidToCode[v.uuid] = code;
-  uuidToCodeGlobal = uuidToCode;
 
   const data: Record<string, Record<string, any>> = existsSync(outPath)
     ? await Bun.file(outPath).json()
