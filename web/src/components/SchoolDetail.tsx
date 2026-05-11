@@ -113,9 +113,8 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
 
         {/* 년도별 막대 (선택 유형 합산) — 클릭 시 유형별 차트 전환 */}
         <div>
-          <div className="text-muted-foreground mb-1 text-xs">
+          <div className="text-muted-foreground mb-2 text-xs">
             공시년도별 사건 {!allTypesOn && <span>· 선택 유형</span>}
-            <span className="text-[10px] ml-1">· 막대 클릭으로 년도 전환</span>
           </div>
           <div className="flex items-end gap-1.5 h-16">
             {yearsArr.map((y, idx) => {
