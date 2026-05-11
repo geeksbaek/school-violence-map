@@ -388,7 +388,9 @@ function FlyToSelected({ school }: { school: School | null }) {
     requestAnimationFrame(() => {
       const isMobile = window.matchMedia("(max-width: 767px)").matches;
       if (isMobile) {
-        map.panBy(0, Math.round(window.innerHeight * 0.2));
+        // 모바일 디테일 시트는 최대 70dvh 차지 → 가용 영역 중앙(viewport 상단 ~15%) 이 되도록
+        // 마커를 viewport 50% → 15% 위치로: 35%dvh만큼 위로 (panBy(+y) = 마커 visually 위)
+        map.panBy(0, Math.round(window.innerHeight * 0.35));
       } else {
         map.panBy(180, 0);
       }
