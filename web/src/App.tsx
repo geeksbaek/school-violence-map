@@ -270,7 +270,7 @@ export function App() {
           {selected && (
             <div
               className={cn(
-                "absolute z-10 overflow-y-auto",
+                "absolute z-10 overflow-y-auto rounded-xl shadow-lg",
                 "left-2 right-2 bottom-2 max-h-[70dvh]",
                 "md:left-auto md:bottom-auto md:right-3 md:top-3 md:w-[360px] md:max-h-[calc(100dvh-1.5rem)]",
               )}
@@ -289,7 +289,7 @@ export function App() {
           {selectedRegion && !selected && (
             <div
               className={cn(
-                "absolute z-10",
+                "absolute z-10 overflow-y-auto rounded-xl shadow-lg",
                 "left-2 right-2 bottom-2 max-h-[70dvh]",
                 "md:left-auto md:bottom-auto md:right-3 md:top-3 md:w-[380px] md:max-h-[calc(100dvh-1.5rem)]",
               )}
