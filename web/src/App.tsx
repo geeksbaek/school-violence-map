@@ -10,7 +10,9 @@ import { Card } from "@/components/ui/card";
 
 const KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string;
 
-const DATA_URL = `${import.meta.env.BASE_URL}data.json`;
+// 빌드 시 시각 — data.json 캐시 무효화용 (gh-pages는 정적이라 ETag 외엔 cache-bust 수단 없음)
+const BUILD_TS = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 12);
+const DATA_URL = `${import.meta.env.BASE_URL}data.json?v=${BUILD_TS}`;
 
 const DEFAULT_CENTER = { lat: 37.32, lng: 127.05 };
 const ALL_KINDS: SchoolKind[] = ["초등", "중학", "고등"];
@@ -29,9 +31,13 @@ export function App() {
   });
 
   useEffect(() => {
-    fetch(DATA_URL)
+    fetch(DATA_URL, { cache: "no-cache" })
       .then((r) => r.json())
       .then((d: DataSet) => {
+        // 옛 캐시 데이터에 gender 필드 누락 가능성 → fallback "공학"
+        for (const s of d.schools) {
+          if (!s.gender) (s as any).gender = "공학";
+        }
         setData(d);
         // 모든 시 기본 활성
         setFilter((prev) => ({
