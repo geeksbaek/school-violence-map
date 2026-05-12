@@ -349,7 +349,7 @@ export function Sidebar({
                           <span
                             className="px-1 py-px rounded text-[9px] font-semibold leading-none"
                             style={{ background: labels.protection.bg, color: labels.protection.color }}
-                            title={labels.protection.perCase != null ? `사안당 보호조치 ${labels.protection.perCase.toFixed(2)}건` : undefined}
+                            title={labels.protection.perCase != null ? `피해 학생당 보호조치 ${labels.protection.perCase.toFixed(2)}건` : undefined}
                           >
                             보호 {labels.protection.label}
                           </span>

@@ -163,9 +163,9 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
                 <span
                   className="px-1.5 py-0.5 rounded font-semibold leading-none"
                   style={{ background: labels.protection.bg, color: labels.protection.color }}
-                  title={labels.protection.perCase != null ? `사안당 보호조치 ${labels.protection.perCase.toFixed(2)}건 (전국 평균 ~0.56)` : undefined}
+                  title={labels.protection.perCase != null ? `피해 학생당 보호조치 ${labels.protection.perCase.toFixed(2)}건 (전국 평균 ~0.56)` : undefined}
                 >
-                  보호 강도: {labels.protection.label}{labels.protection.perCase != null && ` (${labels.protection.perCase.toFixed(2)}건/사안)`}
+                  보호 강도: {labels.protection.label}{labels.protection.perCase != null && ` (${labels.protection.perCase.toFixed(2)}건/피해자)`}
                 </span>
               )}
             </div>

@@ -1097,52 +1097,52 @@ function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: S
 // ─── Card 15: 피해자 보호 강도 ─────────────────
 function ProtectionStrengthCard({ data, selected }: { data: DataSet; selected: School | null }) {
   const stats = useMemo(() => {
-    let totalCases = 0, totalMeasures = 0;
-    let mySchool: { cases: number; measures: number } | null = null;
+    let totalVictims = 0, totalMeasures = 0;
+    let mySchool: { victims: number; measures: number } | null = null;
     for (const s of data.schools) {
-      let cases = 0, m = 0;
+      let victims = 0, m = 0;
       for (const y of data.years) {
         const v = s.violence[y];
         if (!v?.cases) continue;
-        cases += (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
+        victims += (v.cases.s1?.v ?? 0) + (v.cases.s2?.v ?? 0);
         if (v.victimMeasures) {
           for (let i = 0; i < 5; i++) m += v.victimMeasures[i] ?? 0;
         }
       }
-      totalCases += cases;
+      totalVictims += victims;
       totalMeasures += m;
-      if (selected && s.code === selected.code && cases > 0) mySchool = { cases, measures: m };
+      if (selected && s.code === selected.code && victims > 0) mySchool = { victims, measures: m };
     }
     return {
-      avgPerCase: totalCases > 0 ? totalMeasures / totalCases : 0,
-      myAvg: mySchool && mySchool.cases > 0 ? mySchool.measures / mySchool.cases : null,
+      avgPerVictim: totalVictims > 0 ? totalMeasures / totalVictims : 0,
+      myAvg: mySchool && mySchool.victims > 0 ? mySchool.measures / mySchool.victims : null,
     };
   }, [data, selected]);
 
   return (
-    <Card title="피해 학생 보호 강도" subtitle="심의 사안 1건당 평균 보호조치 수 (학폭예방법 16조 1~5호 합산)">
+    <Card title="피해 학생 보호 강도" subtitle="피해 학생 1명당 평균 보호조치 수 (학폭예방법 16조 1~5호 합산)">
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded bg-muted/40 p-2">
           <div className="text-[10px] text-muted-foreground">전국 평균</div>
-          <div className="text-base font-semibold tabular-nums">{stats.avgPerCase.toFixed(2)}건</div>
-          <div className="text-[10px] text-muted-foreground">/사안</div>
+          <div className="text-base font-semibold tabular-nums">{stats.avgPerVictim.toFixed(2)}건</div>
+          <div className="text-[10px] text-muted-foreground">/피해자</div>
         </div>
         <div className="rounded bg-muted/40 p-2">
           <div className="text-[10px] text-muted-foreground">우리 학교</div>
-          <div className={cn("text-base font-semibold tabular-nums", stats.myAvg != null && (stats.myAvg >= stats.avgPerCase ? "text-green-700 dark:text-green-400" : "text-amber-700 dark:text-amber-400"))}>
+          <div className={cn("text-base font-semibold tabular-nums", stats.myAvg != null && (stats.myAvg >= stats.avgPerVictim ? "text-green-700 dark:text-green-400" : "text-amber-700 dark:text-amber-400"))}>
             {stats.myAvg != null ? `${stats.myAvg.toFixed(2)}건` : "—"}
           </div>
           <div className="text-[10px] text-muted-foreground">
             {stats.myAvg != null
-              ? (stats.myAvg >= stats.avgPerCase ? "전국 평균 이상" : "전국 평균 이하")
-              : "사안 없음"}
+              ? (stats.myAvg >= stats.avgPerVictim ? "전국 평균 이상" : "전국 평균 이하")
+              : "피해 없음"}
           </div>
         </div>
       </div>
       <Insight>
-        보호조치는 <b>심리상담·일시보호·치료·학급교체·기타</b> 5종 (학폭예방법 16조).
-        한 사안에 여러 조치가 중복 부여될 수 있어 <b>1건 이하</b>이면 "사건 발생만 기록되고 보호는 거의 없음", <b>1.5건 이상</b>이면 "다층 보호" 학교.
-        피해 학생을 두텁게 챙기는지 가늠하는 신호.
+        보호조치는 <b>심리상담·일시보호·치료·학급교체·기타</b> 5종 (학폭예방법 16조). 한 학생에게 여러 조치 중복 부여 가능.
+        분모를 사안이 아닌 <b>피해 학생 수</b>로 잡아 집단 피해 학교의 비율 부풀림을 보정.
+        <b>1건 이하</b>이면 보호 부재, <b>1.5건 이상</b>이면 다층 보호.
       </Insight>
     </Card>
   );
@@ -1251,44 +1251,44 @@ function TopDisciplineSchoolsCard({ data }: { data: DataSet }) {
 // ─── Card 18: 피해자 보호 강도 가장 높은 학교 TOP
 function TopProtectionSchoolsCard({ data }: { data: DataSet }) {
   const items = useMemo(() => {
-    const out: { s: School; perCase: number; cases: number }[] = [];
+    const out: { s: School; perVictim: number; victims: number }[] = [];
     for (const s of data.schools) {
-      let cases = 0, measures = 0;
+      let victims = 0, measures = 0;
       for (const y of data.years) {
         const v = s.violence[y];
         if (!v?.cases) continue;
-        cases += (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
+        victims += (v.cases.s1?.v ?? 0) + (v.cases.s2?.v ?? 0);
         if (v.victimMeasures) {
           for (let i = 0; i < 5; i++) measures += v.victimMeasures[i] ?? 0;
         }
       }
-      if (cases < 3) continue;
-      out.push({ s, perCase: measures / cases, cases });
+      if (victims < 3) continue;
+      out.push({ s, perVictim: measures / victims, victims });
     }
-    return out.sort((a, b) => b.perCase - a.perCase).slice(0, 12);
+    return out.sort((a, b) => b.perVictim - a.perVictim).slice(0, 12);
   }, [data]);
   return (
-    <Card title="피해 학생 보호 강도 가장 높은 학교 TOP 12" subtitle="사안 1건당 평균 보호조치 수 (사안 3건+)">
+    <Card title="피해 학생 보호 강도 가장 높은 학교 TOP 12" subtitle="피해 학생 1명당 평균 보호조치 수 (피해 3명+)">
       {items.length === 0 ? (
         <Empty msg="조건을 만족하는 학교 없음" />
       ) : (
         <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
-          {items.map(({ s, perCase, cases }, i) => (
+          {items.map(({ s, perVictim, victims }, i) => (
             <div key={s.code} className="flex items-center gap-2 text-xs">
               <span className="w-5 text-right text-muted-foreground tabular-nums">{i + 1}</span>
               <SchoolLink school={s} className="flex-1 truncate" />
               <span className="text-[10px] text-muted-foreground w-20 text-right truncate">
                 {[s.city, s.district].filter(Boolean).join(" ")}
               </span>
-              <span className="tabular-nums w-12 text-right text-green-700 dark:text-green-400 font-semibold">{perCase.toFixed(2)}</span>
-              <span className="text-[10px] text-muted-foreground w-10 text-right">{cases}건</span>
+              <span className="tabular-nums w-12 text-right text-green-700 dark:text-green-400 font-semibold">{perVictim.toFixed(2)}</span>
+              <span className="text-[10px] text-muted-foreground w-10 text-right">피해 {victims}</span>
             </div>
           ))}
         </div>
       )}
       <Insight>
-        한 사안당 다층 보호조치(심리상담·일시보호·치료·학급교체 등)를 두텁게 부여하는 학교.
-        피해 학생을 두텁게 챙기는 곳일 가능성. 단 보호조치는 학교가 입력하는 항목이라 적극적 기록 차이가 영향.
+        한 피해 학생당 다층 보호조치(심리상담·일시보호·치료·학급교체 등)를 두텁게 부여하는 학교.
+        분모를 사안이 아닌 피해 학생 수로 잡아 집단 피해 학교가 비율 부풀려져 상위에 가는 왜곡 보정.
       </Insight>
     </Card>
   );
