@@ -176,6 +176,12 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
 
           {/* 12. 유형별 심각한 동네 TOP 3 */}
           <TypeSeverityCard data={yearScopedData} scope={scope} />
+
+          {/* 13. 가해·피해 학생 + 사안 구조 */}
+          <CasesCard data={yearScopedData} />
+
+          {/* 14. 가해학생 처분 분포 */}
+          <PerpMeasuresCard data={yearScopedData} />
         </div>
 
         <div className="text-[10px] text-muted-foreground pt-1 border-t">
@@ -888,6 +894,135 @@ function TypeSeverityCard({ data, scope }: { data: DataSet; scope: Scope }) {
         {scope === "전국"
           ? " 다수 농어촌 군 단위 등장 → 분모 효과(소규모 학교) 영향."
           : " 수도권은 외곽 군·시 + 도심 자치구가 섞여 등장 — 사이버폭력은 도심에서, 신체폭력은 외곽에서 두드러지는 경향."}
+      </Insight>
+    </Card>
+  );
+}
+
+// ─── Card 13: 가해·피해 학생 수 + 사안 구조 ─────
+function CasesCard({ data }: { data: DataSet }) {
+  const summary = useMemo(() => {
+    let totalCases = 0, totalVictims = 0, totalPerps = 0;
+    let groupVictim = 0, groupPerp = 0, oneOnOne = 0, hasAny = 0;
+    for (const s of data.schools) {
+      for (const y of data.years) {
+        const v = s.violence[y];
+        if (!v?.cases) continue;
+        const n = (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
+        const vt = (v.cases.s1?.v ?? 0) + (v.cases.s2?.v ?? 0);
+        const pt = (v.cases.s1?.p ?? 0) + (v.cases.s2?.p ?? 0);
+        if (n === 0) continue;
+        totalCases += n;
+        totalVictims += vt;
+        totalPerps += pt;
+        hasAny++;
+        if (vt > pt) groupVictim++;
+        else if (pt > vt) groupPerp++;
+        else oneOnOne++;
+      }
+    }
+    return { totalCases, totalVictims, totalPerps, groupVictim, groupPerp, oneOnOne, hasAny };
+  }, [data]);
+  const total = summary.groupVictim + summary.groupPerp + summary.oneOnOne;
+  return (
+    <Card title="가해·피해 학생 수" subtitle="심의 사안 누계 (학교년 단위 집계)">
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded bg-muted/50 p-2 text-center">
+          <div className="text-[10px] text-muted-foreground">심의 사안</div>
+          <div className="text-sm font-semibold tabular-nums">{summary.totalCases.toLocaleString()}</div>
+        </div>
+        <div className="rounded bg-muted/50 p-2 text-center">
+          <div className="text-[10px] text-muted-foreground">피해 학생</div>
+          <div className="text-sm font-semibold tabular-nums">{summary.totalVictims.toLocaleString()}</div>
+        </div>
+        <div className="rounded bg-muted/50 p-2 text-center">
+          <div className="text-[10px] text-muted-foreground">가해 학생</div>
+          <div className="text-sm font-semibold tabular-nums">{summary.totalPerps.toLocaleString()}</div>
+        </div>
+      </div>
+      <div className="mt-2 text-[10px] text-muted-foreground mb-1">학교년별 사안 구조 (n={total.toLocaleString()})</div>
+      <div className="flex flex-col gap-1">
+        {[
+          { label: "1:1 (피해 = 가해)", n: summary.oneOnOne, color: "#94a3b8" },
+          { label: "집단 가해 (가해 > 피해)", n: summary.groupPerp, color: "#dc2626" },
+          { label: "집단 피해 (피해 > 가해)", n: summary.groupVictim, color: "#f97316" },
+        ].map((r) => {
+          const pct = total > 0 ? (r.n / total) * 100 : 0;
+          return (
+            <div key={r.label} className="flex items-center gap-2 text-xs">
+              <span className="w-32 text-muted-foreground truncate">{r.label}</span>
+              <div className="flex-1 bg-muted h-2 rounded-sm overflow-hidden">
+                <div className="h-full" style={{ width: `${pct}%`, background: r.color }} />
+              </div>
+              <span className="tabular-nums w-10 text-right">{pct.toFixed(0)}%</span>
+            </div>
+          );
+        })}
+      </div>
+      <Insight>
+        평균 사안당 피해 <b>{summary.totalCases > 0 ? (summary.totalVictims / summary.totalCases).toFixed(2) : "—"}명</b> · 가해 <b>{summary.totalCases > 0 ? (summary.totalPerps / summary.totalCases).toFixed(2) : "—"}명</b>.
+        {" "}전체 학교년 중 <b>{total > 0 ? ((summary.groupPerp / total) * 100).toFixed(0) : 0}%</b>가 집단 가해 패턴(가해 &gt; 피해), <b>{total > 0 ? ((summary.groupVictim / total) * 100).toFixed(0) : 0}%</b>가 집단 피해(피해 &gt; 가해).
+      </Insight>
+    </Card>
+  );
+}
+
+// ─── Card 14: 가해학생 처분 분포 ───────────────
+// 학교폭력예방법 17조 (가해학생 선도·교육조치) — 9개 호 + 합계
+const PERP_LABELS = [
+  "1호 서면사과",
+  "2호 접촉·보복금지",
+  "3호 학교봉사",
+  "4호 사회봉사",
+  "5호 특별교육·심리치료",
+  "6호 출석정지",
+  "7호 학급교체",
+  "8호 전학",
+  "9호 퇴학",
+];
+function PerpMeasuresCard({ data }: { data: DataSet }) {
+  // 인덱스 0~8 = 1호~9호. 인덱스 9는 데이터 검증 결과 합계 컬럼이므로 제외.
+  const sums = useMemo(() => {
+    const s = new Array(9).fill(0);
+    for (const sc of data.schools) {
+      for (const y of data.years) {
+        const v = sc.violence[y];
+        if (!v?.perpMeasures) continue;
+        for (let i = 0; i < 9; i++) s[i] += v.perpMeasures[i] ?? 0;
+      }
+    }
+    return s;
+  }, [data]);
+  const total = sums.reduce((a, b) => a + b, 0);
+  const max = Math.max(0.001, ...sums);
+  const heavy = sums.slice(5).reduce((a, b) => a + b, 0); // 6호 출석정지 ~ 9호 퇴학
+  const heavyPct = total > 0 ? (heavy / total) * 100 : 0;
+  const top = sums
+    .map((n, i) => ({ i, label: PERP_LABELS[i], n }))
+    .sort((a, b) => b.n - a.n)[0];
+  return (
+    <Card title="가해학생 선도·교육조치 분포" subtitle="학교폭력예방법 17조 조치 (중복 가능, 전체 누계)">
+      <div className="flex flex-col gap-1">
+        {PERP_LABELS.map((label, i) => {
+          const w = (sums[i] / max) * 100;
+          const isHeavy = i >= 5;
+          const pct = total > 0 ? (sums[i] / total) * 100 : 0;
+          return (
+            <div key={label} className="flex items-center gap-2 text-xs">
+              <span className={cn("w-32 truncate text-muted-foreground", isHeavy && "text-red-700 dark:text-red-400 font-medium")}>{label}</span>
+              <div className="flex-1 bg-muted h-2 rounded-sm overflow-hidden">
+                <div className="h-full" style={{ width: `${w}%`, background: isHeavy ? "#dc2626" : "#94a3b8" }} />
+              </div>
+              <span className="tabular-nums w-12 text-right text-[10px]">{sums[i].toLocaleString()}</span>
+              <span className="tabular-nums w-10 text-right text-muted-foreground text-[10px]">{pct.toFixed(0)}%</span>
+            </div>
+          );
+        })}
+      </div>
+      <Insight>
+        가장 흔한 처분: <b>{top.label}</b> ({total > 0 ? ((top.n / total) * 100).toFixed(0) : 0}%).
+        {" "}<b className="text-red-700 dark:text-red-400">중·고강도 처분(6호 출석정지~9호 퇴학)</b>은 전체의 <b>{heavyPct.toFixed(0)}%</b>.
+        대다수 사안이 1~5호의 경미한 교육·봉사 조치로 종결됨.
       </Insight>
     </Card>
   );

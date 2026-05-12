@@ -27,6 +27,28 @@ const KIND_VARIANT: Record<string, "default" | "secondary" | "destructive" | "ou
   고등: "outline",
 };
 
+// 학교폭력예방법 16조 (피해학생 보호조치) — 5개 + 마지막 인덱스(5)는 합계
+const VICTIM_MEASURE_LABELS = [
+  "심리상담·조언",
+  "일시보호",
+  "치료·치료요양",
+  "학급교체",
+  "그 밖의 필요한 조치",
+];
+
+// 학교폭력예방법 17조 (가해학생 선도·교육조치) — 9개 + 마지막 인덱스(9)는 합계
+const PERP_MEASURE_LABELS = [
+  "1호 서면사과",
+  "2호 접촉·협박·보복금지",
+  "3호 학교봉사",
+  "4호 사회봉사",
+  "5호 특별교육·심리치료",
+  "6호 출석정지",
+  "7호 학급교체",
+  "8호 전학",
+  "9호 퇴학",
+];
+
 export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClose }: Props) {
   const sev = severityOf(metric, stat.ratePer100, stat.total, stat.hasData);
   const color = SEVERITY_COLOR[sev];
@@ -274,6 +296,75 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
               <Stat label="1학기" value={`${selectedYearSr.s1}건`} />
               <Stat label="2학기" value={`${selectedYearSr.s2}건`} />
               <Stat label="합계" value={`${selectedYearSr.total}건`} />
+            </div>
+          </div>
+        )}
+
+        {/* 가해/피해 학생 (심의 기준, 선택된 년도) */}
+        {selectedYearV?.cases && (() => {
+          const c = selectedYearV.cases;
+          const v = (c.s1?.v ?? 0) + (c.s2?.v ?? 0);
+          const p = (c.s1?.p ?? 0) + (c.s2?.p ?? 0);
+          if (v === 0 && p === 0) return null;
+          return (
+            <div className="rounded-md border bg-muted/20 p-2 text-xs">
+              <div className="text-muted-foreground mb-1.5">
+                {selectedYear}공시 가해·피해 학생 수 <span className="text-[10px]">(심의 4년 합산 기준이 아닌 해당년)</span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <Stat label="피해 학생" value={`${v}명`} />
+                <Stat label="가해 학생" value={`${p}명`} />
+              </div>
+              {p > v && (
+                <div className="mt-1 text-[10px] text-muted-foreground">가해 &gt; 피해 → 집단 가해(다대일) 사안 가능성</div>
+              )}
+              {v > p && (
+                <div className="mt-1 text-[10px] text-muted-foreground">피해 &gt; 가해 → 집단 피해(일대다) 사안 가능성</div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* 피해학생 보호조치 */}
+        {selectedYearV?.victimMeasures && selectedYearV.victimMeasures.some((n) => n > 0) && (
+          <div className="rounded-md border bg-muted/20 p-2 text-xs">
+            <div className="text-muted-foreground mb-1.5">
+              {selectedYear}공시 피해학생 보호조치 <span className="text-[10px]">(학교폭력예방법 16조, 중복 가능)</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              {VICTIM_MEASURE_LABELS.map((label, i) => {
+                const cnt = selectedYearV.victimMeasures?.[i] ?? 0;
+                if (cnt === 0) return null;
+                return (
+                  <div key={label} className="flex items-center justify-between text-[11px]">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className="tabular-nums">{cnt}건</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 가해학생 선도조치 */}
+        {selectedYearV?.perpMeasures && selectedYearV.perpMeasures.some((n) => n > 0) && (
+          <div className="rounded-md border bg-muted/20 p-2 text-xs">
+            <div className="text-muted-foreground mb-1.5">
+              {selectedYear}공시 가해학생 선도·교육조치 <span className="text-[10px]">(학교폭력예방법 17조, 중복 가능)</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              {PERP_MEASURE_LABELS.map((label, i) => {
+                const cnt = selectedYearV.perpMeasures?.[i] ?? 0;
+                if (cnt === 0) return null;
+                const severity = i; // 0=가벼움 → 9=무거움
+                const isHeavy = severity >= 5;
+                return (
+                  <div key={label} className="flex items-center justify-between text-[11px]">
+                    <span className={cn("text-muted-foreground", isHeavy && "text-red-700 dark:text-red-400 font-medium")}>{label}</span>
+                    <span className={cn("tabular-nums", isHeavy && "text-red-700 dark:text-red-400 font-semibold")}>{cnt}건</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

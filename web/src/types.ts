@@ -3,9 +3,16 @@ export type SchoolGender = "여" | "남" | "공학";
 
 export interface SchoolViolence {
   total: number;
-  cases: any;
+  cases: SchoolViolenceCases | null;
   types: number[];
   sped?: number;
+  victimMeasures?: number[];  // 피해학생 보호조치 6개 (학기 합산)
+  perpMeasures?: number[];    // 가해학생 선도조치 10개 (학기 합산)
+}
+
+export interface SchoolViolenceCases {
+  s1?: { n: number; v: number; vm: number; p: number; pm: number };
+  s2?: { n: number; v: number; vm: number; p: number; pm: number };
 }
 
 export interface School {

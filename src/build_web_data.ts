@@ -119,6 +119,8 @@ interface SchoolView {
     cases: any;
     types: number[];   // 8 항목 합산 (s1+s2)
     sped?: number;
+    victimMeasures?: number[];  // 피해학생 보호조치 6개 (학교폭력예방법 16조) 학기 합산
+    perpMeasures?: number[];    // 가해학생 선도조치 10개 (학교폭력예방법 17조) 학기 합산
   } | null>;
   violenceTotal: number;
   violenceYears: number; // 데이터 있는 년도 수
@@ -497,7 +499,16 @@ for (const code of Object.keys(schools)) {
     const t2 = r.types?.s2 ?? Array(8).fill(0);
     const types = t1.map((x: number, idx: number) => x + (t2[idx] ?? 0));
     const sped = ((r.sped?.s1?.[1] ?? 0) + (r.sped?.s2?.[1] ?? 0));
-    v[y] = { total, cases: r.cases, types, sped };
+    // 피해학생 보호조치 (6개), 가해학생 선도조치 (10개) — 학기 합산
+    const sumArr = (a?: number[], b?: number[], len = 0) => {
+      if (!a && !b) return undefined;
+      const out = new Array(len).fill(0);
+      for (let i = 0; i < len; i++) out[i] = (a?.[i] ?? 0) + (b?.[i] ?? 0);
+      return out;
+    };
+    const victimMeasures = sumArr(r.vp?.s1, r.vp?.s2, 6);
+    const perpMeasures = sumArr(r.ps?.s1, r.ps?.s2, 10);
+    v[y] = { total, cases: r.cases, types, sped, victimMeasures, perpMeasures };
     violenceTotal += total;
     yearsWithData++;
   }
