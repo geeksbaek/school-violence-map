@@ -154,12 +154,38 @@ function finalize(agg: AggInput, years: readonly string[]): SegmentStat {
   };
 }
 
+export type TrendBucket = "감소" | "정체" | "증가";
+export function trendBucket(trend?: { year: number; total: number }[]): TrendBucket | null {
+  if (!trend || trend.length < 2) return null;
+  const first = trend[0].total;
+  const last = trend[trend.length - 1].total;
+  if (!first) return null;
+  const ratio = last / first;
+  if (ratio < 0.9) return "감소";
+  if (ratio > 1.1) return "증가";
+  return "정체";
+}
+
+export type RatioBucket = "<10명" | "10–15명" | "15–20명" | "20명+";
+export function studentPerTeacherBucket(students: number | null, teachers: number | null): RatioBucket | null {
+  if (!students || !teachers || teachers <= 0) return null;
+  const r = students / teachers;
+  if (r < 10) return "<10명";
+  if (r < 15) return "10–15명";
+  if (r < 20) return "15–20명";
+  return "20명+";
+}
+
 export interface AggregateResult {
   all: SegmentStat;
   byKind: Record<string, SegmentStat>;
   byFoundation: Record<string, SegmentStat>;
   bySize: Record<SizeBucket, SegmentStat>;
   bySido: Record<string, SegmentStat>;
+  byGender: Record<string, SegmentStat>;
+  bySgg: Record<string, SegmentStat>;          // 시·군·구 (city+district)
+  byTrend: Record<TrendBucket, SegmentStat>;
+  byTeacherRatio: Record<RatioBucket, SegmentStat>;
 }
 
 export function computeAggregates(schools: School[], years: readonly string[]): AggregateResult {
@@ -168,6 +194,10 @@ export function computeAggregates(schools: School[], years: readonly string[]): 
   const byFoundation: Record<string, AggInput> = {};
   const bySize: Record<string, AggInput> = {};
   const bySido: Record<string, AggInput> = {};
+  const byGender: Record<string, AggInput> = {};
+  const bySgg: Record<string, AggInput> = {};
+  const byTrend: Record<string, AggInput> = {};
+  const byTeacherRatio: Record<string, AggInput> = {};
 
   for (const s of schools) {
     feed(all, s, years);
@@ -187,6 +217,27 @@ export function computeAggregates(schools: School[], years: readonly string[]): 
       (bySido[sido] ??= emptyAgg(years));
       feed(bySido[sido], s, years);
     }
+    if (s.gender) {
+      (byGender[s.gender] ??= emptyAgg(years));
+      feed(byGender[s.gender], s, years);
+    }
+    const sidoVal = s.sido || "";
+    const cityVal = s.city === sidoVal ? "" : s.city;
+    const sgg = [sidoVal, cityVal, s.district].filter(Boolean).join(" ").trim();
+    if (sgg) {
+      (bySgg[sgg] ??= emptyAgg(years));
+      feed(bySgg[sgg], s, years);
+    }
+    const tb = trendBucket(s.details?.studentTrend);
+    if (tb) {
+      (byTrend[tb] ??= emptyAgg(years));
+      feed(byTrend[tb], s, years);
+    }
+    const rb = studentPerTeacherBucket(s.studentTotal, s.teachers);
+    if (rb) {
+      (byTeacherRatio[rb] ??= emptyAgg(years));
+      feed(byTeacherRatio[rb], s, years);
+    }
   }
 
   const fin = (m: Record<string, AggInput>) => {
@@ -200,6 +251,10 @@ export function computeAggregates(schools: School[], years: readonly string[]): 
     byFoundation: fin(byFoundation),
     bySize: fin(bySize) as Record<SizeBucket, SegmentStat>,
     bySido: fin(bySido),
+    byGender: fin(byGender),
+    bySgg: fin(bySgg),
+    byTrend: fin(byTrend) as Record<TrendBucket, SegmentStat>,
+    byTeacherRatio: fin(byTeacherRatio) as Record<RatioBucket, SegmentStat>,
   };
 }
 

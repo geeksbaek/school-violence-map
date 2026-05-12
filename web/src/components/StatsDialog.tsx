@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import type { DataSet, School } from "@/types";
 import {
   computeAggregates, schoolPercentile, sizeBucket, verdictFromPercentile,
-  type SegmentStat, type SizeBucket,
+  trendBucket, studentPerTeacherBucket,
+  type SegmentStat, type SizeBucket, type TrendBucket, type RatioBucket,
 } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 
@@ -68,6 +69,18 @@ export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
 
           {/* 6. 학교의 사건 처리 방식 */}
           <SelfRatioCard agg={agg} selected={selected} />
+
+          {/* 7. 여학교 vs 공학 통념 검증 */}
+          <GenderCard agg={agg} typeLabels={data.typeLabels} selected={selected} />
+
+          {/* 8. 가장 평화로운 동네 TOP 10 */}
+          <PeacefulSggCard agg={agg} selected={selected} />
+
+          {/* 9. 학생수 변화 vs 학폭 */}
+          <TrendCard agg={agg} selected={selected} />
+
+          {/* 10. 교사 1인당 학생수 vs 학폭 */}
+          <TeacherRatioCard agg={agg} selected={selected} />
         </div>
 
         <div className="text-[10px] text-muted-foreground pt-1 border-t">
@@ -317,6 +330,139 @@ function ProcRow({ label, value, mine }: { label: string; value: number; mine?: 
       </div>
       <span className="tabular-nums w-12 text-right">{(value * 100).toFixed(0)}%</span>
     </div>
+  );
+}
+
+// ─── Card 7: 여학교 vs 공학 통념 검증 ─────────────
+function GenderCard({ agg, typeLabels, selected }: { agg: ReturnType<typeof computeAggregates>; typeLabels: string[]; selected: School | null }) {
+  const order = ["여", "남", "공학"] as const;
+  const max = Math.max(0.001, ...order.map((k) => agg.byGender[k]?.avgRate ?? 0));
+  return (
+    <Card title="여학교 vs 공학" subtitle="성별 통념 검증 + 폭력 유형 차이">
+      <div className="flex flex-col gap-1.5">
+        {order.map((k) => {
+          const v = agg.byGender[k];
+          if (!v || v.count < 5) return null;
+          const isMine = selected?.gender === k;
+          return (
+            <div key={k} className={cn("flex items-center gap-2 text-xs", isMine && "font-semibold")}>
+              <span className="w-12 text-muted-foreground">{k}{k !== "공학" ? "학교" : ""}</span>
+              <div className="flex-1 bg-muted h-3 rounded-sm overflow-hidden">
+                <div className="h-full" style={{ width: `${(v.avgRate / max) * 100}%`, background: isMine ? "#ef4444" : "#94a3b8" }} />
+              </div>
+              <span className="tabular-nums w-12 text-right">{v.avgRate.toFixed(2)}</span>
+              <span className="text-[10px] text-muted-foreground w-14 text-right">{v.count.toLocaleString()}교</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="text-[10px] text-muted-foreground mt-2 mb-1">유형 비중 (8개 항목)</div>
+      <div className="flex flex-col gap-1">
+        {order.map((k) => {
+          const v = agg.byGender[k];
+          if (!v || v.count < 5) return null;
+          return (
+            <div key={k} className="flex items-center gap-2 text-[10px]">
+              <span className="w-12 text-muted-foreground">{k}</span>
+              <div className="flex-1 flex h-3 rounded-sm overflow-hidden">
+                {v.typeShare.map((s, i) => (
+                  <div key={i} title={`${typeLabels[i]} ${(s * 100).toFixed(0)}%`} style={{ width: `${s * 100}%`, background: TYPE_COLORS[i] }} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+// ─── Card 8: 가장 평화로운 동네 TOP 10 ──────────
+function PeacefulSggCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+  const items = useMemo(() => {
+    return Object.entries(agg.bySgg)
+      .map(([k, v]) => ({ name: k, ...v, peaceRatio: v.withData > 0 ? v.zeroFour / v.withData : 0 }))
+      .filter((x) => x.withData >= 10)
+      .sort((a, b) => b.peaceRatio - a.peaceRatio)
+      .slice(0, 10);
+  }, [agg]);
+  const mySgg = selected ? [selected.sido || "", selected.city, selected.district].filter(Boolean).join(" ").trim() : null;
+  return (
+    <Card title="가장 평화로운 동네 TOP 10" subtitle="시·군·구 내 4년 연속 0건 학교 비율 (학교 10교+ 만)">
+      <div className="flex flex-col gap-1">
+        {items.map((it, i) => {
+          const isMine = mySgg === it.name;
+          return (
+            <div key={it.name} className={cn("flex items-center gap-2 text-xs", isMine && "font-semibold")}>
+              <span className="w-4 text-right text-muted-foreground tabular-nums">{i + 1}</span>
+              <span className="flex-1 truncate">{it.name}</span>
+              <span className="tabular-nums w-12 text-right">{(it.peaceRatio * 100).toFixed(0)}%</span>
+              <span className="text-[10px] text-muted-foreground w-14 text-right">{it.zeroFour}/{it.withData}교</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="text-[10px] text-muted-foreground mt-1">
+        ⚠ 신고 회피 가능성 있음. 0건 = 평화 또는 은폐.
+      </div>
+    </Card>
+  );
+}
+
+// ─── Card 9: 학생수 변화 vs 학폭 ─────────────────
+function TrendCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+  const order: TrendBucket[] = ["감소", "정체", "증가"];
+  const max = Math.max(0.001, ...order.map((b) => agg.byTrend[b]?.avgRate ?? 0));
+  const myBucket = selected ? trendBucket(selected.details?.studentTrend) : null;
+  return (
+    <Card title="학생수 변화 vs 학폭" subtitle="4년간 학생수 변화 구간별 평균 (감소: −10% 이하 · 증가: +10% 이상)">
+      <div className="flex flex-col gap-1.5">
+        {order.map((b) => {
+          const v = agg.byTrend[b];
+          if (!v) return null;
+          const isMine = myBucket === b;
+          return (
+            <div key={b} className={cn("flex items-center gap-2 text-xs", isMine && "font-semibold")}>
+              <span className="w-14 text-muted-foreground">학생수 {b}</span>
+              <div className="flex-1 bg-muted h-3 rounded-sm overflow-hidden">
+                <div className="h-full" style={{ width: `${(v.avgRate / max) * 100}%`, background: isMine ? "#ef4444" : "#94a3b8" }} />
+              </div>
+              <span className="tabular-nums w-12 text-right">{v.avgRate.toFixed(2)}</span>
+              <span className="text-[10px] text-muted-foreground w-14 text-right">{v.count.toLocaleString()}교</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="text-[10px] text-muted-foreground mt-1">인구 감소 지역 학교가 더 어려움을 겪는지 확인.</div>
+    </Card>
+  );
+}
+
+// ─── Card 10: 교사 1인당 학생수 vs 학폭 ──────────
+function TeacherRatioCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+  const order: RatioBucket[] = ["<10명", "10–15명", "15–20명", "20명+"];
+  const max = Math.max(0.001, ...order.map((b) => agg.byTeacherRatio[b]?.avgRate ?? 0));
+  const myBucket = selected ? studentPerTeacherBucket(selected.studentTotal, selected.teachers) : null;
+  return (
+    <Card title="교사 1인당 학생수 vs 학폭" subtitle="교사 부족이 학폭과 상관 있는가">
+      <div className="flex flex-col gap-1.5">
+        {order.map((b) => {
+          const v = agg.byTeacherRatio[b];
+          if (!v) return null;
+          const isMine = myBucket === b;
+          return (
+            <div key={b} className={cn("flex items-center gap-2 text-xs", isMine && "font-semibold")}>
+              <span className="w-14 text-muted-foreground">교사당 {b}</span>
+              <div className="flex-1 bg-muted h-3 rounded-sm overflow-hidden">
+                <div className="h-full" style={{ width: `${(v.avgRate / max) * 100}%`, background: isMine ? "#ef4444" : "#94a3b8" }} />
+              </div>
+              <span className="tabular-nums w-12 text-right">{v.avgRate.toFixed(2)}</span>
+              <span className="text-[10px] text-muted-foreground w-14 text-right">{v.count.toLocaleString()}교</span>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
   );
 }
 
