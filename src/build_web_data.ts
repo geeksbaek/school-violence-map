@@ -199,12 +199,35 @@ interface SchoolDetails {
   };
   // apiType 55: 장학금 수혜 현황
   scholarship?: {
-    schoCount?: number | null;       // 장학금 인원
-    schoAmount?: number | null;      // 장학금 금액
-    aidCount?: number | null;        // 학비지원 인원
-    aidAmount?: number | null;       // 학비지원 금액
+    schoCount?: number | null;
+    schoAmount?: number | null;
+    aidCount?: number | null;
+    aidAmount?: number | null;
     totalCount?: number | null;
     totalAmount?: number | null;
+  };
+  // apiType 16: 학교용지 (m²)
+  land?: {
+    schoolGround?: number | null;       // 교사대지
+    sportsGround?: number | null;       // 체육장
+    extraLand?: number | null;          // 부속토지
+    totalArea?: number | null;          // 합계
+    sportsPerStudent?: number | null;   // 학생 1인당 체육장 m²
+  };
+  // apiType 20: 시설 개방 (Y/N)
+  openness?: {
+    sports?: boolean;
+    gym?: boolean;
+    auditorium?: boolean;
+    classroom?: boolean;
+    specialClassroom?: boolean;
+    avRoom?: boolean;
+  };
+  // apiType 21: 장애인 편의시설 (Y/N) — 설치된 항목 수
+  disability?: {
+    installedCount: number;
+    totalChecks: number;
+    items: { label: string; installed: boolean }[];
   };
 }
 
@@ -221,7 +244,7 @@ function safetyCatLabel(prefix: string): string {
   } as Record<string, string>)[prefix] ?? prefix;
 }
 
-function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: string): SchoolDetails {
+function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: string, studentTotal: number | null): SchoolDetails {
   const d: SchoolDetails = {};
   const grade = i["09"];      // 학년별·학급별 학생수
   const wkly = i["08"];       // 수업일수 및 수업시수 현황
@@ -233,6 +256,9 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: stri
   const act = i["56"];        // 동아리 활동
   const after = i["59"];      // 방과후학교
   const scholarship = i["55"]; // 장학금 수혜 현황 (구버전 30 = 학교발전기금이라 잘못)
+  const land = i["16"];        // 학교용지
+  const openness = i["20"];    // 시설 개방
+  const disability = i["21"];  // 장애인 편의시설
 
   // 학년별
   if (grade) {
@@ -345,6 +371,50 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: stri
       careRooms: num(after.ECC_PM_OPER_CCCLA_FGR),
       careStudents: num(after.ECC_PM_PTPT_STDNT_FGR),
     };
+  }
+
+  // 학교용지 (apiType 16, m²)
+  if (land) {
+    const sportsGround = num(land.COL_2);
+    const sportsPerStudent = sportsGround && studentTotal && studentTotal > 0
+      ? Math.round((sportsGround / studentTotal) * 10) / 10
+      : null;
+    d.land = {
+      schoolGround: num(land.COL_1),
+      sportsGround,
+      extraLand: num(land.COL_4),
+      totalArea: num(land.COL_5),
+      sportsPerStudent,
+    };
+  }
+
+  // 시설 개방 (apiType 20) — 값 "유"/"무"/"시설없음"
+  if (openness) {
+    const open = (v: any) => v === "유";
+    const o = {
+      sports: open(openness.COL_1),
+      gym: open(openness.COL_3),
+      auditorium: open(openness.COL_5),
+      classroom: open(openness.COL_7),
+      specialClassroom: open(openness.COL_9),
+      avRoom: open(openness.COL_11),
+    };
+    if (Object.values(o).some(Boolean)) d.openness = o;
+  }
+
+  // 장애인 편의시설 (apiType 21) — 값 "적정설치"/"단순설치"/"미설치"
+  // 적정설치+단순설치 모두 installed로 카운트 (단순설치도 있긴 있는 것)
+  if (disability) {
+    const items = [
+      ["주 출입구 접근로", "COL_1"], ["전용 주차구역", "COL_2"], ["출입구 단차 제거", "COL_3"],
+      ["출입구 문", "COL_4"], ["복도", "COL_5"], ["승강기/경사로", "COL_6"],
+      ["대변기", "COL_8"], ["소변기", "COL_9"], ["점자블록", "COL_10"],
+      ["유도·안내설비", "COL_11"], ["경보·피난설비", "COL_12"],
+    ] as const;
+    const installedFn = (v: any) => typeof v === "string" && (v.includes("적정") || v.includes("단순"));
+    const result = items.map(([label, key]) => ({ label, installed: installedFn(disability[key]) }));
+    const installedCount = result.filter((x) => x.installed).length;
+    d.disability = { installedCount, totalChecks: items.length, items: result };
   }
 
   // 장학금 수혜 (apiType 55) — 모든 학교급
@@ -551,7 +621,7 @@ for (const code of Object.keys(schools)) {
       }
       return i["_b01"]?.foundType;
     })(),
-    details: extractDetails(i, s.kind, code),
+    details: extractDetails(i, s.kind, code, studentTotal),
   });
 }
 

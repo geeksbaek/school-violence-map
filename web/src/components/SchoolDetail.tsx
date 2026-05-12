@@ -451,6 +451,56 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     });
   }
 
+  if (details.land) {
+    const l = details.land;
+    sections.push({
+      key: "land",
+      title: "학교 환경",
+      body: <KV pairs={trim([
+        ["전체 부지", l.totalArea ? `${l.totalArea.toLocaleString()} m²` : "—"],
+        ["교사 대지", l.schoolGround ? `${l.schoolGround.toLocaleString()} m²` : "—"],
+        ["체육장", l.sportsGround ? `${l.sportsGround.toLocaleString()} m²` : "—"],
+        ["부속 토지", l.extraLand ? `${l.extraLand.toLocaleString()} m²` : "—"],
+        ["학생 1인당 체육장", l.sportsPerStudent != null ? `${l.sportsPerStudent} m²` : "—"],
+      ])} />,
+    });
+  }
+
+  if (details.openness) {
+    const o = details.openness;
+    const yn = (b: boolean | undefined) => b ? "개방" : "—";
+    sections.push({
+      key: "openness",
+      title: "시설 개방 (지역사회 이용)",
+      body: <KV pairs={trim([
+        ["체육장", yn(o.sports)],
+        ["체육관", yn(o.gym)],
+        ["강당", yn(o.auditorium)],
+        ["일반교실", yn(o.classroom)],
+        ["특별교실", yn(o.specialClassroom)],
+        ["시청각실", yn(o.avRoom)],
+      ])} />,
+    });
+  }
+
+  if (details.disability) {
+    const dis = details.disability;
+    sections.push({
+      key: "disability",
+      title: `장애인 편의시설 (${dis.installedCount}/${dis.totalChecks})`,
+      body: (
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+          {dis.items.map((it) => (
+            <div key={it.label} className="contents">
+              <div className="text-muted-foreground">{it.label}</div>
+              <div className="text-right">{it.installed ? "✓" : "—"}</div>
+            </div>
+          ))}
+        </div>
+      ),
+    });
+  }
+
   if (details.meal) {
     const m = details.meal;
     sections.push({

@@ -9,7 +9,7 @@ import { loadSchoolInfo, saveSchoolInfo } from "./_school_info_io.ts";
 
 const KEY = process.env.SCHOOLINFO_API_KEY!;
 const ENDPOINT = "https://www.schoolinfo.go.kr/openApi.do";
-const NEW_API_TYPES = ["55", "63"] as const;
+const NEW_API_TYPES = ["16", "20", "21"] as const;
 const YEAR = "2025";
 
 const schools: Record<string, any> = await Bun.file(join(DATA_DIR, "schools.json")).json();

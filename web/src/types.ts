@@ -109,6 +109,26 @@ export interface SchoolDetails {
     totalCount?: number | null;
     totalAmount?: number | null;
   };
+  land?: {
+    schoolGround?: number | null;
+    sportsGround?: number | null;
+    extraLand?: number | null;
+    totalArea?: number | null;
+    sportsPerStudent?: number | null;
+  };
+  openness?: {
+    sports?: boolean;
+    gym?: boolean;
+    auditorium?: boolean;
+    classroom?: boolean;
+    specialClassroom?: boolean;
+    avRoom?: boolean;
+  };
+  disability?: {
+    installedCount: number;
+    totalChecks: number;
+    items: { label: string; installed: boolean }[];
+  };
 }
 
 export interface DataSet {
