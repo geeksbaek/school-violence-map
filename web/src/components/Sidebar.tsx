@@ -42,6 +42,7 @@ export function Sidebar({
   data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, onClose,
 }: Props) {
   const [statsOpen, setStatsOpen] = useState(false);
+  const [statsYear, setStatsYear] = useState<string>("all");
   const sortedTop = useMemo(() => {
     return [...filtered].sort((a, b) => {
       const sa = stats.get(a.code);
@@ -87,6 +88,17 @@ export function Sidebar({
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0 -mt-1 -mr-1">
+          <select
+            value={statsYear}
+            onChange={(e) => setStatsYear(e.target.value)}
+            className="h-7 px-1.5 rounded-md border bg-background text-xs cursor-pointer hover:bg-accent"
+            title="통계 기준 연도"
+          >
+            <option value="all">전체</option>
+            {data.years.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
           <Button
             variant="outline"
             size="sm"
@@ -103,7 +115,7 @@ export function Sidebar({
           )}
         </div>
       </header>
-      <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} data={data} selected={selected} />
+      <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} data={data} selected={selected} statsYear={statsYear} />
 
       {/* 자동완성 검색 — 학교 1개 선택 */}
       <SchoolAutocomplete

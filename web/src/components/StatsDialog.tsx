@@ -16,6 +16,7 @@ interface Props {
   onOpenChange: (o: boolean) => void;
   data: DataSet;
   selected: School | null;
+  statsYear?: string; // "all" or a specific year
 }
 
 const KIND_ORDER = ["초등", "중학", "고등"] as const;
@@ -25,36 +26,78 @@ const SUDOGWON = new Set(["서울특별시", "인천광역시", "경기도"]);
 
 type Scope = "전국" | "수도권";
 
-export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
+export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "all" }: Props) {
   const [scope, setScope] = useState<Scope>("전국");
 
+  // 1단계: scope(전국/수도권) 필터
   const scopedSchools = useMemo(() => {
     if (scope === "전국") return data.schools;
     return data.schools.filter((s) => SUDOGWON.has(s.sido || s.city));
   }, [data, scope]);
 
-  const scopedData = useMemo(
-    () => ({ ...data, schools: scopedSchools }),
-    [data, scopedSchools],
+  // 2단계: statsYear 필터 — 단일 연도 선택 시 해당 연도만 남기고 violenceTotal/Rate 재계산
+  const yearFilteredSchools: School[] = useMemo(() => {
+    if (statsYear === "all") return scopedSchools;
+    return scopedSchools.map((s) => {
+      const v = s.violence?.[statsYear] ?? null;
+      const sr = s.selfResolved?.[statsYear] ?? null;
+      const violence = v ? { [statsYear]: v } : {};
+      const selfResolved = sr ? { [statsYear]: sr } : {};
+      const vTot = v?.total ?? 0;
+      const sTot = sr?.total ?? 0;
+      const total = vTot + sTot;
+      const hasYearData = !!(v || sr);
+      const rate = hasYearData && s.studentTotal && s.studentTotal > 0
+        ? Math.round((total / s.studentTotal) * 100 * 1000) / 1000
+        : null;
+      return {
+        ...s,
+        violence,
+        selfResolved,
+        violenceTotal: vTot,
+        selfResolvedTotal: sTot,
+        violenceRatePer100: rate,
+        violenceYears: hasYearData ? 1 : 0,
+      };
+    });
+  }, [scopedSchools, statsYear]);
+
+  const yearsForAgg = useMemo(
+    () => (statsYear === "all" ? data.years : [statsYear]),
+    [statsYear, data.years],
   );
 
-  const agg = useMemo(() => computeAggregates(scopedSchools, data.years), [scopedSchools, data.years]);
+  const yearScopedData = useMemo(
+    () => ({ ...data, schools: yearFilteredSchools, years: yearsForAgg }),
+    [data, yearFilteredSchools, yearsForAgg],
+  );
 
-  // 선택된 학교의 백분위 (scope 내 비교)
-  const percentiles = useMemo(() => {
+  const agg = useMemo(
+    () => computeAggregates(yearFilteredSchools, yearsForAgg),
+    [yearFilteredSchools, yearsForAgg],
+  );
+
+  // selected 학교도 statsYear 기준으로 재계산된 인스턴스 사용
+  const yearScopedSelected = useMemo(() => {
     if (!selected) return null;
-    const all = scopedSchools;
-    const mySido = selected.sido || selected.city;
-    const sameKind = all.filter((s) => s.kind === selected.kind);
+    return yearFilteredSchools.find((s) => s.code === selected.code) ?? null;
+  }, [selected, yearFilteredSchools]);
+
+  // 선택된 학교의 백분위 (scope + statsYear 내 비교)
+  const percentiles = useMemo(() => {
+    if (!yearScopedSelected) return null;
+    const all = yearFilteredSchools;
+    const mySido = yearScopedSelected.sido || yearScopedSelected.city;
+    const sameKind = all.filter((s) => s.kind === yearScopedSelected.kind);
     const sameSido = all.filter((s) => (s.sido || s.city) === mySido);
-    const sameSgg = all.filter((s) => s.city === selected.city && s.district === selected.district);
+    const sameSgg = all.filter((s) => s.city === yearScopedSelected.city && s.district === yearScopedSelected.district);
     return {
-      national: schoolPercentile(selected, all, scope),
-      kind: schoolPercentile(selected, sameKind, `${scope} ${selected.kind}`),
-      sido: schoolPercentile(selected, sameSido, mySido),
-      sgg: schoolPercentile(selected, sameSgg, [selected.city, selected.district].filter(Boolean).join(" ")),
+      national: schoolPercentile(yearScopedSelected, all, scope),
+      kind: schoolPercentile(yearScopedSelected, sameKind, `${scope} ${yearScopedSelected.kind}`),
+      sido: schoolPercentile(yearScopedSelected, sameSido, mySido),
+      sgg: schoolPercentile(yearScopedSelected, sameSgg, [yearScopedSelected.city, yearScopedSelected.district].filter(Boolean).join(" ")),
     };
-  }, [selected, scopedSchools, scope]);
+  }, [yearScopedSelected, yearFilteredSchools, scope]);
 
   const isSelectedInScope = !selected || scope === "전국" || SUDOGWON.has(selected.sido || selected.city);
 
@@ -80,7 +123,10 @@ export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
             </div>
           </div>
           <DialogDescription>
-            학교알리미 공시 4개년({data.years[0]}~{data.years[data.years.length - 1]}) 기준 · {scope} {agg.all.count.toLocaleString()}개 학교
+            {statsYear === "all"
+              ? `학교알리미 공시 4개년(${data.years[0]}~${data.years[data.years.length - 1]}) 기준`
+              : `학교알리미 ${statsYear} 공시 단일년 기준`}
+            {" · "}{scope} {agg.all.count.toLocaleString()}개 학교
             {scope === "수도권" && " (서울·인천·경기)"}
           </DialogDescription>
         </DialogHeader>
@@ -126,10 +172,10 @@ export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
           <TeacherRatioCard agg={agg} selected={selected} scope={scope} />
 
           {/* 11. 학폭과 강하게 연관된 데이터 */}
-          <CorrelationCard data={scopedData} scope={scope} />
+          <CorrelationCard data={yearScopedData} scope={scope} />
 
           {/* 12. 유형별 심각한 동네 TOP 3 */}
-          <TypeSeverityCard data={scopedData} scope={scope} />
+          <TypeSeverityCard data={yearScopedData} scope={scope} />
         </div>
 
         <div className="text-[10px] text-muted-foreground pt-1 border-t">
