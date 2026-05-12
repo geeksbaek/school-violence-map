@@ -362,28 +362,9 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: stri
     if (sc.total!.count != null || sc.total!.amount != null) d.scholarship = sc;
   }
 
-  // 진학/졸업 (중·고)
-  // 중학교: PRTI_GRDTN = 상급학교 진학자, TOTAL_RATE = 진학률 (취업 항목 없음)
-  // 고등학교: SUPRTI_GRDTN = 진학자, FRNTN/SUFRNTN_SCHUL_MTHMC = 대학 진학,
-  //          PRTI_GRDTN_BOYST_FGR = 취업자(고등에선 의미 다름), TOTAL_RATE = 취업률
-  if (gradData && kind === "중학") {
-    // PRTI_GRDTN_BOYST_FGR(남)/_FES_FGR(여)는 성별 분리, SUPRTI_GRDTN_BOYST_FGR/ALL_SUM이 전체.
-    d.graduation = {
-      totalGrads: num(gradData.ALL_SUM ?? gradData.TOTAL_SUM),
-      advanceCount: num(gradData.SUPRTI_GRDTN_BOYST_FGR ?? gradData.ALL_SUM),
-      advanceRate: num(gradData.TOTAL_RATE),
-      foreignRate: num(gradData.FOREIGN_ST_RATE),
-    };
-  } else if (gradData && kind === "고등") {
-    d.graduation = {
-      totalGrads: num(gradData.ALL_SUM ?? gradData.TOTAL_SUM),
-      advanceCount: num(gradData.SUFRNTN_SCHUL_MTHMC_BOYST_FGR ?? gradData.FRNTN_SCHUL_MTHMC_BOYST_FGR),
-      employmentCount: num(gradData.SUPRTI_GRDTN_BOYST_FGR ?? gradData.PRTI_GRDTN_BOYST_FGR),
-      advanceRate: num(gradData.TOTAL1_RATE),
-      employmentRate: num(gradData.TOTAL_RATE),
-      foreignRate: num(gradData.FOREIGN_ST_RATE),
-    };
-  }
+  // ⚠ apiType 51은 "입학생 현황"(신입생을 어떤 경로로 받았는지)이지 졸업·진학 데이터가 아님.
+  // 학교알리미 OpenAPI에는 졸업생 진로 데이터 시트가 없음. graduation 카드는 표시하지 않음.
+  // (이전 버전은 신입생 데이터를 졸업·진학으로 잘못 표시)
 
   return d;
 }
