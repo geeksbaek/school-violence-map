@@ -212,6 +212,9 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
 
           {/* 18. 피해자 보호조치 활용 가장 높은 학교 TOP */}
           <TopProtectionSchoolsCard data={yearScopedData} selected={selected} />
+
+          {/* 19. 가해학생/보호자 특별교육 이수율 */}
+          <SpecialEdCard data={yearScopedData} selected={yearScopedSelected} />
         </div>
         </PickContext.Provider>
 
@@ -1303,6 +1306,78 @@ function TopProtectionSchoolsCard({ data, selected }: { data: DataSet; selected:
       <Insight>
         한 피해 학생당 다층 보호조치(심리상담·일시보호·치료·학급교체 등)를 두텁게 부여하는 학교.
         분모를 사안이 아닌 피해 학생 수로 잡아 집단 피해 학교가 비율 부풀려져 상위에 가는 왜곡 보정.
+      </Insight>
+    </Card>
+  );
+}
+
+// ─── Card 19: 특별교육 이수율 (학생 vs 보호자) ──
+function SpecialEdCard({ data, selected }: { data: DataSet; selected: School | null }) {
+  const stats = useMemo(() => {
+    let target = 0, studentDone = 0, parentDone = 0;
+    let mySchool: { target: number; studentDone: number; parentDone: number } | null = null;
+    for (const s of data.schools) {
+      let t = 0, sd = 0, pd = 0;
+      for (const y of data.years) {
+        const e = s.violence[y]?.specialEd;
+        if (!e) continue;
+        t += e.target; sd += e.studentDone; pd += e.parentDone;
+      }
+      target += t; studentDone += sd; parentDone += pd;
+      if (selected && s.code === selected.code && t > 0) mySchool = { target: t, studentDone: sd, parentDone: pd };
+    }
+    return {
+      avgStudent: target > 0 ? (studentDone / target) * 100 : 0,
+      avgParent: target > 0 ? (parentDone / target) * 100 : 0,
+      myStudent: mySchool && mySchool.target > 0 ? (mySchool.studentDone / mySchool.target) * 100 : null,
+      myParent: mySchool && mySchool.target > 0 ? (mySchool.parentDone / mySchool.target) * 100 : null,
+      target, studentDone, parentDone,
+    };
+  }, [data, selected]);
+
+  const Bar = ({ label, value, avg }: { label: string; value: number; avg: number }) => (
+    <div>
+      <div className="flex items-center justify-between text-[11px] mb-0.5">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="tabular-nums font-semibold">{value.toFixed(1)}%</span>
+      </div>
+      <div className="bg-muted h-2 rounded-sm overflow-hidden relative">
+        <div className="h-full" style={{ width: `${value}%`, background: value >= 80 ? "#16a34a" : value >= 60 ? "#facc15" : "#dc2626" }} />
+        <div className="absolute top-0 bottom-0 w-px bg-foreground/40" style={{ left: `${avg}%` }} title={`전국 평균 ${avg.toFixed(1)}%`} />
+      </div>
+    </div>
+  );
+
+  return (
+    <Card title="특별교육 이수율 (가해학생·보호자)" subtitle="학폭예방법 17조 9항 이수 현황">
+      <div className="flex flex-col gap-3">
+        <div>
+          <div className="text-[10px] text-muted-foreground mb-1">전국 평균</div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded bg-muted/40 p-2">
+              <div className="text-[10px] text-muted-foreground">학생 이수율</div>
+              <div className="text-base font-semibold tabular-nums">{stats.avgStudent.toFixed(1)}%</div>
+            </div>
+            <div className="rounded bg-muted/40 p-2">
+              <div className="text-[10px] text-muted-foreground">보호자 이수율</div>
+              <div className="text-base font-semibold tabular-nums">{stats.avgParent.toFixed(1)}%</div>
+            </div>
+          </div>
+        </div>
+        {stats.myStudent != null && stats.myParent != null && (
+          <div>
+            <div className="text-[10px] text-muted-foreground mb-1">우리 학교 vs 전국 평균(흰 선)</div>
+            <div className="flex flex-col gap-1.5">
+              <Bar label="학생 이수율" value={stats.myStudent} avg={stats.avgStudent} />
+              <Bar label="보호자 이수율" value={stats.myParent} avg={stats.avgParent} />
+            </div>
+          </div>
+        )}
+      </div>
+      <Insight>
+        가해학생 본인뿐 아니라 <b>보호자에게도 특별교육 이수 의무</b>가 있음 (학폭예방법 17조 9항).
+        전국적으로 학생 이수율 <b>{stats.avgStudent.toFixed(0)}%</b> vs 보호자 이수율 <b>{stats.avgParent.toFixed(0)}%</b> —
+        보호자 참여율이 낮으면 가정 내 후속 관리·재발 방지가 어려움.
       </Insight>
     </Card>
   );

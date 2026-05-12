@@ -431,6 +431,30 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
           </div>
         )}
 
+        {/* 가해학생/보호자 특별교육 (선택 연도) */}
+        {selectedYearV?.specialEd && selectedYearV.specialEd.target > 0 && (() => {
+          const e = selectedYearV.specialEd;
+          const studentRate = e.target > 0 ? (e.studentDone / e.target) * 100 : 0;
+          const parentRate = e.target > 0 ? (e.parentDone / e.target) * 100 : 0;
+          return (
+            <div className="rounded-md border bg-muted/20 p-2 text-xs">
+              <div className="text-muted-foreground mb-1.5">
+                {selectedYear}공시 특별교육 이수 현황 <span className="text-[10px]">(학폭예방법 17조 9항: 가해학생·보호자 의무)</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                <Stat label="대상 학생" value={`${e.target}명`} />
+                <Stat label={`학생 이수 (${studentRate.toFixed(0)}%)`} value={`${e.studentDone}/${e.target}명`} />
+                <Stat label={`보호자 이수 (${parentRate.toFixed(0)}%)`} value={`${e.parentDone}/${e.target}명`} />
+              </div>
+              {parentRate < 80 && (
+                <div className="mt-1 text-[10px] text-amber-700 dark:text-amber-300">
+                  ⚠ 보호자 이수율이 낮음 — 가정 내 후속 관리가 부족할 수 있음
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* 가해학생 선도조치 (선택 연도) */}
         {selectedYearV?.perpMeasures && selectedYearV.perpMeasures.some((n) => n > 0) && (
           <div className="rounded-md border bg-muted/20 p-2 text-xs">

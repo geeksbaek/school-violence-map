@@ -122,7 +122,8 @@ interface SchoolView {
     //   pm = 선도조치 합계 (perpMeasures 합과 일치)
     cases: any;
     types: number[];   // 8 항목 합산 (s1+s2)
-    sped?: number;
+    // 가해학생/보호자 특별교육 (예방법 17조 9항). 학기 합산.
+    specialEd?: { target: number; studentDone: number; parentDone: number };
     victimMeasures?: number[];  // 피해학생 보호조치 5개 + 합계 인덱스 5 (학폭예방법 16조) 학기 합산
     perpMeasures?: number[];    // 가해학생 선도조치 9개 + 합계 인덱스 9 (학폭예방법 17조) 학기 합산
   } | null>;
@@ -502,7 +503,13 @@ for (const code of Object.keys(schools)) {
     const t1 = r.types?.s1 ?? Array(8).fill(0);
     const t2 = r.types?.s2 ?? Array(8).fill(0);
     const types = t1.map((x: number, idx: number) => x + (t2[idx] ?? 0));
-    const sped = ((r.sped?.s1?.[1] ?? 0) + (r.sped?.s2?.[1] ?? 0));
+    // 특별교육: collector parser는 [대상, 학생완료, 보호자완료] 순서로 저장
+    const seTarget = (r.sped?.s1?.[0] ?? 0) + (r.sped?.s2?.[0] ?? 0);
+    const seStudent = (r.sped?.s1?.[1] ?? 0) + (r.sped?.s2?.[1] ?? 0);
+    const seParent = (r.sped?.s1?.[2] ?? 0) + (r.sped?.s2?.[2] ?? 0);
+    const specialEd = seTarget > 0 || seStudent > 0 || seParent > 0
+      ? { target: seTarget, studentDone: seStudent, parentDone: seParent }
+      : undefined;
     // 피해학생 보호조치 (6개), 가해학생 선도조치 (10개) — 학기 합산
     const sumArr = (a?: number[], b?: number[], len = 0) => {
       if (!a && !b) return undefined;
@@ -512,7 +519,7 @@ for (const code of Object.keys(schools)) {
     };
     const victimMeasures = sumArr(r.vp?.s1, r.vp?.s2, 6);
     const perpMeasures = sumArr(r.ps?.s1, r.ps?.s2, 10);
-    v[y] = { total, cases: r.cases, types, sped, victimMeasures, perpMeasures };
+    v[y] = { total, cases: r.cases, types, specialEd, victimMeasures, perpMeasures };
     violenceTotal += total;
     yearsWithData++;
   }

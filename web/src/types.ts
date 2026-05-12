@@ -5,7 +5,8 @@ export interface SchoolViolence {
   total: number;
   cases: SchoolViolenceCases | null;
   types: number[];
-  sped?: number;
+  // 가해학생/보호자 특별교육 (학교폭력예방법 17조 9항). 학기 합산.
+  specialEd?: { target: number; studentDone: number; parentDone: number };
   victimMeasures?: number[];  // 피해학생 보호조치 6개 (학기 합산)
   perpMeasures?: number[];    // 가해학생 선도조치 10개 (학기 합산)
 }
