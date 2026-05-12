@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { X } from "lucide-react";
-import type { DataSet, School, SchoolDetails, PreventionEduRow } from "@/types";
+import type { DataSet, School, SchoolDetails, SchoolPreventionEdu } from "@/types";
 import { severityOf, SEVERITY_COLOR, severityLabel, type Metric } from "@/lib/severity";
 import type { SchoolStat } from "@/lib/stats";
 import { cn } from "@/lib/utils";
@@ -251,20 +251,20 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
         {/* 예방교육 (선택된 년도) */}
         {selectedYearPe && (
           <div className="rounded-md border p-2 text-xs">
-            <div className="text-muted-foreground mb-1.5">
-              {selectedYear}공시 예방교육·연수
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-muted-foreground">{selectedYear}공시 예방교육·연수</span>
+              {school.schoolinfoUuid && (
+                <a
+                  href={`https://www.schoolinfo.go.kr/ei/ss/Pneiss_b01_s0.do?SHL_IDF_CD=${school.schoolinfoUuid}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                >
+                  학교알리미 원본 ↗
+                </a>
+              )}
             </div>
-            <div className="flex flex-col gap-2">
-              {selectedYearPe.studentEdu && (
-                <PreventionTable title="학생 대상 정규 수업" rows={selectedYearPe.studentEdu} />
-              )}
-              {selectedYearPe.staffEdu && (
-                <PreventionTable title="교원·학부모 연수" rows={selectedYearPe.staffEdu} />
-              )}
-              {selectedYearPe.prevProgram && (
-                <PreventionTable title="학생 중심 예방프로그램" rows={selectedYearPe.prevProgram} />
-              )}
-            </div>
+            <PreventionSummary pe={selectedYearPe} />
           </div>
         )}
 
@@ -280,23 +280,38 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
   );
 }
 
-function PreventionTable({ title, rows }: { title: string; rows: PreventionEduRow[] }) {
-  if (!rows || rows.length === 0) return null;
+function PreventionSummary({ pe }: { pe: SchoolPreventionEdu }) {
+  const items: { label: string; value: string }[] = [];
+  if (pe.teacherSessions != null) {
+    const parts = [`${pe.teacherSessions}회`];
+    if (pe.teacherParticipants != null) parts.push(`${pe.teacherParticipants.toLocaleString()}명 참여`);
+    if (pe.teacherRate != null) parts.push(`참여율 ${pe.teacherRate}%`);
+    items.push({ label: "교원 정규수업", value: parts.join(" · ") });
+  }
+  if (pe.parentSessions != null) {
+    items.push({ label: "학부모 교육", value: `${pe.parentSessions}회 실시` });
+  }
+  if (pe.staffTeachers != null || pe.staffStudents != null) {
+    const parts: string[] = [];
+    if (pe.staffTeachers) parts.push(`지도교사 누적 ${pe.staffTeachers.toLocaleString()}명`);
+    if (pe.staffStudents) parts.push(`참여학생 누적 ${pe.staffStudents.toLocaleString()}명`);
+    items.push({ label: "교원·학부모 연수", value: parts.join(" · ") || "—" });
+  }
+  if (pe.progTeachers != null || pe.progStudents != null) {
+    const parts: string[] = [];
+    if (pe.progTeachers) parts.push(`지도교사 누적 ${pe.progTeachers.toLocaleString()}명`);
+    if (pe.progStudents) parts.push(`참여학생 누적 ${pe.progStudents.toLocaleString()}명`);
+    items.push({ label: "예방프로그램", value: parts.join(" · ") || "—" });
+  }
+  if (items.length === 0) return <div className="text-[10px] text-muted-foreground">표시할 데이터 없음</div>;
   return (
-    <div>
-      <div className="text-[10px] font-medium text-muted-foreground mb-1">{title}</div>
-      <div className="rounded bg-muted/30 divide-y divide-border/40">
-        {rows.map((r, i) => (
-          <div key={i} className="flex items-baseline justify-between gap-2 py-1 px-1.5">
-            <span className="text-muted-foreground text-[10px] truncate flex-1">
-              {r.th.join(" · ") || "—"}
-            </span>
-            <span className="tabular-nums text-[10px] shrink-0">
-              {r.td.length === 0 ? "—" : r.td.map((v) => (v == null ? "—" : v)).join(" / ")}
-            </span>
-          </div>
-        ))}
-      </div>
+    <div className="flex flex-col gap-1">
+      {items.map((it) => (
+        <div key={it.label} className="flex items-baseline justify-between gap-2">
+          <span className="text-muted-foreground text-[10px] shrink-0">{it.label}</span>
+          <span className="text-[11px] tabular-nums text-right">{it.value}</span>
+        </div>
+      ))}
     </div>
   );
 }

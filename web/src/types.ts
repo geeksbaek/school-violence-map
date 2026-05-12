@@ -32,6 +32,7 @@ export interface School {
   selfResolved?: Record<string, SchoolSelfResolved | null>;
   selfResolvedTotal?: number;
   preventionEdu?: Record<string, SchoolPreventionEdu | null>;
+  schoolinfoUuid?: string;
   details?: SchoolDetails;
 }
 
@@ -41,15 +42,15 @@ export interface SchoolSelfResolved {
   total: number;
 }
 
-export interface PreventionEduRow {
-  th: string[];
-  td: (number | string | null)[];
-}
-
 export interface SchoolPreventionEdu {
-  studentEdu?: PreventionEduRow[];
-  staffEdu?: PreventionEduRow[];
-  prevProgram?: PreventionEduRow[];
+  teacherSessions?: number;
+  teacherParticipants?: number;
+  teacherRate?: number;
+  parentSessions?: number;
+  staffStudents?: number | null;
+  staffTeachers?: number | null;
+  progStudents?: number | null;
+  progTeachers?: number | null;
 }
 
 export interface SchoolDetails {

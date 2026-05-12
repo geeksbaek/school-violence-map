@@ -28,6 +28,9 @@ const info: Record<string, any> = existsSync(join(DATA_DIR, "school_info.json"))
 const violence: Record<string, Record<string, any>> = existsSync(join(DATA_DIR, "violence.json"))
   ? await Bun.file(join(DATA_DIR, "violence.json")).json()
   : {};
+const schoolIds: Record<string, { uuid: string; nameInSearch: string }> = existsSync(join(DATA_DIR, "school_ids.json"))
+  ? await Bun.file(join(DATA_DIR, "school_ids.json")).json()
+  : {};
 const selfResolved: Record<string, Record<string, any>> = existsSync(join(DATA_DIR, "self_resolved.json"))
   ? await Bun.file(join(DATA_DIR, "self_resolved.json")).json()
   : {};
@@ -123,12 +126,19 @@ interface SchoolView {
   // cd 75 자체해결: 학기 합계 (s1+s2). 학교가 심의위 회부 없이 자체해결한 건수.
   selfResolved: Record<string, { s1: number; s2: number; total: number } | null>;
   selfResolvedTotal: number;
-  // cd 66 예방교육: 표 raw rows (학기별 td/th)
+  // cd 66 예방교육: 의미 추출된 요약. studentEdu의 "교원" 행은 [횟수, 참여인원, 참여율%], "학부모" 행은 [횟수, ...].
+  // staffEdu/prevProgram의 4컬럼은 학교마다 의미가 달라(학년 또는 분기 추정) raw 표시 대신 합계만.
   preventionEdu: Record<string, {
-    studentEdu?: { th: string[]; td: (number | string | null)[] }[];
-    staffEdu?: { th: string[]; td: (number | string | null)[] }[];
-    prevProgram?: { th: string[]; td: (number | string | null)[] }[];
+    teacherSessions?: number;       // 교원 대상 정규수업 학기당 횟수 합계
+    teacherParticipants?: number;   // 교원 참여 인원 합계
+    teacherRate?: number;           // 교원 평균 참여율 (%)
+    parentSessions?: number;        // 학부모 대상 횟수 합계
+    staffStudents?: number | null;  // 교원·학부모 연수 참여학생 누적
+    staffTeachers?: number | null;  // 교원·학부모 연수 지도교사 누적
+    progStudents?: number | null;   // 예방프로그램 참여학생 누적
+    progTeachers?: number | null;   // 예방프로그램 지도교사 누적
   } | null>;
+  schoolinfoUuid?: string;          // 학교알리미 직접 링크용
   details: SchoolDetails;
 }
 
@@ -456,18 +466,57 @@ for (const code of Object.keys(schools)) {
     selfResolvedTotal += s1 + s2;
   }
 
-  // 예방교육 (cd 66) — raw rows 그대로 전달, 프론트에서 표시
+  // 예방교육 (cd 66) — 의미 추출된 요약치만
   const pe: SchoolView["preventionEdu"] = {};
   for (const y of YEARS) {
     const r = preventionEdu[code]?.[y];
     if (!r || r.error || r.parseError || r.skipped) { pe[y] = null; continue; }
     if (r.zero || r.noData) { pe[y] = null; continue; }
     if (!r.studentEdu && !r.staffEdu && !r.prevProgram) { pe[y] = null; continue; }
-    pe[y] = {
-      studentEdu: r.studentEdu,
-      staffEdu: r.staffEdu,
-      prevProgram: r.prevProgram,
+
+    const summary: NonNullable<SchoolView["preventionEdu"][string]> = {};
+    // studentEdu: 학기마다 ["...학기","교원"] td=[횟수, 인원, 참여율%], ["학부모"] td=[횟수,...]
+    if (Array.isArray(r.studentEdu)) {
+      let tSess = 0, tPart = 0, tRateSum = 0, tRateCnt = 0, pSess = 0;
+      for (const row of r.studentEdu) {
+        const label = (row.th ?? []).join(" ");
+        const td = row.td ?? [];
+        if (label.includes("교원")) {
+          if (typeof td[0] === "number") tSess += td[0];
+          if (typeof td[1] === "number") tPart += td[1];
+          if (typeof td[2] === "number") { tRateSum += td[2]; tRateCnt++; }
+        } else if (label.includes("학부모")) {
+          if (typeof td[0] === "number") pSess += td[0];
+        }
+      }
+      if (tSess) summary.teacherSessions = tSess;
+      if (tPart) summary.teacherParticipants = tPart;
+      if (tRateCnt) summary.teacherRate = Math.round((tRateSum / tRateCnt) * 10) / 10;
+      if (pSess) summary.parentSessions = pSess;
+    }
+    // staffEdu/prevProgram: 행 라벨 "지도교사 수" / "참여 학생 수", td 합산만 (의미 매핑 불확실)
+    const aggregate = (rows: any): { teachers: number; students: number } => {
+      let teachers = 0, students = 0;
+      if (!Array.isArray(rows)) return { teachers, students };
+      for (const row of rows) {
+        const label = (row.th ?? []).join(" ");
+        const sumTd = (row.td ?? []).filter((x: any) => typeof x === "number").reduce((a: number, b: number) => a + b, 0);
+        if (label.includes("지도교사")) teachers += sumTd;
+        else if (label.includes("참여 학생") || label.includes("학생")) students += sumTd;
+      }
+      return { teachers, students };
     };
+    const sa = aggregate(r.staffEdu);
+    if (sa.teachers || sa.students) {
+      summary.staffTeachers = sa.teachers || null;
+      summary.staffStudents = sa.students || null;
+    }
+    const pa = aggregate(r.prevProgram);
+    if (pa.teachers || pa.students) {
+      summary.progTeachers = pa.teachers || null;
+      summary.progStudents = pa.students || null;
+    }
+    pe[y] = Object.keys(summary).length > 0 ? summary : null;
   }
 
   // 학교명 기반 분류. 학교알리미 정식명은 "OO여자중학교"/"OO남자고등학교" 형태.
@@ -505,6 +554,7 @@ for (const code of Object.keys(schools)) {
     selfResolved: sr,
     selfResolvedTotal,
     preventionEdu: pe,
+    schoolinfoUuid: schoolIds[code]?.uuid,
     details: extractDetails(i, s.kind, code),
   });
 }
