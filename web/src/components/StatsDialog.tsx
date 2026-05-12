@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -21,42 +21,82 @@ interface Props {
 const KIND_ORDER = ["초등", "중학", "고등"] as const;
 const SIZE_ORDER: SizeBucket[] = ["<200", "200–500", "500–1000", "1000+"];
 const FOUND_ORDER = ["공립", "사립", "국립"] as const;
+const SUDOGWON = new Set(["서울특별시", "인천광역시", "경기도"]);
+
+type Scope = "전국" | "수도권";
 
 export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
-  const agg = useMemo(() => computeAggregates(data.schools, data.years), [data]);
+  const [scope, setScope] = useState<Scope>("전국");
 
-  // 선택된 학교의 백분위
+  const scopedSchools = useMemo(() => {
+    if (scope === "전국") return data.schools;
+    return data.schools.filter((s) => SUDOGWON.has(s.sido || s.city));
+  }, [data, scope]);
+
+  const scopedData = useMemo(
+    () => ({ ...data, schools: scopedSchools }),
+    [data, scopedSchools],
+  );
+
+  const agg = useMemo(() => computeAggregates(scopedSchools, data.years), [scopedSchools, data.years]);
+
+  // 선택된 학교의 백분위 (scope 내 비교)
   const percentiles = useMemo(() => {
     if (!selected) return null;
-    const all = data.schools;
+    const all = scopedSchools;
     const mySido = selected.sido || selected.city;
     const sameKind = all.filter((s) => s.kind === selected.kind);
     const sameSido = all.filter((s) => (s.sido || s.city) === mySido);
     const sameSgg = all.filter((s) => s.city === selected.city && s.district === selected.district);
     return {
-      national: schoolPercentile(selected, all, "전국"),
-      kind: schoolPercentile(selected, sameKind, `전국 ${selected.kind}`),
+      national: schoolPercentile(selected, all, scope),
+      kind: schoolPercentile(selected, sameKind, `${scope} ${selected.kind}`),
       sido: schoolPercentile(selected, sameSido, mySido),
       sgg: schoolPercentile(selected, sameSgg, [selected.city, selected.district].filter(Boolean).join(" ")),
     };
-  }, [selected, data]);
+  }, [selected, scopedSchools, scope]);
+
+  const isSelectedInScope = !selected || scope === "전국" || SUDOGWON.has(selected.sido || selected.city);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>전국 학교폭력 통계</DialogTitle>
+          <div className="flex items-center justify-between gap-2">
+            <DialogTitle>{scope} 학교폭력 통계</DialogTitle>
+            <div className="inline-flex rounded-md border bg-muted p-0.5 text-xs shrink-0">
+              {(["전국", "수도권"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setScope(s)}
+                  className={cn(
+                    "px-3 py-1 rounded transition-colors",
+                    scope === s ? "bg-background shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
           <DialogDescription>
-            학교알리미 공시 4개년({data.years[0]}~{data.years[data.years.length - 1]}) 기준 · 전국 {agg.all.count.toLocaleString()}개 학교
+            학교알리미 공시 4개년({data.years[0]}~{data.years[data.years.length - 1]}) 기준 · {scope} {agg.all.count.toLocaleString()}개 학교
+            {scope === "수도권" && " (서울·인천·경기)"}
           </DialogDescription>
         </DialogHeader>
+
+        {!isSelectedInScope && selected && (
+          <div className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded px-2 py-1.5">
+            ⚠ 선택한 학교({selected.name})는 수도권 밖입니다. 백분위·강조는 수도권 학교만 비교 대상으로 계산됩니다.
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* 1. 우리 학교 위치 */}
           <SchoolPositionCard selected={selected} percentiles={percentiles} all={agg.all} />
 
           {/* 2. 시·도별 평균 ranking */}
-          <SidoRankingCard agg={agg} selected={selected} />
+          <SidoRankingCard agg={agg} selected={selected} scope={scope} />
 
           {/* 3. 초→중→고 변화 */}
           <KindTransitionCard agg={agg} typeLabels={data.typeLabels} />
@@ -86,10 +126,10 @@ export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
           <TeacherRatioCard agg={agg} selected={selected} />
 
           {/* 11. 학폭과 강하게 연관된 데이터 */}
-          <CorrelationCard data={data} />
+          <CorrelationCard data={scopedData} />
 
           {/* 12. 유형별 심각한 동네 TOP 3 */}
-          <TypeSeverityCard data={data} />
+          <TypeSeverityCard data={scopedData} />
         </div>
 
         <div className="text-[10px] text-muted-foreground pt-1 border-t">
@@ -163,7 +203,7 @@ function SchoolPositionCard({
 }
 
 // ─── Card 2: 시·도별 ──────────────────────────────
-function SidoRankingCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+function SidoRankingCard({ agg, selected, scope }: { agg: ReturnType<typeof computeAggregates>; selected: School | null; scope: Scope }) {
   const items = useMemo(() => {
     return Object.entries(agg.bySido)
       .map(([k, v]) => ({ name: k, ...v }))
@@ -174,7 +214,7 @@ function SidoRankingCard({ agg, selected }: { agg: ReturnType<typeof computeAggr
   const mySido = selected?.sido || selected?.city;
 
   return (
-    <Card title="시·도별 평균 비율" subtitle="학생 100명·년 기준 (17개 광역)">
+    <Card title="시·도별 평균 비율" subtitle={scope === "전국" ? "학생 100명·년 기준 (17개 광역)" : "학생 100명·년 기준 (서울·인천·경기)"}>
       <div className="flex flex-col gap-1 max-h-72 overflow-y-auto pr-1">
         {items.map((it, i) => {
           const isMine = mySido === it.name;
@@ -197,7 +237,7 @@ function SidoRankingCard({ agg, selected }: { agg: ReturnType<typeof computeAggr
         <Insight>
           최고 <b>{items[0].name}</b> ({items[0].avgRate.toFixed(2)}) ↔ 최저 <b>{items[items.length - 1].name}</b> ({items[items.length - 1].avgRate.toFixed(2)})
           {" — 약 "}<b>{(items[0].avgRate / Math.max(0.01, items[items.length - 1].avgRate)).toFixed(1)}배 차이</b>.
-          농어촌·소규모 학교 비율이 높은 지역이 상위.
+          {scope === "전국" ? " 농어촌·소규모 학교 비율이 높은 지역이 상위." : " 수도권 안에서도 시·도별 격차 존재."}
         </Insight>
       )}
     </Card>
