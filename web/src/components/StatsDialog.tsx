@@ -84,6 +84,12 @@ export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
 
           {/* 10. 교사 1인당 학생수 vs 학폭 */}
           <TeacherRatioCard agg={agg} selected={selected} />
+
+          {/* 11. 학폭과 강하게 연관된 데이터 */}
+          <CorrelationCard data={data} />
+
+          {/* 12. 유형별 심각한 동네 TOP 3 */}
+          <TypeSeverityCard data={data} />
         </div>
 
         <div className="text-[10px] text-muted-foreground pt-1 border-t">
@@ -598,6 +604,174 @@ function TeacherRatioCard({ agg, selected }: { agg: ReturnType<typeof computeAgg
           </Insight>
         );
       })()}
+    </Card>
+  );
+}
+
+// ─── Card 11: 학폭과 강하게 연관된 데이터 ──────────
+const CORR_CANDIDATES: { name: string; fn: (s: School) => number | null | undefined }[] = [
+  { name: "돌봄교실 수", fn: (s) => s.details?.afterSchool?.careRooms },
+  { name: "방과후 학생수", fn: (s) => s.details?.afterSchool?.students },
+  { name: "방과후 프로그램 수", fn: (s) => s.details?.afterSchool?.programs },
+  { name: "방과후 부담금", fn: (s) => s.details?.afterSchool?.burdenAmount },
+  { name: "장학금 금액", fn: (s) => s.details?.scholarship?.totalAmount },
+  { name: "예방프로그램 참여학생", fn: (s) => s.preventionEdu?.[2026]?.progStudents },
+  { name: "자율 동아리 수", fn: (s) => s.details?.activities?.clubs },
+  { name: "특별교실 수", fn: (s) => s.details?.facility?.specialClassrooms },
+  { name: "학급당 학생수", fn: (s) => s.studentTotal && s.classTotal ? s.studentTotal / s.classTotal : null },
+  { name: "남학생 비율(%)", fn: (s) => {
+    const g = s.genderRatio;
+    return g && (g.boy + g.girl) > 0 ? (g.boy / (g.boy + g.girl)) * 100 : null;
+  } },
+  { name: "보건실 1인당 이용", fn: (s) => s.details?.health?.perStudentVisits },
+  { name: "교사당 학생수", fn: (s) => s.studentTotal && s.teachers ? s.studentTotal / s.teachers : null },
+];
+
+function rankArr(arr: number[]): number[] {
+  const idx = arr.map((v, i) => [v, i] as const).sort((a, b) => a[0] - b[0]);
+  const r = new Array(arr.length).fill(0);
+  let i = 0;
+  while (i < idx.length) {
+    let j = i;
+    while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++;
+    const avg = (i + j) / 2 + 1;
+    for (let k = i; k <= j; k++) r[idx[k][1]] = avg;
+    i = j + 1;
+  }
+  return r;
+}
+function pearson(xs: number[], ys: number[]): number {
+  const n = xs.length;
+  if (n < 2) return 0;
+  let sx = 0, sy = 0;
+  for (let i = 0; i < n; i++) { sx += xs[i]; sy += ys[i]; }
+  const mx = sx / n, my = sy / n;
+  let num = 0, dx = 0, dy = 0;
+  for (let i = 0; i < n; i++) {
+    const a = xs[i] - mx, b = ys[i] - my;
+    num += a * b; dx += a * a; dy += b * b;
+  }
+  const den = Math.sqrt(dx * dy);
+  return den === 0 ? 0 : num / den;
+}
+
+function CorrelationCard({ data }: { data: DataSet }) {
+  const items = useMemo(() => {
+    return CORR_CANDIDATES.map((c) => {
+      const xs: number[] = [], ys: number[] = [];
+      for (const s of data.schools) {
+        if (s.violenceRatePer100 == null) continue;
+        const x = c.fn(s);
+        if (x == null || !Number.isFinite(x)) continue;
+        xs.push(x as number);
+        ys.push(s.violenceRatePer100);
+      }
+      if (xs.length < 200) return null;
+      const r = pearson(rankArr(xs), rankArr(ys));
+      return { name: c.name, n: xs.length, r };
+    }).filter((x): x is { name: string; n: number; r: number } => !!x);
+  }, [data]);
+  const max = Math.max(0.001, ...items.map((x) => Math.abs(x.r)));
+  const sorted = [...items].sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
+  return (
+    <Card title="학폭과 가장 강하게 연관된 데이터" subtitle="Spearman 순위 상관 (양수=비례, 음수=반비례)">
+      <div className="flex flex-col gap-1">
+        {sorted.map((it) => {
+          const w = (Math.abs(it.r) / max) * 100;
+          const isPos = it.r > 0;
+          return (
+            <div key={it.name} className="flex items-center gap-2 text-xs">
+              <span className="w-32 truncate text-muted-foreground">{it.name}</span>
+              <div className="flex-1 bg-muted h-2 rounded-sm relative overflow-hidden">
+                <div
+                  className="absolute top-0 bottom-0"
+                  style={{
+                    left: isPos ? "50%" : `${50 - w / 2}%`,
+                    width: `${w / 2}%`,
+                    background: isPos ? "#dc2626" : "#16a34a",
+                  }}
+                />
+                <div className="absolute top-0 bottom-0 left-1/2 w-px bg-border" />
+              </div>
+              <span className={cn("tabular-nums w-12 text-right", isPos ? "text-red-600" : "text-green-600")}>
+                {it.r > 0 ? "+" : ""}{it.r.toFixed(2)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <Insight>
+        <b className="text-green-700 dark:text-green-400">보호 요인(반비례)</b>: 돌봄·방과후·장학금·예방프로그램 — 학교의 사회경제적 지원·시간 채움이 분쟁 빈도를 낮추는 경향.
+        <b className="text-red-700 dark:text-red-400 ml-1">위험 요인(비례)</b>: 남학생 비율·학급당 학생수.
+        ⚠ 상관 ≠ 인과. 학교 규모·지역 등 교란변수 영향 존재.
+      </Insight>
+    </Card>
+  );
+}
+
+// ─── Card 12: 유형별 심각한 동네 TOP 3 ───────────
+function TypeSeverityCard({ data }: { data: DataSet }) {
+  const topPerType = useMemo(() => {
+    const map = new Map<string, { typeEvents: number[]; studentYears: number; schools: number }>();
+    for (const s of data.schools) {
+      if (!s.studentTotal || s.studentTotal <= 0) continue;
+      const sidoVal = s.sido || "";
+      const cityVal = s.city === sidoVal ? "" : s.city;
+      const sgg = [sidoVal, cityVal, s.district].filter(Boolean).join(" ").trim();
+      if (!sgg) continue;
+      let years = 0;
+      const t = new Array(8).fill(0);
+      for (const y of data.years) {
+        const v = s.violence[y];
+        if (!v) continue;
+        years++;
+        for (let i = 0; i < 8; i++) t[i] += v.types[i] ?? 0;
+      }
+      if (years === 0) continue;
+      const cur = map.get(sgg) ?? { typeEvents: new Array(8).fill(0), studentYears: 0, schools: 0 };
+      for (let i = 0; i < 8; i++) cur.typeEvents[i] += t[i];
+      cur.studentYears += s.studentTotal * years;
+      cur.schools++;
+      map.set(sgg, cur);
+    }
+    const entries = [...map.entries()].filter(([_, v]) => v.schools >= 10);
+    return data.typeLabels.map((label, i) => ({
+      label,
+      color: TYPE_COLORS[i],
+      top: entries
+        .map(([name, v]) => ({
+          name,
+          rate: v.studentYears > 0 ? (v.typeEvents[i] / v.studentYears) * 100 : 0,
+        }))
+        .filter((x) => x.rate > 0)
+        .sort((a, b) => b.rate - a.rate)
+        .slice(0, 3),
+    }));
+  }, [data]);
+  return (
+    <Card title="유형별 심각한 동네 TOP 3" subtitle="시·군·구 학생 100명·년 기준 (학교 10교+ 만)">
+      <div className="grid grid-cols-1 gap-2">
+        {topPerType.map((t) => (
+          <div key={t.label} className="flex items-start gap-2 text-[11px]">
+            <span className="size-2.5 rounded-sm mt-1 shrink-0" style={{ background: t.color }} />
+            <div className="w-16 font-semibold shrink-0">{t.label}</div>
+            <div className="flex-1 flex flex-col gap-0.5">
+              {t.top.map((x, i) => (
+                <div key={x.name} className="flex items-baseline gap-1.5">
+                  <span className="text-muted-foreground tabular-nums w-3">{i + 1}</span>
+                  <span className="flex-1 truncate">{x.name}</span>
+                  <span className="tabular-nums">{x.rate.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <Insight>
+        유형별로 상위 동네가 다름 — 같은 평균 비율이라도 폭력 양상이 다르게 나타남.
+        성폭력·강요·따돌림은 전체 평균이 낮아 한두 사건에도 순위가 크게 바뀜.
+        다수 농어촌 군 단위 등장 → 분모 효과(소규모 학교) 영향.
+      </Insight>
     </Card>
   );
 }
