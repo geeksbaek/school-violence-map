@@ -119,7 +119,7 @@ export function Sidebar({
       </header>
       {statsOpen && (
         <Suspense fallback={null}>
-          <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} data={data} selected={selected} statsYear={statsYear} />
+          <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} data={data} selected={selected} statsYear={statsYear} onPick={onPick} />
         </Suspense>
       )}
 

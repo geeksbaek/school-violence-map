@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState, createContext, useContext } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -17,6 +17,7 @@ interface Props {
   data: DataSet;
   selected: School | null;
   statsYear?: string; // "all" or a specific year
+  onPick?: (s: School) => void; // 통계 카드의 학교 링크 클릭 → 이동
 }
 
 const KIND_ORDER = ["초등", "중학", "고등"] as const;
@@ -26,8 +27,22 @@ const SUDOGWON = new Set(["서울특별시", "인천광역시", "경기도"]);
 
 type Scope = "전국" | "수도권";
 
-export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "all" }: Props) {
+export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "all", onPick }: Props) {
   const [scope, setScope] = useState<Scope>("전국");
+  const [pendingPick, setPendingPick] = useState<School | null>(null);
+
+  const requestPick = useCallback((s: School) => {
+    if (s.code === selected?.code) return;
+    setPendingPick(s);
+  }, [selected]);
+  const confirmPick = () => {
+    if (pendingPick && onPick) {
+      onPick(pendingPick);
+      onOpenChange(false);
+    }
+    setPendingPick(null);
+  };
+  const cancelPick = () => setPendingPick(null);
 
   // 1단계: scope(전국/수도권) 필터
   const scopedSchools = useMemo(() => {
@@ -137,6 +152,7 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
           </div>
         )}
 
+        <PickContext.Provider value={onPick ? requestPick : null}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* 1. 우리 학교 위치 */}
           <SchoolPositionCard selected={selected} percentiles={percentiles} all={agg.all} />
@@ -188,12 +204,47 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
 
           {/* 16. 우리 동네 학교 안전 순위 */}
           {selected && <NeighborhoodRankCard data={yearScopedData} selected={selected} />}
+
+          {/* 17. 처벌 강도 가장 높은 학교 TOP */}
+          <TopDisciplineSchoolsCard data={yearScopedData} />
+
+          {/* 18. 피해자 보호 강도 가장 높은 학교 TOP */}
+          <TopProtectionSchoolsCard data={yearScopedData} />
         </div>
+        </PickContext.Provider>
 
         <div className="text-[10px] text-muted-foreground pt-1 border-t">
           ⚠ 공시 누락·은폐로 0건 학교 해석에 주의. 비율은 학생 100명 기준 연 평균. 학생수 미보유 학교는 비율 계산에서 제외.
         </div>
       </DialogContent>
+
+      {/* 학교 이동 confirm 다이얼로그 */}
+      <Dialog open={!!pendingPick} onOpenChange={(o) => { if (!o) cancelPick(); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>학교 이동</DialogTitle>
+            <DialogDescription>
+              <b>{pendingPick?.name}</b>으로 이동하시겠습니까?
+              <br />
+              <span className="text-[11px]">통계 창을 닫고 해당 학교 패널을 엽니다.</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              onClick={cancelPick}
+              className="px-3 py-1.5 text-xs rounded border bg-background hover:bg-accent"
+            >
+              취소
+            </button>
+            <button
+              onClick={confirmPick}
+              className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:opacity-90 font-semibold"
+            >
+              이동
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
@@ -1122,9 +1173,9 @@ function NeighborhoodRankCard({ data, selected }: { data: DataSet; selected: Sch
             return (
               <div key={s.code} className={cn("flex items-center gap-2 text-xs", isMine && "font-bold")}>
                 <span className="w-5 text-right text-muted-foreground tabular-nums">{i + 1}</span>
-                <span className={cn("flex-1 truncate", isMine && "text-red-600")}>
+                <SchoolLink school={s} className={cn("flex-1 truncate", isMine && "text-red-600")}>
                   {s.name}{isMine && " ← 우리 학교"}
-                </span>
+                </SchoolLink>
                 <span className="tabular-nums text-[11px]">{(s.violenceRatePer100 ?? 0).toFixed(2)}</span>
               </div>
             );
@@ -1134,7 +1185,7 @@ function NeighborhoodRankCard({ data, selected }: { data: DataSet; selected: Sch
               <div className="text-center text-[10px] text-muted-foreground py-0.5">⋯</div>
               <div className="flex items-center gap-2 text-xs font-bold">
                 <span className="w-5 text-right text-muted-foreground tabular-nums">{myIdx + 1}</span>
-                <span className="flex-1 truncate text-red-600">{selected.name} ← 우리 학교</span>
+                <SchoolLink school={selected} className="flex-1 truncate text-red-600">{selected.name} ← 우리 학교</SchoolLink>
                 <span className="tabular-nums text-[11px]">{(selected.violenceRatePer100 ?? 0).toFixed(2)}</span>
               </div>
             </>
@@ -1148,6 +1199,97 @@ function NeighborhoodRankCard({ data, selected }: { data: DataSet; selected: Sch
           학원·학생 분포 등 동일 지역 조건을 통제한 비교라 가장 실용적.
         </Insight>
       )}
+    </Card>
+  );
+}
+
+// ─── Card 17: 처벌 강도 가장 높은 학교 TOP ──────
+function TopDisciplineSchoolsCard({ data }: { data: DataSet }) {
+  const items = useMemo(() => {
+    const out: { s: School; pct: number; total: number }[] = [];
+    for (const s of data.schools) {
+      let total = 0, heavy = 0;
+      for (const y of data.years) {
+        const pm = s.violence[y]?.perpMeasures;
+        if (!pm) continue;
+        for (let i = 0; i < 9; i++) total += pm[i] ?? 0;
+        for (let i = 5; i < 9; i++) heavy += pm[i] ?? 0;
+      }
+      if (total < 5) continue; // 표본 부족 제외
+      out.push({ s, pct: (heavy / total) * 100, total });
+    }
+    return out.sort((a, b) => b.pct - a.pct).slice(0, 12);
+  }, [data]);
+  return (
+    <Card title="처벌 강도 가장 높은 학교 TOP 12" subtitle="6~9호 처분 비율 (사안 5건+ 학교 중)">
+      {items.length === 0 ? (
+        <Empty msg="조건을 만족하는 학교 없음" />
+      ) : (
+        <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
+          {items.map(({ s, pct, total }, i) => (
+            <div key={s.code} className="flex items-center gap-2 text-xs">
+              <span className="w-5 text-right text-muted-foreground tabular-nums">{i + 1}</span>
+              <SchoolLink school={s} className="flex-1 truncate" />
+              <span className="text-[10px] text-muted-foreground w-20 text-right truncate">
+                {[s.city, s.district].filter(Boolean).join(" ")}
+              </span>
+              <span className="tabular-nums w-12 text-right text-red-700 dark:text-red-400 font-semibold">{pct.toFixed(0)}%</span>
+              <span className="text-[10px] text-muted-foreground w-10 text-right">{total}건</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <Insight>
+        강한 처벌(전학·퇴학 포함) 비율이 높은 학교 — 사건의 심각성을 반영함.
+        "엄정 처리" 학교일 수도 있고, 한두 건의 중대 사안이 비율을 끌어올린 경우일 수도 있음.
+        총 사안 수도 함께 살펴봐야 함.
+      </Insight>
+    </Card>
+  );
+}
+
+// ─── Card 18: 피해자 보호 강도 가장 높은 학교 TOP
+function TopProtectionSchoolsCard({ data }: { data: DataSet }) {
+  const items = useMemo(() => {
+    const out: { s: School; perCase: number; cases: number }[] = [];
+    for (const s of data.schools) {
+      let cases = 0, measures = 0;
+      for (const y of data.years) {
+        const v = s.violence[y];
+        if (!v?.cases) continue;
+        cases += (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
+        if (v.victimMeasures) {
+          for (let i = 0; i < 5; i++) measures += v.victimMeasures[i] ?? 0;
+        }
+      }
+      if (cases < 3) continue;
+      out.push({ s, perCase: measures / cases, cases });
+    }
+    return out.sort((a, b) => b.perCase - a.perCase).slice(0, 12);
+  }, [data]);
+  return (
+    <Card title="피해 학생 보호 강도 가장 높은 학교 TOP 12" subtitle="사안 1건당 평균 보호조치 수 (사안 3건+)">
+      {items.length === 0 ? (
+        <Empty msg="조건을 만족하는 학교 없음" />
+      ) : (
+        <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
+          {items.map(({ s, perCase, cases }, i) => (
+            <div key={s.code} className="flex items-center gap-2 text-xs">
+              <span className="w-5 text-right text-muted-foreground tabular-nums">{i + 1}</span>
+              <SchoolLink school={s} className="flex-1 truncate" />
+              <span className="text-[10px] text-muted-foreground w-20 text-right truncate">
+                {[s.city, s.district].filter(Boolean).join(" ")}
+              </span>
+              <span className="tabular-nums w-12 text-right text-green-700 dark:text-green-400 font-semibold">{perCase.toFixed(2)}</span>
+              <span className="text-[10px] text-muted-foreground w-10 text-right">{cases}건</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <Insight>
+        한 사안당 다층 보호조치(심리상담·일시보호·치료·학급교체 등)를 두텁게 부여하는 학교.
+        피해 학생을 두텁게 챙기는 곳일 가능성. 단 보호조치는 학교가 입력하는 항목이라 적극적 기록 차이가 영향.
+      </Insight>
     </Card>
   );
 }
@@ -1166,6 +1308,22 @@ function Card({ title, subtitle, children }: { title: string; subtitle?: string;
 }
 function Empty({ msg }: { msg: string }) {
   return <div className="text-xs text-muted-foreground py-4 text-center">{msg}</div>;
+}
+
+// 학교 링크 — 클릭 시 confirm 다이얼로그 띄움
+const PickContext = createContext<((s: School) => void) | null>(null);
+function SchoolLink({ school, className, children }: { school: School; className?: string; children?: React.ReactNode }) {
+  const requestPick = useContext(PickContext);
+  if (!requestPick) return <span className={className}>{children ?? school.name}</span>;
+  return (
+    <button
+      type="button"
+      onClick={() => requestPick(school)}
+      className={cn("hover:underline cursor-pointer text-left", className)}
+    >
+      {children ?? school.name}
+    </button>
+  );
 }
 function Insight({ children }: { children: React.ReactNode }) {
   return (
