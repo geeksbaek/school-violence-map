@@ -372,6 +372,14 @@ function GenderCard({ agg, typeLabels, selected }: { agg: ReturnType<typeof comp
             </div>
           );
         })}
+        <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1">
+          {typeLabels.map((label, i) => (
+            <span key={label} className="flex items-center gap-1 text-[9px] text-muted-foreground">
+              <span className="size-2 rounded-sm" style={{ background: TYPE_COLORS[i] }} />
+              {label}
+            </span>
+          ))}
+        </div>
       </div>
     </Card>
   );
