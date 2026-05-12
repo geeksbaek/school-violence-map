@@ -31,19 +31,62 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
 
   const summary = useMemo(() => {
     let total = 0, rateSum = 0, rateCnt = 0, hasData = false;
+    let perpTotal = 0, perpHeavy = 0;
+    let cases = 0, victimMeasures = 0;
+    let victims = 0, perps = 0;
     for (const s of inRegion) {
       const st = stats.get(s.code);
-      if (!st) continue;
-      total += st.total;
-      if (st.ratePer100 != null) {
-        rateSum += st.ratePer100;
-        rateCnt++;
+      if (st) {
+        total += st.total;
+        if (st.ratePer100 != null) {
+          rateSum += st.ratePer100;
+          rateCnt++;
+        }
+        if (st.hasData) hasData = true;
       }
-      if (st.hasData) hasData = true;
+      // 처벌·보호·가해/피해 누계
+      for (const y of Object.keys(s.violence)) {
+        const v = s.violence[y];
+        if (!v) continue;
+        if (v.cases) {
+          cases += (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
+          victims += (v.cases.s1?.v ?? 0) + (v.cases.s2?.v ?? 0);
+          perps += (v.cases.s1?.p ?? 0) + (v.cases.s2?.p ?? 0);
+        }
+        if (v.perpMeasures) {
+          for (let i = 0; i < 9; i++) perpTotal += v.perpMeasures[i] ?? 0;
+          for (let i = 5; i < 9; i++) perpHeavy += v.perpMeasures[i] ?? 0;
+        }
+        if (v.victimMeasures) {
+          for (let i = 0; i < 5; i++) victimMeasures += v.victimMeasures[i] ?? 0;
+        }
+      }
     }
     const avgRate = rateCnt > 0 ? rateSum / rateCnt : null;
-    return { total, avgRate, hasData };
+    const heavyPct = perpTotal > 0 ? (perpHeavy / perpTotal) * 100 : null;
+    const protectionPerCase = cases > 0 ? victimMeasures / cases : null;
+    return { total, avgRate, hasData, heavyPct, protectionPerCase, cases, victims, perps };
   }, [inRegion, stats]);
+
+  // 처벌 강도 라벨 (DisciplineStrengthCard와 동일 경계)
+  const discStrength = useMemo(() => {
+    if (summary.heavyPct == null) return null;
+    const p = summary.heavyPct;
+    if (p < 5) return { label: "약함", color: "#065f46", bg: "#d1fae5" };
+    if (p < 15) return { label: "보통", color: "#854d0e", bg: "#fef9c3" };
+    if (p < 30) return { label: "강함", color: "#9a3412", bg: "#ffedd5" };
+    return { label: "매우 강함", color: "#7f1d1d", bg: "#fee2e2" };
+  }, [summary.heavyPct]);
+
+  // 보호 강도 라벨 (ProtectionStrengthCard와 동일 경계)
+  const protStrength = useMemo(() => {
+    if (summary.protectionPerCase == null || summary.cases < 5) return null;
+    const p = summary.protectionPerCase;
+    if (p < 0.5) return { label: "부재", color: "#7f1d1d", bg: "#fee2e2" };
+    if (p < 1.0) return { label: "평균", color: "#854d0e", bg: "#fef9c3" };
+    if (p < 1.5) return { label: "두터움", color: "#065f46", bg: "#d1fae5" };
+    return { label: "매우 두터움", color: "#14532d", bg: "#bbf7d0" };
+  }, [summary.protectionPerCase, summary.cases]);
 
   const avgTotalPerSchool = inRegion.length > 0 ? summary.total / inRegion.length : 0;
   const sev = severityOf(metric, summary.avgRate, avgTotalPerSchool, summary.hasData);
@@ -100,6 +143,46 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
               {summary.avgRate != null ? summary.avgRate.toFixed(2) : "—"}
             </div>
           </div>
+          {(summary.victims > 0 || summary.perps > 0) && (
+            <>
+              <div className="rounded bg-muted/50 p-2">
+                <div className="text-[10px] text-muted-foreground">피해 학생</div>
+                <div className="text-sm font-semibold tabular-nums">{summary.victims.toLocaleString()}명</div>
+              </div>
+              <div className="rounded bg-muted/50 p-2">
+                <div className="text-[10px] text-muted-foreground">가해 학생</div>
+                <div className="text-sm font-semibold tabular-nums">{summary.perps.toLocaleString()}명</div>
+              </div>
+            </>
+          )}
+          {discStrength && (
+            <div className="rounded bg-muted/50 p-2 flex flex-col gap-0.5">
+              <div className="text-[10px] text-muted-foreground">처벌 강도 (6~9호 비율)</div>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="px-1.5 py-0.5 rounded text-[10px] font-semibold leading-none"
+                  style={{ background: discStrength.bg, color: discStrength.color }}
+                >
+                  {discStrength.label}
+                </span>
+                <span className="tabular-nums text-[11px]">{summary.heavyPct!.toFixed(1)}%</span>
+              </div>
+            </div>
+          )}
+          {protStrength && (
+            <div className="rounded bg-muted/50 p-2 flex flex-col gap-0.5">
+              <div className="text-[10px] text-muted-foreground">보호 강도 (사안당)</div>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="px-1.5 py-0.5 rounded text-[10px] font-semibold leading-none"
+                  style={{ background: protStrength.bg, color: protStrength.color }}
+                >
+                  {protStrength.label}
+                </span>
+                <span className="tabular-nums text-[11px]">{summary.protectionPerCase!.toFixed(2)}건</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <Separator />
