@@ -96,7 +96,10 @@ function SchoolPositionCard({
               style={{ background: verdict.bg, color: verdict.fg }}
             >
               <span className="text-base leading-none">{verdict.icon}</span>
-              <span>{verdict.label}</span>
+              <div className="flex flex-col leading-tight">
+                <span>{verdict.label}</span>
+                <span className="text-[9px] font-normal opacity-75">전국 같은 학교종류 · 학생 100명·년 비율 기준</span>
+              </div>
             </div>
           )}
           <div className="flex items-baseline justify-between text-xs">
