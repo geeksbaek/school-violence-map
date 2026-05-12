@@ -11,5 +11,7 @@ web/.env
 # 임시/디버그 파일
 data/_*
 data/violence_part_*.json
+data/self_resolved_part_*.json
+data/prevention_edu_part_*.json
 logs/
 data/school_info.json

@@ -50478,5 +50478,133 @@
   "S090005459": {
     "uuid": "e45fee0d-c88a-484a-8d9f-496d920e4b02",
     "nameInSearch": "동탄고등학교"
+  },
+  "S020001248": {
+    "uuid": "cf5781a1-3efc-43ab-b220-128d2550bd15",
+    "nameInSearch": "대저중앙초등학교"
+  },
+  "S020001278": {
+    "uuid": "e116b138-dc28-45f2-9c75-cfd77cf1a1a8",
+    "nameInSearch": "송정초등학교"
+  },
+  "S020001202": {
+    "uuid": "0e2ca472-67d2-49cc-8305-f2aa1a61d6d9",
+    "nameInSearch": "가락중학교"
+  },
+  "S020001204": {
+    "uuid": "7b004cdc-3246-40aa-8048-ceae68a061af",
+    "nameInSearch": "경일중학교"
+  },
+  "S070000343": {
+    "uuid": "5980354c-96af-4eaa-ae09-ece20826fb7b",
+    "nameInSearch": "울산중학교"
+  },
+  "S090004282": {
+    "uuid": "ae4b11a3-958c-48e0-b764-562f0a309860",
+    "nameInSearch": "갈담초등학교"
+  },
+  "S090004297": {
+    "uuid": "d8fe711b-474e-4c43-9c26-8ace89bf75ad",
+    "nameInSearch": "마산초등학교"
+  },
+  "S090004319": {
+    "uuid": "e0092eff-3248-4814-bc05-fa82431b5389",
+    "nameInSearch": "송라초등학교"
+  },
+  "S090004326": {
+    "uuid": "4ecf9649-9458-4403-a936-f1c068f2dbf7",
+    "nameInSearch": "우정초등학교"
+  },
+  "S090004349": {
+    "uuid": "78f08dc1-1c68-4d44-ad76-d4005cbe0651",
+    "nameInSearch": "화남초등학교"
+  },
+  "S090005016": {
+    "uuid": "7495ec39-72bb-4f9e-8146-e32296b29469",
+    "nameInSearch": "진안초등학교"
+  },
+  "S090005187": {
+    "uuid": "c73acb5a-c15c-44cc-8fc8-b4be0ff1f565",
+    "nameInSearch": "동양초등학교"
+  },
+  "S090005412": {
+    "uuid": "224cba6c-1246-4657-8031-6fe161a2ca7c",
+    "nameInSearch": "학동초등학교"
+  },
+  "S090005487": {
+    "uuid": "dc899363-8120-4b1c-8bd2-4b0c943cc863",
+    "nameInSearch": "와우초등학교"
+  },
+  "S090005588": {
+    "uuid": "f726221a-3656-4c76-a7e3-2709f6a7901e",
+    "nameInSearch": "동화초등학교"
+  },
+  "S090006650": {
+    "uuid": "cf5384f7-4a7e-46c4-9a73-4dbea88d9ea8",
+    "nameInSearch": "서경초등학교"
+  },
+  "S090006940": {
+    "uuid": "5f701460-226f-42f4-a8b6-de78c7fddcc6",
+    "nameInSearch": "호연초등학교"
+  },
+  "S090007334": {
+    "uuid": "7d2b29e4-446a-4912-9b28-c2c24962bd97",
+    "nameInSearch": "청림초등학교"
+  },
+  "S090004259": {
+    "uuid": "05181070-66a1-49dc-b9d1-1b3f7b0c8956",
+    "nameInSearch": "남양중학교"
+  },
+  "S090004268": {
+    "uuid": "69b824e9-f106-4cf9-ac29-230c63716364",
+    "nameInSearch": "서신중학교"
+  },
+  "S090004270": {
+    "uuid": "c9c96650-466d-49de-b650-3a0b044470d7",
+    "nameInSearch": "송산중학교"
+  },
+  "S090005654": {
+    "uuid": "6f8cb3f4-923b-4b4f-9231-a6100646e53a",
+    "nameInSearch": "능동중학교"
+  },
+  "S090005875": {
+    "uuid": "b222d869-fd41-4640-96bd-931ad3efbd22",
+    "nameInSearch": "예당중학교"
+  },
+  "S090007332": {
+    "uuid": "efdbcad2-0c6c-405a-83f4-0f680ecacf21",
+    "nameInSearch": "서연중학교"
+  },
+  "S090000644": {
+    "uuid": "d32d12b9-0385-4abd-b4f5-c154dea95066",
+    "nameInSearch": "홍익디자인고등학교"
+  },
+  "S150002999": {
+    "uuid": "ecafc11f-48ee-4057-b529-40cfc50c379f",
+    "nameInSearch": "울릉중학교"
+  },
+  "S160001604": {
+    "uuid": "f28d5422-0f77-4d1c-b128-e8dc853cc95c",
+    "nameInSearch": "곤명초등학교"
+  },
+  "S160001796": {
+    "uuid": "fa19bf34-0db5-4a85-9885-4ff05e2b717d",
+    "nameInSearch": "동면초등학교"
+  },
+  "S160001689": {
+    "uuid": "fccaa8f8-8116-47e9-a257-a375e32bc2c3",
+    "nameInSearch": "산청중학교"
+  },
+  "S100000999": {
+    "uuid": "4a6b9f8a-9934-420e-bdfa-f0ea56bb6b74",
+    "nameInSearch": "양양중학교"
+  },
+  "S090004340": {
+    "uuid": "0c00584e-bcd3-429e-98eb-6597dba5011f",
+    "nameInSearch": "청룡초등학교"
+  },
+  "S090005597": {
+    "uuid": "8d2601c5-16bc-40c4-8cf5-3e6a3bf9537f",
+    "nameInSearch": "반송초등학교"
   }
 }
