@@ -8,8 +8,8 @@
  *   주소 : ..., 체육집회공간 : 1실, 관할교육청 : ..., 행정실 : ..., 교무실 : ...
  */
 import { join } from "node:path";
-import { existsSync } from "node:fs";
 import { DATA_DIR, sleep } from "./_env.ts";
+import { loadSchoolInfo, saveSchoolInfo } from "./_school_info_io.ts";
 
 const BASE = "https://www.schoolinfo.go.kr";
 
@@ -21,8 +21,7 @@ const SESSION = cookies.map((c) => c.split(";")[0])
 
 const sch: Record<string, any> = await Bun.file(join(DATA_DIR, "schools.json")).json();
 const ids: Record<string, { uuid: string }> = await Bun.file(join(DATA_DIR, "school_ids.json")).json();
-const outPath = join(DATA_DIR, "school_info.json");
-const data: Record<string, any> = existsSync(outPath) ? await Bun.file(outPath).json() : {};
+const data: Record<string, any> = await loadSchoolInfo();
 
 const targets: { code: string; uuid: string; name: string; kind: string; sgg: string }[] = [];
 for (const s of Object.values(sch) as any[]) {
@@ -97,7 +96,7 @@ for (let i = 0; i < targets.length; i++) {
     fail++;
   }
   if ((i + 1) % 50 === 0) {
-    await Bun.write(outPath, JSON.stringify(data, null, 2));
+    await saveSchoolInfo(data, sch);
     const eta = Math.round(((Date.now() - t0) / (i + 1)) * (targets.length - i - 1) / 1000);
     process.stdout.write(`  ${i + 1}/${targets.length} ok=${ok} fail=${fail} eta=${eta}s\n`);
   }

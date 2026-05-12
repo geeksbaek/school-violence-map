@@ -31,9 +31,9 @@
  * Usage: bun src/collect_info.ts [--year 2025]
  */
 import { join } from "node:path";
-import { existsSync } from "node:fs";
 import { DATA_DIR, sleep } from "./_env.ts";
 import { REGIONS, SCHOOL_KIND, type SchoolKindCode } from "./regions.ts";
+import { loadSchoolInfo, saveSchoolInfo } from "./_school_info_io.ts";
 
 const KEY = process.env.SCHOOLINFO_API_KEY!;
 const ENDPOINT = "https://www.schoolinfo.go.kr/openApi.do";
@@ -93,10 +93,7 @@ async function main() {
   console.log(`전체 학교: ${schoolList.length}개 (수집 대상 = 폐교 제외 ${schoolList.filter((s: any) => s.closeYn === "N").length})`);
   console.log(`공시년도: ${YEAR}, apiType: ${API_TYPES.length}개\n`);
 
-  const outPath = join(DATA_DIR, "school_info.json");
-  const data: Record<string, InfoBlob> = existsSync(outPath)
-    ? await Bun.file(outPath).json()
-    : {};
+  const data: Record<string, InfoBlob> = await loadSchoolInfo();
 
   // 시군구 → 해당 시군구 SCHUL_CODE 집합 (응답 row를 어느 학교에 매칭할지)
   const sggSchools: Record<string, Set<string>> = {};
@@ -141,8 +138,6 @@ async function main() {
           totalRows++;
         }
 
-        // 매 호출 후 저장
-        await Bun.write(outPath, JSON.stringify(data));
         await sleep(80);
 
         if (added > 0) {
@@ -150,11 +145,11 @@ async function main() {
         }
       }
       console.log(` ${region.label} ${SCHOOL_KIND[knd]} 완료`);
+      // 시·도 단위 진행 후 저장 (sido 단위 분할 파일 18개 일괄 갱신)
+      await saveSchoolInfo(data, schools);
     }
   }
-
-  // 보기 편한 형태로 다시 저장 (들여쓰기)
-  await Bun.write(outPath, JSON.stringify(data, null, 2));
+  await saveSchoolInfo(data, schools);
 
   const matched = Object.keys(data).length;
   console.log(`\n=== 완료 ===`);

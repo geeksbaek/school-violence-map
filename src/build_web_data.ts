@@ -21,10 +21,9 @@ const ROOT = join(import.meta.dir, "..");
 const DATA_DIR = join(ROOT, "data");
 const OUT_PATH = join(ROOT, "web/public/data.json");
 
+import { loadSchoolInfo } from "./_school_info_io.ts";
 const schools: Record<string, any> = await Bun.file(join(DATA_DIR, "schools.json")).json();
-const info: Record<string, any> = existsSync(join(DATA_DIR, "school_info.json"))
-  ? await Bun.file(join(DATA_DIR, "school_info.json")).json()
-  : {};
+const info: Record<string, any> = await loadSchoolInfo();
 const violence: Record<string, Record<string, any>> = existsSync(join(DATA_DIR, "violence.json"))
   ? await Bun.file(join(DATA_DIR, "violence.json")).json()
   : {};

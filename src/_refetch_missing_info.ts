@@ -3,9 +3,9 @@
  * collect_info.ts의 호출 로직을 그대로 따르되, 누락 조합만 시도.
  */
 import { join } from "node:path";
-import { existsSync } from "node:fs";
 import { DATA_DIR, sleep } from "./_env.ts";
 import { REGIONS, SCHOOL_KIND, type SchoolKindCode } from "./regions.ts";
+import { loadSchoolInfo, saveSchoolInfo } from "./_school_info_io.ts";
 
 const KEY = process.env.SCHOOLINFO_API_KEY!;
 const ENDPOINT = "https://www.schoolinfo.go.kr/openApi.do";
@@ -15,8 +15,7 @@ const FALLBACK_YEARS = ["2024", "2023", "2022", "2021"];
 const KIND_TO_CODE: Record<string, SchoolKindCode> = { 초등: "02", 중학: "03", 고등: "04" };
 
 const schools: Record<string, any> = await Bun.file(join(DATA_DIR, "schools.json")).json();
-const outPath = join(DATA_DIR, "school_info.json");
-const data: Record<string, any> = existsSync(outPath) ? await Bun.file(outPath).json() : {};
+const data: Record<string, any> = await loadSchoolInfo();
 
 // 누락 학교의 (sgg, knd) 조합 추출
 const missingByCombo = new Map<string, { sido: string; sgg: string; knd: SchoolKindCode; codes: string[] }>();
@@ -81,11 +80,11 @@ for (const m of missingByCombo.values()) {
     const allFilled = m.codes.every((c) => data[c] && Object.keys(data[c]).filter(k => k !== "_meta").length >= 5);
     if (allFilled) break;
   }
-  if (calls % 40 === 0) await Bun.write(outPath, JSON.stringify(data, null, 2));
+  if (calls % 200 === 0) await saveSchoolInfo(data, schools);
   process.stdout.write(`${SCHOOL_KIND[m.knd].slice(0,2)}/${m.sgg}(${m.codes.length}교): +${gotForCombo}\n`);
 }
 
-await Bun.write(outPath, JSON.stringify(data, null, 2));
+await saveSchoolInfo(data, schools);
 
 // 여전히 누락 학교 카운트
 for (const c of targetCodes) {

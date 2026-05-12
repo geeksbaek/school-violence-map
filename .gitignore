@@ -15,3 +15,4 @@ data/self_resolved_part_*.json
 data/prevention_edu_part_*.json
 logs/
 data/school_info.json
+# data/school_info/ (시·도별 분할, ~10-41MB) 는 트래킹
