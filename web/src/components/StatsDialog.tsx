@@ -177,11 +177,17 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
           {/* 12. 유형별 심각한 동네 TOP 3 */}
           <TypeSeverityCard data={yearScopedData} scope={scope} />
 
-          {/* 13. 가해·피해 학생 + 사안 구조 */}
-          <CasesCard data={yearScopedData} />
+          {/* 13. 우리 아이가 학폭 당사자가 될 확률 */}
+          <SafetyOddsCard data={yearScopedData} selected={yearScopedSelected} scope={scope} />
 
-          {/* 14. 가해학생 처분 분포 */}
-          <PerpMeasuresCard data={yearScopedData} />
+          {/* 14. 우리 학교의 처벌 강도 */}
+          <DisciplineStrengthCard data={yearScopedData} selected={yearScopedSelected} />
+
+          {/* 15. 우리 학교의 피해자 보호 강도 */}
+          <ProtectionStrengthCard data={yearScopedData} selected={yearScopedSelected} />
+
+          {/* 16. 우리 동네 학교 안전 순위 */}
+          {selected && <NeighborhoodRankCard data={yearScopedData} selected={selected} />}
         </div>
 
         <div className="text-[10px] text-muted-foreground pt-1 border-t">
@@ -899,131 +905,249 @@ function TypeSeverityCard({ data, scope }: { data: DataSet; scope: Scope }) {
   );
 }
 
-// ─── Card 13: 가해·피해 학생 수 + 사안 구조 ─────
-function CasesCard({ data }: { data: DataSet }) {
-  const summary = useMemo(() => {
-    let totalCases = 0, totalVictims = 0, totalPerps = 0;
-    let groupVictim = 0, groupPerp = 0, oneOnOne = 0, hasAny = 0;
+// ─── Card 13: 우리 아이가 학폭 당사자가 될 확률 ──
+function SafetyOddsCard({ data, selected, scope }: { data: DataSet; selected: School | null; scope: Scope }) {
+  const stats = useMemo(() => {
+    let victims = 0, perps = 0, studentYears = 0;
     for (const s of data.schools) {
+      if (!s.studentTotal || s.studentTotal <= 0) continue;
       for (const y of data.years) {
         const v = s.violence[y];
         if (!v?.cases) continue;
-        const n = (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
-        const vt = (v.cases.s1?.v ?? 0) + (v.cases.s2?.v ?? 0);
-        const pt = (v.cases.s1?.p ?? 0) + (v.cases.s2?.p ?? 0);
-        if (n === 0) continue;
-        totalCases += n;
-        totalVictims += vt;
-        totalPerps += pt;
-        hasAny++;
-        if (vt > pt) groupVictim++;
-        else if (pt > vt) groupPerp++;
-        else oneOnOne++;
+        victims += (v.cases.s1?.v ?? 0) + (v.cases.s2?.v ?? 0);
+        perps += (v.cases.s1?.p ?? 0) + (v.cases.s2?.p ?? 0);
+        studentYears += s.studentTotal;
       }
     }
-    return { totalCases, totalVictims, totalPerps, groupVictim, groupPerp, oneOnOne, hasAny };
+    return {
+      victimRate: studentYears > 0 ? (victims / studentYears) * 100 : 0,
+      perpRate: studentYears > 0 ? (perps / studentYears) * 100 : 0,
+    };
   }, [data]);
-  const total = summary.groupVictim + summary.groupPerp + summary.oneOnOne;
+
+  const my = useMemo(() => {
+    if (!selected || !selected.studentTotal) return null;
+    let v = 0, p = 0, ys = 0;
+    for (const y of data.years) {
+      const ev = selected.violence[y];
+      if (!ev?.cases) continue;
+      v += (ev.cases.s1?.v ?? 0) + (ev.cases.s2?.v ?? 0);
+      p += (ev.cases.s1?.p ?? 0) + (ev.cases.s2?.p ?? 0);
+      ys++;
+    }
+    if (ys === 0) return null;
+    return {
+      victimRate: (v / (selected.studentTotal * ys)) * 100,
+      perpRate: (p / (selected.studentTotal * ys)) * 100,
+    };
+  }, [selected, data]);
+
   return (
-    <Card title="가해·피해 학생 수" subtitle="심의 사안 누계 (학교년 단위 집계)">
-      <div className="grid grid-cols-3 gap-2">
-        <div className="rounded bg-muted/50 p-2 text-center">
-          <div className="text-[10px] text-muted-foreground">심의 사안</div>
-          <div className="text-sm font-semibold tabular-nums">{summary.totalCases.toLocaleString()}</div>
-        </div>
-        <div className="rounded bg-muted/50 p-2 text-center">
-          <div className="text-[10px] text-muted-foreground">피해 학생</div>
-          <div className="text-sm font-semibold tabular-nums">{summary.totalVictims.toLocaleString()}</div>
-        </div>
-        <div className="rounded bg-muted/50 p-2 text-center">
-          <div className="text-[10px] text-muted-foreground">가해 학생</div>
-          <div className="text-sm font-semibold tabular-nums">{summary.totalPerps.toLocaleString()}</div>
-        </div>
-      </div>
-      <div className="mt-2 text-[10px] text-muted-foreground mb-1">학교년별 사안 구조 (n={total.toLocaleString()})</div>
-      <div className="flex flex-col gap-1">
-        {[
-          { label: "1:1 (피해 = 가해)", n: summary.oneOnOne, color: "#94a3b8" },
-          { label: "집단 가해 (가해 > 피해)", n: summary.groupPerp, color: "#dc2626" },
-          { label: "집단 피해 (피해 > 가해)", n: summary.groupVictim, color: "#f97316" },
-        ].map((r) => {
-          const pct = total > 0 ? (r.n / total) * 100 : 0;
-          return (
-            <div key={r.label} className="flex items-center gap-2 text-xs">
-              <span className="w-32 text-muted-foreground truncate">{r.label}</span>
-              <div className="flex-1 bg-muted h-2 rounded-sm overflow-hidden">
-                <div className="h-full" style={{ width: `${pct}%`, background: r.color }} />
-              </div>
-              <span className="tabular-nums w-10 text-right">{pct.toFixed(0)}%</span>
+    <Card title="내 아이가 학폭 당사자가 될 확률" subtitle="학생 100명·년당 피해/가해로 판정된 학생 수">
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded bg-muted/40 p-2">
+          <div className="text-[10px] text-muted-foreground">{scope} 평균 — 피해</div>
+          <div className="text-sm font-semibold tabular-nums">{stats.victimRate.toFixed(2)} <span className="text-[10px] font-normal">/100명·년</span></div>
+          {my && (
+            <div className={cn("text-[11px] mt-0.5", my.victimRate > stats.victimRate ? "text-red-600" : "text-green-700 dark:text-green-400")}>
+              우리 학교: <b>{my.victimRate.toFixed(2)}</b> {my.victimRate > stats.victimRate ? "↑ 높음" : "↓ 낮음"}
             </div>
-          );
-        })}
+          )}
+        </div>
+        <div className="rounded bg-muted/40 p-2">
+          <div className="text-[10px] text-muted-foreground">{scope} 평균 — 가해</div>
+          <div className="text-sm font-semibold tabular-nums">{stats.perpRate.toFixed(2)} <span className="text-[10px] font-normal">/100명·년</span></div>
+          {my && (
+            <div className={cn("text-[11px] mt-0.5", my.perpRate > stats.perpRate ? "text-red-600" : "text-green-700 dark:text-green-400")}>
+              우리 학교: <b>{my.perpRate.toFixed(2)}</b> {my.perpRate > stats.perpRate ? "↑ 높음" : "↓ 낮음"}
+            </div>
+          )}
+        </div>
       </div>
       <Insight>
-        평균 사안당 피해 <b>{summary.totalCases > 0 ? (summary.totalVictims / summary.totalCases).toFixed(2) : "—"}명</b> · 가해 <b>{summary.totalCases > 0 ? (summary.totalPerps / summary.totalCases).toFixed(2) : "—"}명</b>.
-        {" "}전체 학교년 중 <b>{total > 0 ? ((summary.groupPerp / total) * 100).toFixed(0) : 0}%</b>가 집단 가해 패턴(가해 &gt; 피해), <b>{total > 0 ? ((summary.groupVictim / total) * 100).toFixed(0) : 0}%</b>가 집단 피해(피해 &gt; 가해).
+        쉽게 풀면 <b>{scope} 평균</b>: <b>{Math.round(10000 / Math.max(0.01, stats.victimRate))}명 중 1명</b>이 매년 학폭 피해자, <b>{Math.round(10000 / Math.max(0.01, stats.perpRate))}명 중 1명</b>이 가해자로 판정됨.
+        {my && <> 우리 학교 기준으로는 피해 <b>{Math.round(10000 / Math.max(0.01, my.victimRate))}명 중 1명</b>, 가해 <b>{Math.round(10000 / Math.max(0.01, my.perpRate))}명 중 1명</b>.</>}
       </Insight>
     </Card>
   );
 }
 
-// ─── Card 14: 가해학생 처분 분포 ───────────────
-// 학교폭력예방법 17조 (가해학생 선도·교육조치) — 9개 호 + 합계
-const PERP_LABELS = [
-  "1호 서면사과",
-  "2호 접촉·보복금지",
-  "3호 학교봉사",
-  "4호 사회봉사",
-  "5호 특별교육·심리치료",
-  "6호 출석정지",
-  "7호 학급교체",
-  "8호 전학",
-  "9호 퇴학",
-];
-function PerpMeasuresCard({ data }: { data: DataSet }) {
-  // 인덱스 0~8 = 1호~9호. 인덱스 9는 데이터 검증 결과 합계 컬럼이므로 제외.
-  const sums = useMemo(() => {
-    const s = new Array(9).fill(0);
-    for (const sc of data.schools) {
+// ─── Card 14: 우리 학교 처벌 강도 ─────────────
+function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: School | null }) {
+  const dist = useMemo(() => {
+    const buckets = { 약함: 0, 보통: 0, 강함: 0, 매우강함: 0 };
+    let mySchoolPct: number | null = null;
+    let avgHeavy = 0, n = 0;
+    for (const s of data.schools) {
+      let total = 0, heavy = 0;
       for (const y of data.years) {
-        const v = sc.violence[y];
-        if (!v?.perpMeasures) continue;
-        for (let i = 0; i < 9; i++) s[i] += v.perpMeasures[i] ?? 0;
+        const pm = s.violence[y]?.perpMeasures;
+        if (!pm) continue;
+        for (let i = 0; i < 9; i++) total += pm[i] ?? 0;
+        for (let i = 5; i < 9; i++) heavy += pm[i] ?? 0;
       }
+      if (total < 5) continue;
+      const pct = (heavy / total) * 100;
+      avgHeavy += pct; n++;
+      if (pct < 5) buckets.약함++;
+      else if (pct < 15) buckets.보통++;
+      else if (pct < 30) buckets.강함++;
+      else buckets.매우강함++;
+      if (selected && s.code === selected.code) mySchoolPct = pct;
     }
-    return s;
-  }, [data]);
-  const total = sums.reduce((a, b) => a + b, 0);
-  const max = Math.max(0.001, ...sums);
-  const heavy = sums.slice(5).reduce((a, b) => a + b, 0); // 6호 출석정지 ~ 9호 퇴학
-  const heavyPct = total > 0 ? (heavy / total) * 100 : 0;
-  const top = sums
-    .map((n, i) => ({ i, label: PERP_LABELS[i], n }))
-    .sort((a, b) => b.n - a.n)[0];
+    return { buckets, avgHeavy: n > 0 ? avgHeavy / n : 0, n, mySchoolPct };
+  }, [data, selected]);
+
+  const labels: { key: keyof typeof dist.buckets; label: string; color: string; range: string }[] = [
+    { key: "약함", label: "약함", color: "#10b981", range: "<5%" },
+    { key: "보통", label: "보통", color: "#facc15", range: "5–15%" },
+    { key: "강함", label: "강함", color: "#f97316", range: "15–30%" },
+    { key: "매우강함", label: "매우 강함", color: "#dc2626", range: "≥30%" },
+  ];
+  const total = Object.values(dist.buckets).reduce((a, b) => a + b, 0);
+  const max = Math.max(1, ...Object.values(dist.buckets));
+
   return (
-    <Card title="가해학생 선도·교육조치 분포" subtitle="학교폭력예방법 17조 조치 (중복 가능, 전체 누계)">
+    <Card title="학교의 처벌 강도 분포" subtitle="가해학생 중 6호(출석정지)~9호(퇴학) 처분 비율 — 사안 5건+ 학교만">
       <div className="flex flex-col gap-1">
-        {PERP_LABELS.map((label, i) => {
-          const w = (sums[i] / max) * 100;
-          const isHeavy = i >= 5;
-          const pct = total > 0 ? (sums[i] / total) * 100 : 0;
+        {labels.map((b) => {
+          const cnt = dist.buckets[b.key];
+          const pct = total > 0 ? (cnt / total) * 100 : 0;
+          const w = (cnt / max) * 100;
+          const myBucket =
+            dist.mySchoolPct == null ? false :
+            (b.key === "약함" && dist.mySchoolPct < 5) ||
+            (b.key === "보통" && dist.mySchoolPct >= 5 && dist.mySchoolPct < 15) ||
+            (b.key === "강함" && dist.mySchoolPct >= 15 && dist.mySchoolPct < 30) ||
+            (b.key === "매우강함" && dist.mySchoolPct >= 30);
           return (
-            <div key={label} className="flex items-center gap-2 text-xs">
-              <span className={cn("w-32 truncate text-muted-foreground", isHeavy && "text-red-700 dark:text-red-400 font-medium")}>{label}</span>
-              <div className="flex-1 bg-muted h-2 rounded-sm overflow-hidden">
-                <div className="h-full" style={{ width: `${w}%`, background: isHeavy ? "#dc2626" : "#94a3b8" }} />
+            <div key={b.key} className={cn("flex items-center gap-2 text-xs", myBucket && "font-bold")}>
+              <span className="w-20 text-muted-foreground">{b.label}</span>
+              <span className="text-[10px] text-muted-foreground w-12">({b.range})</span>
+              <div className="flex-1 bg-muted h-3 rounded-sm overflow-hidden">
+                <div className="h-full" style={{ width: `${w}%`, background: b.color }} />
               </div>
-              <span className="tabular-nums w-12 text-right text-[10px]">{sums[i].toLocaleString()}</span>
+              <span className="tabular-nums w-10 text-right">{cnt.toLocaleString()}</span>
               <span className="tabular-nums w-10 text-right text-muted-foreground text-[10px]">{pct.toFixed(0)}%</span>
             </div>
           );
         })}
       </div>
       <Insight>
-        가장 흔한 처분: <b>{top.label}</b> ({total > 0 ? ((top.n / total) * 100).toFixed(0) : 0}%).
-        {" "}<b className="text-red-700 dark:text-red-400">중·고강도 처분(6호 출석정지~9호 퇴학)</b>은 전체의 <b>{heavyPct.toFixed(0)}%</b>.
-        대다수 사안이 1~5호의 경미한 교육·봉사 조치로 종결됨.
+        전국 학교 평균 강한 처벌 비율: <b>{dist.avgHeavy.toFixed(1)}%</b>.
+        {dist.mySchoolPct != null && <> 우리 학교: <b className={cn(dist.mySchoolPct >= 15 ? "text-red-700 dark:text-red-400" : "text-green-700 dark:text-green-400")}>{dist.mySchoolPct.toFixed(1)}%</b>.</>}
+        {" "}처벌 강도는 사건의 심각성을 반영 — <b>"강함"이 무조건 좋은 학교는 아님</b>.
+        다만 사건이 많은데 약한 처벌만 있으면 솜방망이 가능성, 사건이 적은데도 강한 처벌이 있으면 엄정 처리 학교일 수 있음.
       </Insight>
+    </Card>
+  );
+}
+
+// ─── Card 15: 피해자 보호 강도 ─────────────────
+function ProtectionStrengthCard({ data, selected }: { data: DataSet; selected: School | null }) {
+  const stats = useMemo(() => {
+    let totalCases = 0, totalMeasures = 0;
+    let mySchool: { cases: number; measures: number } | null = null;
+    for (const s of data.schools) {
+      let cases = 0, m = 0;
+      for (const y of data.years) {
+        const v = s.violence[y];
+        if (!v?.cases) continue;
+        cases += (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
+        if (v.victimMeasures) {
+          for (let i = 0; i < 5; i++) m += v.victimMeasures[i] ?? 0;
+        }
+      }
+      totalCases += cases;
+      totalMeasures += m;
+      if (selected && s.code === selected.code && cases > 0) mySchool = { cases, measures: m };
+    }
+    return {
+      avgPerCase: totalCases > 0 ? totalMeasures / totalCases : 0,
+      myAvg: mySchool && mySchool.cases > 0 ? mySchool.measures / mySchool.cases : null,
+    };
+  }, [data, selected]);
+
+  return (
+    <Card title="피해 학생 보호 강도" subtitle="심의 사안 1건당 평균 보호조치 수 (학폭예방법 16조 1~5호 합산)">
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded bg-muted/40 p-2">
+          <div className="text-[10px] text-muted-foreground">전국 평균</div>
+          <div className="text-base font-semibold tabular-nums">{stats.avgPerCase.toFixed(2)}건</div>
+          <div className="text-[10px] text-muted-foreground">/사안</div>
+        </div>
+        <div className="rounded bg-muted/40 p-2">
+          <div className="text-[10px] text-muted-foreground">우리 학교</div>
+          <div className={cn("text-base font-semibold tabular-nums", stats.myAvg != null && (stats.myAvg >= stats.avgPerCase ? "text-green-700 dark:text-green-400" : "text-amber-700 dark:text-amber-400"))}>
+            {stats.myAvg != null ? `${stats.myAvg.toFixed(2)}건` : "—"}
+          </div>
+          <div className="text-[10px] text-muted-foreground">
+            {stats.myAvg != null
+              ? (stats.myAvg >= stats.avgPerCase ? "전국 평균 이상" : "전국 평균 이하")
+              : "사안 없음"}
+          </div>
+        </div>
+      </div>
+      <Insight>
+        보호조치는 <b>심리상담·일시보호·치료·학급교체·기타</b> 5종 (학폭예방법 16조).
+        한 사안에 여러 조치가 중복 부여될 수 있어 <b>1건 이하</b>이면 "사건 발생만 기록되고 보호는 거의 없음", <b>1.5건 이상</b>이면 "다층 보호" 학교.
+        피해 학생을 두텁게 챙기는지 가늠하는 신호.
+      </Insight>
+    </Card>
+  );
+}
+
+// ─── Card 16: 우리 동네 학교 안전 순위 ──────────
+function NeighborhoodRankCard({ data, selected }: { data: DataSet; selected: School }) {
+  const items = useMemo(() => {
+    return data.schools
+      .filter((s) => s.kind === selected.kind && s.city === selected.city && s.district === selected.district && s.violenceRatePer100 != null)
+      .sort((a, b) => (a.violenceRatePer100 ?? 0) - (b.violenceRatePer100 ?? 0));
+  }, [data, selected]);
+  const myIdx = items.findIndex((s) => s.code === selected.code);
+  const showCount = Math.min(15, items.length);
+  const showItems = items.slice(0, showCount);
+  const mustInsertMine = myIdx >= showCount;
+  return (
+    <Card
+      title={`우리 동네 ${selected.kind === "초등" ? "초등학교" : selected.kind === "중학" ? "중학교" : "고등학교"} 순위`}
+      subtitle={`${[selected.city, selected.district].filter(Boolean).join(" ")} 안전 순 (낮을수록 안전)`}
+    >
+      {items.length < 2 ? (
+        <Empty msg="비교 가능한 같은 동네 학교가 부족합니다" />
+      ) : (
+        <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
+          {showItems.map((s, i) => {
+            const isMine = s.code === selected.code;
+            return (
+              <div key={s.code} className={cn("flex items-center gap-2 text-xs", isMine && "font-bold")}>
+                <span className="w-5 text-right text-muted-foreground tabular-nums">{i + 1}</span>
+                <span className={cn("flex-1 truncate", isMine && "text-red-600")}>
+                  {s.name}{isMine && " ← 우리 학교"}
+                </span>
+                <span className="tabular-nums text-[11px]">{(s.violenceRatePer100 ?? 0).toFixed(2)}</span>
+              </div>
+            );
+          })}
+          {mustInsertMine && (
+            <>
+              <div className="text-center text-[10px] text-muted-foreground py-0.5">⋯</div>
+              <div className="flex items-center gap-2 text-xs font-bold">
+                <span className="w-5 text-right text-muted-foreground tabular-nums">{myIdx + 1}</span>
+                <span className="flex-1 truncate text-red-600">{selected.name} ← 우리 학교</span>
+                <span className="tabular-nums text-[11px]">{(selected.violenceRatePer100 ?? 0).toFixed(2)}</span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+      {items.length >= 2 && myIdx >= 0 && (
+        <Insight>
+          같은 동네 같은 학교종류 <b>{items.length}개교</b> 중 우리 학교는 <b>{myIdx + 1}위</b> (낮은 순).
+          상위 1/3이면 안전한 편, 하위 1/3이면 신중하게 살펴볼 만.
+          학원·학생 분포 등 동일 지역 조건을 통제한 비교라 가장 실용적.
+        </Insight>
+      )}
     </Card>
   );
 }
