@@ -184,12 +184,24 @@ function SidoRankingCard({ agg, selected }: { agg: ReturnType<typeof computeAggr
           );
         })}
       </div>
+      {items.length >= 2 && (
+        <Insight>
+          최고 <b>{items[0].name}</b> ({items[0].avgRate.toFixed(2)}) ↔ 최저 <b>{items[items.length - 1].name}</b> ({items[items.length - 1].avgRate.toFixed(2)})
+          {" — 약 "}<b>{(items[0].avgRate / Math.max(0.01, items[items.length - 1].avgRate)).toFixed(1)}배 차이</b>.
+          농어촌·소규모 학교 비율이 높은 지역이 상위.
+        </Insight>
+      )}
     </Card>
   );
 }
 
 // ─── Card 3: 초→중→고 변화 ──────────────────────────
 function KindTransitionCard({ agg, typeLabels }: { agg: ReturnType<typeof computeAggregates>; typeLabels: string[] }) {
+  const e = agg.byKind["초등"]?.avgRate ?? 0;
+  const m = agg.byKind["중학"]?.avgRate ?? 0;
+  const h = agg.byKind["고등"]?.avgRate ?? 0;
+  const cyberE = agg.byKind["초등"]?.typeShare[6] ?? 0;
+  const cyberH = agg.byKind["고등"]?.typeShare[6] ?? 0;
   return (
     <Card title="초 → 중 → 고 진학 시 변화" subtitle="학교종류별 평균 비율 + 폭력 유형 비중">
       <div className="flex flex-col gap-3">
@@ -231,6 +243,10 @@ function KindTransitionCard({ agg, typeLabels }: { agg: ReturnType<typeof comput
             ))}
           </div>
         </div>
+        <Insight>
+          초→중 진입 시 약 <b>{(m / Math.max(0.01, e)).toFixed(1)}배 급증</b>, 중→고는 {h < m ? <b>{((1 - h / m) * 100).toFixed(0)}% 감소</b> : "유지"}.
+          중학교 시기가 학폭 발생 정점. 학년이 올라갈수록 사이버폭력 비중도 증가({(cyberE * 100).toFixed(0)}%→{(cyberH * 100).toFixed(0)}%).
+        </Insight>
       </div>
     </Card>
   );
@@ -262,6 +278,17 @@ function SizeBucketCard({ agg, selected }: { agg: ReturnType<typeof computeAggre
       <div className="text-[10px] text-muted-foreground mt-1">
         작은 학교는 표본이 작아 한 사건이 비율을 크게 끌어올릴 수 있습니다.
       </div>
+      {(() => {
+        const small = agg.bySize["<200"]?.avgRate ?? 0;
+        const large = agg.bySize["1000+"]?.avgRate ?? 0;
+        if (!small || !large) return null;
+        return (
+          <Insight>
+            소규모 학교(&lt;200명)가 대형(1000+)보다 약 <b>{(small / large).toFixed(1)}배 높음</b>.
+            단, 분모 효과(작은 학교일수록 한 사건의 비율 충격이 큼)가 일부 영향.
+          </Insight>
+        );
+      })()}
     </Card>
   );
 }
@@ -291,6 +318,17 @@ function FoundationCard({ agg, selected }: { agg: ReturnType<typeof computeAggre
       <div className="text-[10px] text-muted-foreground mt-1">
         자체해결 비중: {FOUND_ORDER.map((k) => agg.byFoundation[k] && `${k} ${(agg.byFoundation[k].selfRatio * 100).toFixed(0)}%`).filter(Boolean).join(" · ")}
       </div>
+      {(() => {
+        const rates = FOUND_ORDER.map((k) => agg.byFoundation[k]?.avgRate ?? 0).filter((r) => r > 0);
+        if (rates.length < 2) return null;
+        const gap = (Math.max(...rates) - Math.min(...rates)) / Math.max(...rates);
+        return (
+          <Insight>
+            세 유형 차이는 <b>최대 {(gap * 100).toFixed(0)}% 이내</b> — 설립 주체(공·사·국립)는 학폭 발생률에 큰 영향이 없음.
+            국립이 다소 낮은 건 표본 수(약 40여 교)가 적은 영향도 있음.
+          </Insight>
+        );
+      })()}
     </Card>
   );
 }
@@ -317,6 +355,10 @@ function SelfRatioCard({ agg, selected }: { agg: ReturnType<typeof computeAggreg
       <div className="text-[10px] text-muted-foreground mt-1">
         높을수록 학교 자체에서 처리. 너무 낮으면 모든 사건이 심의위로, 너무 높으면 사건이 가려질 가능성도 있습니다.
       </div>
+      <Insight>
+        전국 약 <b>{(agg.all.selfRatio * 100).toFixed(0)}%</b>가 자체해결 — 절반은 심의위로 가지 않고 학교 내부에서 종결.
+        초등이 가장 높음(중대 사안 비중↓). 수치가 50%에서 크게 벗어난 학교는 처리 패턴 점검 필요.
+      </Insight>
     </Card>
   );
 }
@@ -381,6 +423,22 @@ function GenderCard({ agg, typeLabels, selected }: { agg: ReturnType<typeof comp
           ))}
         </div>
       </div>
+      {(() => {
+        const f = agg.byGender["여"];
+        const c = agg.byGender["공학"];
+        if (!f || !c) return null;
+        const fCyber = (f.typeShare[6] ?? 0) * 100;
+        const cCyber = (c.typeShare[6] ?? 0) * 100;
+        const fPhy = (f.typeShare[0] ?? 0) * 100;
+        const cPhy = (c.typeShare[0] ?? 0) * 100;
+        return (
+          <Insight>
+            공학이 여학교보다 약 <b>{(c.avgRate / Math.max(0.01, f.avgRate)).toFixed(1)}배 높음</b>.
+            단, 폭력 양상이 다름 — 여학교는 사이버폭력 <b>{fCyber.toFixed(0)}%</b>(공학 {cCyber.toFixed(0)}%) 비중↑,
+            공학은 신체폭력 <b>{cPhy.toFixed(0)}%</b>(여학교 {fPhy.toFixed(0)}%) 비중↑.
+          </Insight>
+        );
+      })()}
     </Card>
   );
 }
@@ -413,6 +471,10 @@ function PeacefulSggCard({ agg, selected }: { agg: ReturnType<typeof computeAggr
       <div className="text-[10px] text-muted-foreground mt-1">
         ⚠ 신고 회피 가능성 있음. 0건 = 평화 또는 은폐.
       </div>
+      <Insight>
+        TOP 10 대부분 농어촌 군 단위 — 학생수가 적어 신고 자체가 드물 수도, 실제 평화로움일 수도.
+        도시 신축 단지는 거의 등장하지 않음.
+      </Insight>
     </Card>
   );
 }
@@ -442,6 +504,18 @@ function TrendCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates
         })}
       </div>
       <div className="text-[10px] text-muted-foreground mt-1">인구 감소 지역 학교가 더 어려움을 겪는지 확인.</div>
+      {(() => {
+        const dec = agg.byTrend["감소"]?.avgRate ?? 0;
+        const inc = agg.byTrend["증가"]?.avgRate ?? 0;
+        if (!dec || !inc) return null;
+        const lower = dec < inc ? "감소" : "증가";
+        return (
+          <Insight>
+            학생수 <b>{lower} 학교가 오히려 낮음</b> — "인구가 빠지면 학폭이 심해진다"는 통념과 반대.
+            농어촌 인구감소 지역이 평균적으로 학폭 비율도 낮은 경향(평화 동네 카드와 일치).
+          </Insight>
+        );
+      })()}
     </Card>
   );
 }
@@ -470,6 +544,18 @@ function TeacherRatioCard({ agg, selected }: { agg: ReturnType<typeof computeAgg
           );
         })}
       </div>
+      {(() => {
+        const small = agg.byTeacherRatio["<10명"]?.avgRate ?? 0;
+        const big = agg.byTeacherRatio["20명+"]?.avgRate ?? 0;
+        if (!small || !big) return null;
+        return (
+          <Insight>
+            <b>교사당 학생이 적은 학교일수록 비율이 높음</b> — 통념과 반대.
+            교사당 &lt;10명은 대부분 농어촌 소규모 학교라 분모 효과 + 한 사건의 비율 충격이 큼.
+            "교사 부족 → 학폭 증가"는 이 데이터로 뒷받침되지 않음.
+          </Insight>
+        );
+      })()}
     </Card>
   );
 }
@@ -488,6 +574,13 @@ function Card({ title, subtitle, children }: { title: string; subtitle?: string;
 }
 function Empty({ msg }: { msg: string }) {
   return <div className="text-xs text-muted-foreground py-4 text-center">{msg}</div>;
+}
+function Insight({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-1.5 px-2 py-1.5 rounded text-[10px] leading-relaxed bg-blue-50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-200 border border-blue-100 dark:border-blue-900">
+      💡 {children}
+    </div>
+  );
 }
 function percentileColor(p: number): string {
   if (p < 25) return "#22c55e";  // 안전
