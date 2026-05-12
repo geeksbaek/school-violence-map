@@ -326,10 +326,41 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
         })()}
 
         {/* 피해학생 보호조치 */}
-        {selectedYearV?.victimMeasures && selectedYearV.victimMeasures.some((n) => n > 0) && (
+        {selectedYearV?.victimMeasures && selectedYearV.victimMeasures.some((n) => n > 0) && (() => {
+          // 4년 누계로 사안당 평균 보호조치 계산 (StatsDialog ProtectionStrengthCard와 동일 로직)
+          let cases = 0, measures = 0;
+          for (const y of data.years) {
+            const v = school.violence[y];
+            if (!v?.cases) continue;
+            cases += (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
+            if (v.victimMeasures) {
+              for (let i = 0; i < 5; i++) measures += v.victimMeasures[i] ?? 0;
+            }
+          }
+          const perCase = cases > 0 ? measures / cases : 0;
+          let strength: { label: string; color: string; bg: string } | null = null;
+          if (cases >= 3) {
+            // 전국 평균 ~0.56 기준: <0.5 부재, 0.5-1.0 평균, 1.0-1.5 두터움, ≥1.5 매우 두터움
+            if (perCase < 0.5) strength = { label: "부재", color: "#7f1d1d", bg: "#fee2e2" };
+            else if (perCase < 1.0) strength = { label: "평균", color: "#854d0e", bg: "#fef9c3" };
+            else if (perCase < 1.5) strength = { label: "두터움", color: "#065f46", bg: "#d1fae5" };
+            else strength = { label: "매우 두터움", color: "#14532d", bg: "#bbf7d0" };
+          }
+          return (
           <div className="rounded-md border bg-muted/20 p-2 text-xs">
-            <div className="text-muted-foreground mb-1.5">
-              {selectedYear}공시 피해학생 보호조치 <span className="text-[10px]">(학교폭력예방법 16조, 중복 가능)</span>
+            <div className="flex items-start justify-between gap-2 mb-1.5">
+              <div className="text-muted-foreground">
+                {selectedYear}공시 피해학생 보호조치 <span className="text-[10px]">(학교폭력예방법 16조, 중복 가능)</span>
+              </div>
+              {strength && (
+                <span
+                  className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold leading-none"
+                  style={{ background: strength.bg, color: strength.color }}
+                  title={`4년 누계 사안당 평균 보호조치 ${perCase.toFixed(2)}건 (전국 평균 ~0.56)`}
+                >
+                  보호 강도: {strength.label} ({perCase.toFixed(2)}건/사안)
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-1">
               {VICTIM_MEASURE_LABELS.map((label, i) => {
@@ -344,13 +375,42 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
               })}
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* 가해학생 선도조치 */}
-        {selectedYearV?.perpMeasures && selectedYearV.perpMeasures.some((n) => n > 0) && (
+        {selectedYearV?.perpMeasures && selectedYearV.perpMeasures.some((n) => n > 0) && (() => {
+          // 4년 누계로 처벌 강도 계산 (StatsDialog DisciplineStrengthCard와 동일 로직)
+          let total = 0, heavy = 0;
+          for (const y of data.years) {
+            const pm = school.violence[y]?.perpMeasures;
+            if (!pm) continue;
+            for (let i = 0; i < 9; i++) total += pm[i] ?? 0;
+            for (let i = 5; i < 9; i++) heavy += pm[i] ?? 0;
+          }
+          const heavyPct = total > 0 ? (heavy / total) * 100 : 0;
+          let strength: { label: string; color: string; bg: string } | null = null;
+          if (total >= 5) {
+            if (heavyPct < 5) strength = { label: "약함", color: "#065f46", bg: "#d1fae5" };
+            else if (heavyPct < 15) strength = { label: "보통", color: "#854d0e", bg: "#fef9c3" };
+            else if (heavyPct < 30) strength = { label: "강함", color: "#9a3412", bg: "#ffedd5" };
+            else strength = { label: "매우 강함", color: "#7f1d1d", bg: "#fee2e2" };
+          }
+          return (
           <div className="rounded-md border bg-muted/20 p-2 text-xs">
-            <div className="text-muted-foreground mb-1.5">
-              {selectedYear}공시 가해학생 선도·교육조치 <span className="text-[10px]">(학교폭력예방법 17조, 중복 가능)</span>
+            <div className="flex items-start justify-between gap-2 mb-1.5">
+              <div className="text-muted-foreground">
+                {selectedYear}공시 가해학생 선도·교육조치 <span className="text-[10px]">(학교폭력예방법 17조, 중복 가능)</span>
+              </div>
+              {strength && (
+                <span
+                  className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold leading-none"
+                  style={{ background: strength.bg, color: strength.color }}
+                  title={`4년 누계 강한 처벌(6~9호) 비율 ${heavyPct.toFixed(1)}%`}
+                >
+                  처벌 강도: {strength.label} ({heavyPct.toFixed(0)}%)
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-1">
               {PERP_MEASURE_LABELS.map((label, i) => {
@@ -367,7 +427,8 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
               })}
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* 예방교육 (선택된 년도) */}
         {selectedYearPe && (
