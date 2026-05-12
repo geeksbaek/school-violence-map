@@ -359,7 +359,6 @@ function Stat({ label, value }: { label: string; value: string }) {
 const fmtNum = (n: number | null | undefined): string => (n == null ? "—" : n.toLocaleString());
 const fmtAmt = (n: number | null | undefined): string =>
   n == null ? "—" : `${(n / 10000).toLocaleString(undefined, { maximumFractionDigits: 1 })}만원`;
-const fmtPct = (n: number | null | undefined): string => (n == null ? "—" : `${n.toFixed(1)}%`);
 
 function DetailsSections({ details, color }: { details: SchoolDetails; color: string }) {
   const openRef = useRef<Set<string> | null>(null);
