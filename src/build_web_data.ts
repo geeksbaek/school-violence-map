@@ -367,9 +367,10 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: stri
   // 고등학교: SUPRTI_GRDTN = 진학자, FRNTN/SUFRNTN_SCHUL_MTHMC = 대학 진학,
   //          PRTI_GRDTN_BOYST_FGR = 취업자(고등에선 의미 다름), TOTAL_RATE = 취업률
   if (gradData && kind === "중학") {
+    // PRTI_GRDTN_BOYST_FGR(남)/_FES_FGR(여)는 성별 분리, SUPRTI_GRDTN_BOYST_FGR/ALL_SUM이 전체.
     d.graduation = {
       totalGrads: num(gradData.ALL_SUM ?? gradData.TOTAL_SUM),
-      advanceCount: num(gradData.PRTI_GRDTN_BOYST_FGR),
+      advanceCount: num(gradData.SUPRTI_GRDTN_BOYST_FGR ?? gradData.ALL_SUM),
       advanceRate: num(gradData.TOTAL_RATE),
       foreignRate: num(gradData.FOREIGN_ST_RATE),
     };
