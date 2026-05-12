@@ -363,7 +363,17 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: stri
   }
 
   // 진학/졸업 (중·고)
-  if (gradData && (kind === "중학" || kind === "고등")) {
+  // 중학교: PRTI_GRDTN = 상급학교 진학자, TOTAL_RATE = 진학률 (취업 항목 없음)
+  // 고등학교: SUPRTI_GRDTN = 진학자, FRNTN/SUFRNTN_SCHUL_MTHMC = 대학 진학,
+  //          PRTI_GRDTN_BOYST_FGR = 취업자(고등에선 의미 다름), TOTAL_RATE = 취업률
+  if (gradData && kind === "중학") {
+    d.graduation = {
+      totalGrads: num(gradData.ALL_SUM ?? gradData.TOTAL_SUM),
+      advanceCount: num(gradData.PRTI_GRDTN_BOYST_FGR),
+      advanceRate: num(gradData.TOTAL_RATE),
+      foreignRate: num(gradData.FOREIGN_ST_RATE),
+    };
+  } else if (gradData && kind === "고등") {
     d.graduation = {
       totalGrads: num(gradData.ALL_SUM ?? gradData.TOTAL_SUM),
       advanceCount: num(gradData.SUFRNTN_SCHUL_MTHMC_BOYST_FGR ?? gradData.FRNTN_SCHUL_MTHMC_BOYST_FGR),
