@@ -171,10 +171,10 @@ interface SchoolDetails {
     cookAssistants?: number | null;
     operationMethod?: string | null;       // OPER_MET_CODE (직영/위탁)
   };
-  // apiType 38: 정보화
-  digital?: {
-    allUtilStudents?: number | null;       // 모든 정보기기 활용 학생 수
-    weeklyAvgUtilStudents?: number | null; // 주간 평균
+  // apiType 38: 보건관리 (변수명이 IFRMA로 시작하지만 실제는 보건실 이용)
+  health?: {
+    annualVisits?: number | null;          // 연간 보건실 이용건수
+    perStudentVisits?: number | null;      // 연간 1인당 보건실 이용건수
   };
   // apiType 43: 안전교육 7개 영역
   safetyEducation?: {
@@ -197,21 +197,14 @@ interface SchoolDetails {
     careRooms?: number | null;              // ECC_PM_OPER_CCCLA_FGR
     careStudents?: number | null;
   };
-  // apiType 30: 장학금 (중·고)
+  // apiType 55: 장학금 수혜 현황
   scholarship?: {
-    money?: { count: number | null; amount: number | null };
-    fortune?: { count: number | null; amount: number | null };
-    things?: { count: number | null; amount: number | null };
-    total?: { count: number | null; amount: number | null };
-  };
-  // apiType 51: 진학·졸업 (중·고)
-  graduation?: {
-    totalGrads?: number | null;
-    advanceCount?: number | null;          // 진학자
-    employmentCount?: number | null;       // 취업자 (PRTI_GRDTN_BOYST_FGR)
-    advanceRate?: number | null;
-    employmentRate?: number | null;
-    foreignRate?: number | null;
+    schoCount?: number | null;       // 장학금 인원
+    schoAmount?: number | null;      // 장학금 금액
+    aidCount?: number | null;        // 학비지원 인원
+    aidAmount?: number | null;       // 학비지원 금액
+    totalCount?: number | null;
+    totalAmount?: number | null;
   };
 }
 
@@ -230,18 +223,16 @@ function safetyCatLabel(prefix: string): string {
 
 function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: string): SchoolDetails {
   const d: SchoolDetails = {};
-  const grade = i["09"];
-  const gender = i["10"];
-  const wkly = i["08"];
-  const fac = i["17"];
-  const ground = i["18"];
-  const meal = i["34"];
-  const digital = i["38"];
-  const safety = i["43"];
-  const act = i["56"];
-  const after = i["59"];
-  const scholarship = i["30"];
-  const gradData = i["51"];
+  const grade = i["09"];      // 학년별·학급별 학생수
+  const wkly = i["08"];       // 수업일수 및 수업시수 현황
+  const fac = i["17"];        // 교사(校舍) 현황
+  const ground = i["18"];     // 학생교육활동 지원시설
+  const meal = i["34"];       // 급식
+  const health = i["38"];     // 보건관리
+  const safety = i["43"];     // 안전교육 계획 및 실시현황
+  const act = i["56"];        // 동아리 활동
+  const after = i["59"];      // 방과후학교
+  const scholarship = i["55"]; // 장학금 수혜 현황 (구버전 30 = 학교발전기금이라 잘못)
 
   // 학년별
   if (grade) {
@@ -277,20 +268,25 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: stri
     };
   }
 
-  // 시설
+  // 시설 (apiType 17=교사, 18=지원시설)
+  // 17: COL_1=일반교실, COL_5=특별교실, CURR_CCCLA_FGR=교과교실, ML/FML_TOI=화장실, STDNT_SWRM=샤워실
+  // 18: COL_1=체육관, COL_2=강당, SWMPL_FGR=수영장, BRHS_RCPTN=기숙사 재실, COSE_CNSRM=진로상담실
   const facObj: NonNullable<SchoolDetails["facility"]> = {};
   if (fac) {
-    facObj.regularClassrooms = num(fac.COM_CCCLA_FGR);
-    facObj.specialClassrooms = num(fac.CURR_CCCLA_FGR);
-    facObj.sportsClassrooms = num(fac.LRN_SPORT_ETC_CCCLA_FGR);
+    facObj.regularClassrooms = num(fac.COL_1);
+    facObj.specialClassrooms = num(fac.COL_5);
+    facObj.subjectClassrooms = num(fac.CURR_CCCLA_FGR);
     facObj.maleToilets = num(fac.ML_TOI_FGR);
     facObj.femaleToilets = num(fac.FML_TOI_FGR);
     facObj.showers = num(fac.STDNT_SWRM_FGR);
   }
   if (ground) {
-    facObj.auditorium = num(ground.COSE_CNSRM_FGR);
-    facObj.pool = ground.SWMPL_ENNC === "Y" ? "있음" : ground.SWMPL_ENNC === "N" ? "없음" : null;
+    facObj.gym = num(ground.COL_1);
+    facObj.auditorium = num(ground.COL_2);
+    const pool = num(ground.SWMPL_FGR);
+    facObj.pool = pool != null && pool > 0 ? "있음" : pool === 0 ? "없음" : null;
     facObj.boardingCapacity = num(ground.BRHS_RCPTN_NMPR_FGR);
+    facObj.careerRoom = num(ground.COSE_CNSRM_FGR);
   }
   if (Object.values(facObj).some((v) => v != null)) d.facility = facObj;
 
@@ -305,11 +301,11 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: stri
     };
   }
 
-  // 정보화
-  if (digital) {
-    d.digital = {
-      allUtilStudents: num(digital.ALL_IFRMA_UTILZ_STDNT_FGR),
-      weeklyAvgUtilStudents: num(digital.WIK_AVRG_IFRMA_UTILZ_STDNT_FGR),
+  // 보건관리 (apiType 38) — 변수명이 IFRMA(정보)로 시작하지만 실제는 보건실 이용
+  if (health) {
+    d.health = {
+      annualVisits: num(health.ALL_IFRMA_UTILZ_STDNT_FGR),
+      perStudentVisits: num(health.WIK_AVRG_IFRMA_UTILZ_STDNT_FGR),
     };
   }
 
@@ -351,20 +347,18 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: stri
     };
   }
 
-  // 장학금 (중·고)
-  if (scholarship && (kind === "중학" || kind === "고등")) {
-    const sc: NonNullable<SchoolDetails["scholarship"]> = {
-      money: { count: num(scholarship.MONE_AWA_SCRTS_CNT), amount: num(scholarship.MONE_AWA_SCRTS_AMT) },
-      fortune: { count: num(scholarship.FA_AWA_FRTUN_CNT), amount: num(scholarship.FA_AWA_FRTUN_AMT) },
-      things: { count: num(scholarship.BOS_AWA_THNG_CNT), amount: num(scholarship.BOS_AWA_THNG_AMT) },
-      total: { count: num(scholarship.CNT_SMTOT), amount: num(scholarship.AMT_SMTOT) },
-    };
-    if (sc.total!.count != null || sc.total!.amount != null) d.scholarship = sc;
+  // 장학금 수혜 (apiType 55) — 모든 학교급
+  if (scholarship) {
+    const schoCount = num(scholarship.SCHO_NMPR_FGR);
+    const schoAmount = num(scholarship.SCHO_AMT);
+    const aidCount = num(scholarship.SCE_RDCTN_NMPR_FGR);
+    const aidAmount = num(scholarship.SCE_RDCTN_AMT);
+    const totalCount = num(scholarship.NMPR_FGR_SUM);
+    const totalAmount = num(scholarship.AMT_SUM);
+    if (totalCount || totalAmount || schoCount || aidCount) {
+      d.scholarship = { schoCount, schoAmount, aidCount, aidAmount, totalCount, totalAmount };
+    }
   }
-
-  // ⚠ apiType 51은 "입학생 현황"(신입생을 어떤 경로로 받았는지)이지 졸업·진학 데이터가 아님.
-  // 학교알리미 OpenAPI에는 졸업생 진로 데이터 시트가 없음. graduation 카드는 표시하지 않음.
-  // (이전 버전은 신입생 데이터를 졸업·진학으로 잘못 표시)
 
   return d;
 }
@@ -383,8 +377,7 @@ for (const code of Object.keys(schools)) {
 
   const i = info[code] ?? {};
   const grade = i["09"];           // 학년별·학급별 학생수
-  const gender = i["10"];          // 성별 학생수 (추정)
-  const wkly = i["08"];            // 수업/교사
+  const wkly = i["08"];            // 수업일수·시수
 
   let studentTotal: number | null = null;
   let classTotal: number | null = null;
@@ -404,19 +397,12 @@ for (const code of Object.keys(schools)) {
     if (teachers == null && b01.teachers != null) teachers = b01.teachers;
   }
 
-  // 성비: gender row의 키 패턴 분석 — COL_211/212 = (학년 1, 남/여) 형태로 추정
+  // 성비 (apiType 63: 성별 학생수). COL_MSUM=계(남), COL_WSUM=계(여)
   let genderRatio: { boy: number; girl: number } | null = null;
+  const gender = i["63"];
   if (gender) {
-    let boy = 0, girl = 0;
-    for (const k of Object.keys(gender)) {
-      if (!/^COL_\d+$/.test(k)) continue;
-      const n = num(gender[k]);
-      if (n == null) continue;
-      // 끝자리 1=남, 2=여 (다수 시도/관찰 결과). 추측이므로 비어있으면 null로 둠.
-      const last = k.slice(-1);
-      if (last === "1") boy += n;
-      else if (last === "2") girl += n;
-    }
+    const boy = num(gender.COL_MSUM) ?? 0;
+    const girl = num(gender.COL_WSUM) ?? 0;
     if (boy + girl > 0) genderRatio = { boy, girl };
   }
 

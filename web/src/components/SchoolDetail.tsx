@@ -423,11 +423,11 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     sections.push({
       key: "teaching",
       title: "수업·교사",
-      body: <KV pairs={[
+      body: <KV pairs={trim([
         ["총 교사", suffix(t.teachers, "명")],
-        ["주당 수업", suffix(t.weeklyHours, "시간")],
-        ["주 수업일", suffix(t.daysPerWeek, "일")],
-      ]} />,
+        ["주당 총수업", suffix(t.weeklyHours, "시간")],
+        ["교사 1인당 주당", suffix(t.daysPerWeek, "시간")],
+      ])} />,
     });
   }
 
@@ -439,12 +439,14 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
       body: <KV pairs={trim([
         ["일반교실", suffix(f.regularClassrooms, "실")],
         ["특별교실", suffix(f.specialClassrooms, "실")],
-        ["체육교실", suffix(f.sportsClassrooms, "실")],
+        ["교과교실", suffix(f.subjectClassrooms, "실")],
         ["남자 화장실", suffix(f.maleToilets, "개")],
         ["여자 화장실", suffix(f.femaleToilets, "개")],
         ["샤워실", suffix(f.showers, "실")],
+        ["체육관", suffix(f.gym, "실")],
         ["강당", suffix(f.auditorium, "실")],
         ["수영장", f.pool ?? "—"],
+        ["진로상담실", suffix(f.careerRoom, "실")],
         ["기숙사 수용", suffix(f.boardingCapacity, "명")],
       ])} />,
     });
@@ -457,23 +459,23 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
       title: "급식",
       body: <KV pairs={trim([
         ["급식 학생수", suffix(m.students, "명")],
-        ["영양사", suffix(m.nutritionists, "명")],
-        ["조리원", suffix(m.cooks, "명")],
-        ["조리보조", suffix(m.cookAssistants, "명")],
+        ["영양(교)사", suffix(m.nutritionists, "명")],
+        ["조리사", suffix(m.cooks, "명")],
+        ["조리원", suffix(m.cookAssistants, "명")],
         ["운영방식", m.operationMethod ?? "—"],
       ])} />,
     });
   }
 
-  if (details.digital) {
-    const d = details.digital;
+  if (details.health) {
+    const h = details.health;
     sections.push({
-      key: "digital",
-      title: "정보화 활용",
-      body: <KV pairs={[
-        ["전체 활용 학생", suffix(d.allUtilStudents, "명")],
-        ["주간 평균", suffix(d.weeklyAvgUtilStudents, "명")],
-      ]} />,
+      key: "health",
+      title: "보건실 이용",
+      body: <KV pairs={trim([
+        ["연간 이용건수", suffix(h.annualVisits, "건")],
+        ["1인당 연 이용", suffix(h.perStudentVisits, "건")],
+      ])} />,
     });
   }
 
@@ -506,14 +508,14 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     const a = details.activities;
     sections.push({
       key: "activities",
-      title: "창체·동아리",
+      title: "동아리 활동",
       body: <KV pairs={trim([
-        ["창체 학생수", suffix(a.creativeStudents, "명")],
-        ["창체 담당교사", suffix(a.creativeTeachers, "명")],
+        ["창의적체험 동아리 학생수", suffix(a.creativeStudents, "명")],
+        ["창체 지도교사", suffix(a.creativeTeachers, "명")],
         ["외부강사", suffix(a.creativeExternalLecturers, "명")],
         ["창체 예산", fmtAmt(a.creativeBudget)],
-        ["동아리 수", suffix(a.clubs, "개")],
-        ["동아리 예산", fmtAmt(a.clubBudget)],
+        ["학생자율 동아리 수", suffix(a.clubs, "개")],
+        ["자율동아리 예산", fmtAmt(a.clubBudget)],
       ])} />,
     });
   }
@@ -537,28 +539,11 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
     const s = details.scholarship;
     sections.push({
       key: "scholarship",
-      title: "장학금",
-      body: <KV pairs={[
-        ["금전 (건/금액)", `${fmtNum(s.money?.count)} / ${fmtAmt(s.money?.amount)}`],
-        ["보험·금융 (건/금액)", `${fmtNum(s.fortune?.count)} / ${fmtAmt(s.fortune?.amount)}`],
-        ["물품 (건/금액)", `${fmtNum(s.things?.count)} / ${fmtAmt(s.things?.amount)}`],
-        ["합계 (건/금액)", `${fmtNum(s.total?.count)} / ${fmtAmt(s.total?.amount)}`],
-      ]} />,
-    });
-  }
-
-  if (details.graduation) {
-    const g = details.graduation;
-    sections.push({
-      key: "graduation",
-      title: "졸업·진학",
+      title: "장학금·학비지원",
       body: <KV pairs={trim([
-        ["전체 졸업생", suffix(g.totalGrads, "명")],
-        ["진학자", suffix(g.advanceCount, "명")],
-        ["취업자", suffix(g.employmentCount, "명")],
-        ["진학률", fmtPct(g.advanceRate)],
-        ["취업률", fmtPct(g.employmentRate)],
-        ["외국인 비율", fmtPct(g.foreignRate)],
+        ["장학금 (인원/금액)", `${fmtNum(s.schoCount)} / ${fmtAmt(s.schoAmount)}`],
+        ["학비지원 (인원/금액)", `${fmtNum(s.aidCount)} / ${fmtAmt(s.aidAmount)}`],
+        ["합계 (인원/금액)", `${fmtNum(s.totalCount)} / ${fmtAmt(s.totalAmount)}`],
       ])} />,
     });
   }

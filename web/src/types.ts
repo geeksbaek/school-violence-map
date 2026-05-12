@@ -62,13 +62,15 @@ export interface SchoolDetails {
   facility?: {
     regularClassrooms?: number | null;
     specialClassrooms?: number | null;
-    sportsClassrooms?: number | null;
+    subjectClassrooms?: number | null;
     maleToilets?: number | null;
     femaleToilets?: number | null;
     showers?: number | null;
+    gym?: number | null;
     auditorium?: number | null;
     pool?: string | null;
     boardingCapacity?: number | null;
+    careerRoom?: number | null;
   };
   meal?: {
     students?: number | null;
@@ -77,9 +79,9 @@ export interface SchoolDetails {
     cookAssistants?: number | null;
     operationMethod?: string | null;
   };
-  digital?: {
-    allUtilStudents?: number | null;
-    weeklyAvgUtilStudents?: number | null;
+  health?: {
+    annualVisits?: number | null;
+    perStudentVisits?: number | null;
   };
   safetyEducation?: {
     [category: string]: { total: number | null; sem1: number | null; sem2: number | null };
@@ -100,18 +102,12 @@ export interface SchoolDetails {
     careStudents?: number | null;
   };
   scholarship?: {
-    money?: { count: number | null; amount: number | null };
-    fortune?: { count: number | null; amount: number | null };
-    things?: { count: number | null; amount: number | null };
-    total?: { count: number | null; amount: number | null };
-  };
-  graduation?: {
-    totalGrads?: number | null;
-    advanceCount?: number | null;
-    employmentCount?: number | null;
-    advanceRate?: number | null;
-    employmentRate?: number | null;
-    foreignRate?: number | null;
+    schoCount?: number | null;
+    schoAmount?: number | null;
+    aidCount?: number | null;
+    aidAmount?: number | null;
+    totalCount?: number | null;
+    totalAmount?: number | null;
   };
 }
 

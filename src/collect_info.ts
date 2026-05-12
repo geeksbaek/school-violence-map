@@ -38,9 +38,14 @@ import { loadSchoolInfo, saveSchoolInfo } from "./_school_info_io.ts";
 const KEY = process.env.SCHOOLINFO_API_KEY!;
 const ENDPOINT = "https://www.schoolinfo.go.kr/openApi.do";
 
+// apiType 의미 (학교알리미 OpenAPI_Output.xlsx 명세 기준):
+//   00=학교기본정보 · 08=수업일수 · 09=학년별·학급별 학생수 · 10=전·출입/학업중단
+//   17=교사(校舍) 현황 · 18=학생활동 지원시설 · 22=직위별 교원
+//   34=급식 · 38=보건관리 · 43=안전교육 · 55=장학금 수혜 · 56=동아리 · 59=방과후
+//   62=학교현황 · 63=성별 학생수
 const API_TYPES = [
-  "00", "08", "09", "10", "16", "17", "18", "20", "21", "22",
-  "30", "34", "38", "43", "51", "56", "59",
+  "00", "08", "09", "10", "17", "18", "22",
+  "34", "38", "43", "55", "56", "59", "62", "63",
 ] as const;
 
 const args = process.argv.slice(2);
