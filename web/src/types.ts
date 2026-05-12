@@ -10,6 +10,13 @@ export interface SchoolViolence {
   perpMeasures?: number[];    // 가해학생 선도조치 10개 (학기 합산)
 }
 
+// 학교알리미 "심의 결과" 표의 학기별 raw 컬럼.
+//   n  = 심의 건수
+//   v  = 피해 학생 수
+//   vm = 피해학생 보호조치 합계 (= victimMeasures[0..4] 합과 일치, redundant)
+//   p  = 가해 학생 수
+//   pm = 가해학생 선도조치 합계 (= perpMeasures[0..8] 합과 일치, redundant)
+// vm/pm은 "남학생 수"가 아님. 별도 사용 권장 X — victimMeasures/perpMeasures 사용.
 export interface SchoolViolenceCases {
   s1?: { n: number; v: number; vm: number; p: number; pm: number };
   s2?: { n: number; v: number; vm: number; p: number; pm: number };

@@ -37,6 +37,41 @@ const VICTIM_MEASURE_LABELS = [
   "그 밖의 필요한 조치",
 ];
 
+// 학교 공시 데이터의 산술적 모순 탐지. 보정 없이 사용자에 안내만.
+function detectDataInconsistencies(school: School, years: readonly string[]): string[] {
+  const issues: string[] = [];
+  for (const y of years) {
+    const v = school.violence[y];
+    if (!v?.cases) continue;
+    const totalCases = (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
+    const typeSum = v.types.reduce((a, b) => a + b, 0);
+    const victims = (v.cases.s1?.v ?? 0) + (v.cases.s2?.v ?? 0);
+    const perps = (v.cases.s1?.p ?? 0) + (v.cases.s2?.p ?? 0);
+    const perpMeasureSum = v.perpMeasures
+      ? v.perpMeasures.slice(0, 9).reduce((a, b) => a + b, 0)
+      : 0;
+    const victimMeasureSum = v.victimMeasures
+      ? v.victimMeasures.slice(0, 5).reduce((a, b) => a + b, 0)
+      : 0;
+    if (totalCases > 0 && typeSum === 0) {
+      issues.push(`${y}년 공시: 심의 ${totalCases}건이 있으나 폭력 유형 분류는 모두 0 (학교가 유형별 표 미입력)`);
+    }
+    if (totalCases === 0 && (perpMeasureSum > 0 || victimMeasureSum > 0)) {
+      issues.push(`${y}년 공시: 심의 0건이나 처분/보호조치가 기록됨`);
+    }
+    if (totalCases > 0 && victims === 0 && perps === 0) {
+      issues.push(`${y}년 공시: 심의 ${totalCases}건이 있으나 가해/피해 학생 수가 모두 0`);
+    }
+    if (perps > 0 && perpMeasureSum === 0) {
+      issues.push(`${y}년 공시: 가해 학생 ${perps}명이 있으나 선도조치 0건`);
+    }
+    if (victims > 0 && victimMeasureSum === 0) {
+      issues.push(`${y}년 공시: 피해 학생 ${victims}명이 있으나 보호조치 0건`);
+    }
+  }
+  return issues;
+}
+
 // 학교폭력예방법 17조 (가해학생 선도·교육조치) — 9개 + 마지막 인덱스(9)는 합계
 const PERP_MEASURE_LABELS = [
   "1호 서면사과",
@@ -143,6 +178,21 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
             </div>
           </div>
         )}
+
+        {/* 데이터 모순 경고 — 학교가 부분 입력한 케이스 */}
+        {(() => {
+          const issues = detectDataInconsistencies(school, data.years);
+          if (issues.length === 0) return null;
+          return (
+            <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 p-2 text-[11px] text-amber-900 dark:text-amber-200">
+              <div className="font-semibold mb-0.5">⚠ 공시 데이터 불일치 안내</div>
+              <ul className="list-disc list-inside space-y-0.5">
+                {issues.map((m, i) => <li key={i}>{m}</li>)}
+              </ul>
+              <div className="mt-1 text-[10px] opacity-75">학교가 학교알리미에 항목별로 부분 입력한 경우입니다. 보정 없이 원본 그대로 표시하므로 해석에 주의.</div>
+            </div>
+          );
+        })()}
 
         {/* 처벌·보호 강도 (4년 누계 기준, 연도 선택과 무관) */}
         {(() => {

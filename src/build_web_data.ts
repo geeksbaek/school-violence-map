@@ -116,11 +116,15 @@ interface SchoolView {
   genderRatio: { boy: number; girl: number } | null;
   violence: Record<string, {
     total: number;
+    // 학교알리미 "심의 결과" 표 raw — s1/s2 학기별 { n, v, vm, p, pm }
+    //   n = 심의 건수, v = 피해 학생 수, p = 가해 학생 수
+    //   vm = 보호조치 합계 (victimMeasures 합과 일치, "남학생 수" 아님)
+    //   pm = 선도조치 합계 (perpMeasures 합과 일치)
     cases: any;
     types: number[];   // 8 항목 합산 (s1+s2)
     sped?: number;
-    victimMeasures?: number[];  // 피해학생 보호조치 6개 (학교폭력예방법 16조) 학기 합산
-    perpMeasures?: number[];    // 가해학생 선도조치 10개 (학교폭력예방법 17조) 학기 합산
+    victimMeasures?: number[];  // 피해학생 보호조치 5개 + 합계 인덱스 5 (학폭예방법 16조) 학기 합산
+    perpMeasures?: number[];    // 가해학생 선도조치 9개 + 합계 인덱스 9 (학폭예방법 17조) 학기 합산
   } | null>;
   violenceTotal: number;
   violenceYears: number; // 데이터 있는 년도 수
