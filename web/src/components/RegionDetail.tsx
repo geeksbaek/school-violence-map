@@ -10,14 +10,15 @@ import type { SchoolStat } from "@/lib/stats";
 import type { RegionPick } from "./SchoolDeckLayer";
 import { cn } from "@/lib/utils";
 
-// 학교별 처벌·보호 강도 라벨 (StatsDialog와 동일 경계).
-// 사안 0건/표본 부족도 라벨로 표현 — 라벨 부재 = 데이터 미수신만.
-export type StrengthLabel = { label: string; color: string; bg: string; pct?: number; perCase?: number; tone: "good" | "neutral" | "warn" | "bad" | "muted" };
+// 학교별 선도조치/보호조치 활용 라벨 (StatsDialog와 동일 경계).
+// perCase: 선도조치는 가해자당, 보호조치는 피해자당 평균 조치 건수.
+// 표본 부족도 라벨로 표현 — 라벨 부재 = violence 데이터 미수신만.
+export type StrengthLabel = { label: string; color: string; bg: string; perCase?: number; tone: "good" | "neutral" | "warn" | "bad" | "muted" };
 
 const NEUTRAL_LABEL = (label: string): StrengthLabel => ({ label, color: "#475569", bg: "#e2e8f0", tone: "muted" });
 
 export function computeSchoolStrengthLabels(s: School): { discipline: StrengthLabel | null; protection: StrengthLabel | null } {
-  let perpTotal = 0, perpHeavy = 0, cases = 0, victims = 0, victimMeasures = 0;
+  let perpMeasureSum = 0, cases = 0, victims = 0, perps = 0, victimMeasures = 0;
   let hasViolenceData = false;
   for (const y of Object.keys(s.violence)) {
     const v = s.violence[y];
@@ -26,10 +27,10 @@ export function computeSchoolStrengthLabels(s: School): { discipline: StrengthLa
     if (v.cases) {
       cases += (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
       victims += (v.cases.s1?.v ?? 0) + (v.cases.s2?.v ?? 0);
+      perps += (v.cases.s1?.p ?? 0) + (v.cases.s2?.p ?? 0);
     }
     if (v.perpMeasures) {
-      for (let i = 0; i < 9; i++) perpTotal += v.perpMeasures[i] ?? 0;
-      for (let i = 5; i < 9; i++) perpHeavy += v.perpMeasures[i] ?? 0;
+      for (let i = 0; i < 9; i++) perpMeasureSum += v.perpMeasures[i] ?? 0;
     }
     if (v.victimMeasures) {
       for (let i = 0; i < 5; i++) victimMeasures += v.victimMeasures[i] ?? 0;
@@ -37,21 +38,21 @@ export function computeSchoolStrengthLabels(s: School): { discipline: StrengthLa
   }
   if (!hasViolenceData) return { discipline: null, protection: null };
 
-  // 처벌
+  // 처벌: 분모 = 가해 학생 수 (보호와 일관). 가해 1명당 평균 N개 처분 부여.
   let discipline: StrengthLabel;
-  if (cases === 0) {
-    discipline = NEUTRAL_LABEL("사안 없음");
-  } else if (perpTotal < 5) {
-    discipline = NEUTRAL_LABEL(`표본 부족 (${perpTotal}건)`);
+  if (perps === 0) {
+    discipline = NEUTRAL_LABEL("가해 없음");
+  } else if (perps < 3) {
+    discipline = NEUTRAL_LABEL(`표본 부족 (가해 ${perps}명)`);
   } else {
-    const p = (perpHeavy / perpTotal) * 100;
-    if (p < 5) discipline = { label: "약함", color: "#065f46", bg: "#d1fae5", pct: p, tone: "good" };
-    else if (p < 15) discipline = { label: "보통", color: "#854d0e", bg: "#fef9c3", pct: p, tone: "neutral" };
-    else if (p < 30) discipline = { label: "강함", color: "#9a3412", bg: "#ffedd5", pct: p, tone: "warn" };
-    else discipline = { label: "매우 강함", color: "#7f1d1d", bg: "#fee2e2", pct: p, tone: "bad" };
+    const pc = perpMeasureSum / perps;
+    if (pc < 0.5) discipline = { label: "부재", color: "#065f46", bg: "#d1fae5", perCase: pc, tone: "good" };
+    else if (pc < 1.0) discipline = { label: "약함", color: "#854d0e", bg: "#fef9c3", perCase: pc, tone: "neutral" };
+    else if (pc < 1.5) discipline = { label: "보통", color: "#9a3412", bg: "#ffedd5", perCase: pc, tone: "warn" };
+    else discipline = { label: "강함", color: "#7f1d1d", bg: "#fee2e2", perCase: pc, tone: "bad" };
   }
 
-  // 보호: 분모 = 피해 학생 수 (사안 수가 아님 — 집단 피해 학교 비율 부풀림 방지)
+  // 보호: 분모 = 피해 학생 수
   let protection: StrengthLabel;
   if (victims === 0) {
     protection = NEUTRAL_LABEL("피해 없음");
@@ -89,7 +90,7 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
 
   const summary = useMemo(() => {
     let total = 0, rateSum = 0, rateCnt = 0, hasData = false;
-    let perpTotal = 0, perpHeavy = 0;
+    let perpMeasureSum = 0;
     let cases = 0, victimMeasures = 0, victims = 0, perps = 0;
     for (const s of inRegion) {
       const st = stats.get(s.code);
@@ -111,8 +112,7 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
           perps += (v.cases.s1?.p ?? 0) + (v.cases.s2?.p ?? 0);
         }
         if (v.perpMeasures) {
-          for (let i = 0; i < 9; i++) perpTotal += v.perpMeasures[i] ?? 0;
-          for (let i = 5; i < 9; i++) perpHeavy += v.perpMeasures[i] ?? 0;
+          for (let i = 0; i < 9; i++) perpMeasureSum += v.perpMeasures[i] ?? 0;
         }
         if (v.victimMeasures) {
           for (let i = 0; i < 5; i++) victimMeasures += v.victimMeasures[i] ?? 0;
@@ -120,22 +120,22 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
       }
     }
     const avgRate = rateCnt > 0 ? rateSum / rateCnt : null;
-    const heavyPct = perpTotal > 0 ? (perpHeavy / perpTotal) * 100 : null;
+    const disciplinePerPerp = perps > 0 ? perpMeasureSum / perps : null;
     const protectionPerVictim = victims > 0 ? victimMeasures / victims : null;
-    return { total, avgRate, hasData, heavyPct, protectionPerVictim, cases, victims, perps };
+    return { total, avgRate, hasData, disciplinePerPerp, protectionPerVictim, cases, victims, perps };
   }, [inRegion, stats]);
 
-  // 처벌 강도 라벨 (DisciplineStrengthCard와 동일 경계)
+  // 선도조치 라벨 (분모 = 가해 학생 수, 보호와 일관)
   const discStrength = useMemo(() => {
-    if (summary.heavyPct == null) return null;
-    const p = summary.heavyPct;
-    if (p < 5) return { label: "약함", color: "#065f46", bg: "#d1fae5" };
-    if (p < 15) return { label: "보통", color: "#854d0e", bg: "#fef9c3" };
-    if (p < 30) return { label: "강함", color: "#9a3412", bg: "#ffedd5" };
-    return { label: "매우 강함", color: "#7f1d1d", bg: "#fee2e2" };
-  }, [summary.heavyPct]);
+    if (summary.disciplinePerPerp == null || summary.perps < 5) return null;
+    const p = summary.disciplinePerPerp;
+    if (p < 0.5) return { label: "부재", color: "#065f46", bg: "#d1fae5" };
+    if (p < 1.0) return { label: "약함", color: "#854d0e", bg: "#fef9c3" };
+    if (p < 1.5) return { label: "보통", color: "#9a3412", bg: "#ffedd5" };
+    return { label: "강함", color: "#7f1d1d", bg: "#fee2e2" };
+  }, [summary.disciplinePerPerp, summary.perps]);
 
-  // 보호 강도 라벨 (ProtectionStrengthCard와 동일 경계, 분모=피해 학생)
+  // 보호조치 라벨 (ProtectionStrengthCard와 동일 경계, 분모=피해 학생)
   const protStrength = useMemo(() => {
     if (summary.protectionPerVictim == null || summary.victims < 5) return null;
     const p = summary.protectionPerVictim;
@@ -214,7 +214,7 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
           )}
           {discStrength && (
             <div className="rounded bg-muted/50 p-2 flex flex-col gap-0.5">
-              <div className="text-[10px] text-muted-foreground">처벌 강도 (6~9호 비율)</div>
+              <div className="text-[10px] text-muted-foreground">선도조치 (가해자당)</div>
               <div className="flex items-center gap-1.5">
                 <span
                   className="px-1.5 py-0.5 rounded text-[10px] font-semibold leading-none"
@@ -222,13 +222,13 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
                 >
                   {discStrength.label}
                 </span>
-                <span className="tabular-nums text-[11px]">{summary.heavyPct!.toFixed(1)}%</span>
+                <span className="tabular-nums text-[11px]">{summary.disciplinePerPerp!.toFixed(2)}건</span>
               </div>
             </div>
           )}
           {protStrength && (
             <div className="rounded bg-muted/50 p-2 flex flex-col gap-0.5">
-              <div className="text-[10px] text-muted-foreground">보호 강도 (피해자당)</div>
+              <div className="text-[10px] text-muted-foreground">보호조치 (피해자당)</div>
               <div className="flex items-center gap-1.5">
                 <span
                   className="px-1.5 py-0.5 rounded text-[10px] font-semibold leading-none"
@@ -283,9 +283,9 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
                       <span
                         className="px-1 py-px rounded text-[9px] font-semibold leading-none"
                         style={{ background: labels.discipline.bg, color: labels.discipline.color }}
-                        title={labels.discipline.pct != null ? `강한 처벌(6~9호) 비율 ${labels.discipline.pct.toFixed(0)}%` : undefined}
+                        title={labels.discipline.perCase != null ? `가해 학생당 선도조치 ${labels.discipline.perCase.toFixed(2)}건` : undefined}
                       >
-                        처벌 {labels.discipline.label}
+                        선도조치 {labels.discipline.label}
                       </span>
                     )}
                     {labels.protection && (
@@ -294,7 +294,7 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
                         style={{ background: labels.protection.bg, color: labels.protection.color }}
                         title={labels.protection.perCase != null ? `피해 학생당 보호조치 ${labels.protection.perCase.toFixed(2)}건` : undefined}
                       >
-                        보호 {labels.protection.label}
+                        보호조치 {labels.protection.label}
                       </span>
                     )}
                   </div>

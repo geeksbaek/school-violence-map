@@ -340,9 +340,9 @@ export function Sidebar({
                           <span
                             className="px-1 py-px rounded text-[9px] font-semibold leading-none"
                             style={{ background: labels.discipline.bg, color: labels.discipline.color }}
-                            title={labels.discipline.pct != null ? `강한 처벌(6~9호) 비율 ${labels.discipline.pct.toFixed(0)}%` : undefined}
+                            title={labels.discipline.perCase != null ? `가해 학생당 선도조치 ${labels.discipline.perCase.toFixed(2)}건` : undefined}
                           >
-                            처벌 {labels.discipline.label}
+                            선도조치 {labels.discipline.label}
                           </span>
                         )}
                         {labels.protection && (
@@ -351,7 +351,7 @@ export function Sidebar({
                             style={{ background: labels.protection.bg, color: labels.protection.color }}
                             title={labels.protection.perCase != null ? `피해 학생당 보호조치 ${labels.protection.perCase.toFixed(2)}건` : undefined}
                           >
-                            보호 {labels.protection.label}
+                            보호조치 {labels.protection.label}
                           </span>
                         )}
                       </div>

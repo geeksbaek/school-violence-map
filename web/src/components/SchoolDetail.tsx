@@ -200,7 +200,7 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
           );
         })()}
 
-        {/* 처벌·보호 강도 (4년 누계 기준, 연도 선택과 무관) */}
+        {/* 처벌·보호조치 활용 (4년 누계 기준, 연도 선택과 무관) */}
         {(() => {
           const labels = computeSchoolStrengthLabels(school);
           if (!labels.discipline && !labels.protection) return null;
@@ -210,9 +210,9 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
                 <span
                   className="px-1.5 py-0.5 rounded font-semibold leading-none"
                   style={{ background: labels.discipline.bg, color: labels.discipline.color }}
-                  title={labels.discipline.pct != null ? `강한 처벌(6~9호) 비율 ${labels.discipline.pct.toFixed(1)}%` : undefined}
+                  title={labels.discipline.perCase != null ? `가해 학생당 선도조치 ${labels.discipline.perCase.toFixed(2)}건 (전국 평균 ~0.56)` : undefined}
                 >
-                  처벌 강도: {labels.discipline.label}{labels.discipline.pct != null && ` (${labels.discipline.pct.toFixed(0)}%)`}
+                  선도조치 활용: {labels.discipline.label}{labels.discipline.perCase != null && ` (${labels.discipline.perCase.toFixed(2)}건/가해자)`}
                 </span>
               )}
               {labels.protection && (
@@ -221,7 +221,7 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
                   style={{ background: labels.protection.bg, color: labels.protection.color }}
                   title={labels.protection.perCase != null ? `피해 학생당 보호조치 ${labels.protection.perCase.toFixed(2)}건 (전국 평균 ~0.56)` : undefined}
                 >
-                  보호 강도: {labels.protection.label}{labels.protection.perCase != null && ` (${labels.protection.perCase.toFixed(2)}건/피해자)`}
+                  보호조치 활용: {labels.protection.label}{labels.protection.perCase != null && ` (${labels.protection.perCase.toFixed(2)}건/피해자)`}
                 </span>
               )}
             </div>

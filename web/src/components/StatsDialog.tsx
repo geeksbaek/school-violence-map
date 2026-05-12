@@ -198,19 +198,19 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
           {/* 13. 우리 아이가 학폭 당사자가 될 확률 */}
           <SafetyOddsCard data={yearScopedData} selected={yearScopedSelected} scope={scope} />
 
-          {/* 14. 우리 학교의 처벌 강도 */}
+          {/* 14. 우리 학교의 선도조치 활용 */}
           <DisciplineStrengthCard data={yearScopedData} selected={yearScopedSelected} />
 
-          {/* 15. 우리 학교의 피해자 보호 강도 */}
+          {/* 15. 우리 학교의 피해자 보호조치 활용 */}
           <ProtectionStrengthCard data={yearScopedData} selected={yearScopedSelected} />
 
           {/* 16. 우리 동네 학교 안전 순위 */}
           {yearScopedSelected && <NeighborhoodRankCard data={yearScopedData} selected={yearScopedSelected} />}
 
-          {/* 17. 처벌 강도 가장 높은 학교 TOP */}
+          {/* 17. 선도조치 활용 가장 높은 학교 TOP */}
           <TopDisciplineSchoolsCard data={yearScopedData} selected={selected} />
 
-          {/* 18. 피해자 보호 강도 가장 높은 학교 TOP */}
+          {/* 18. 피해자 보호조치 활용 가장 높은 학교 TOP */}
           <TopProtectionSchoolsCard data={yearScopedData} selected={selected} />
         </div>
         </PickContext.Provider>
@@ -1025,58 +1025,60 @@ function SafetyOddsCard({ data, selected, scope }: { data: DataSet; selected: Sc
   );
 }
 
-// ─── Card 14: 우리 학교 처벌 강도 ─────────────
+// ─── Card 14: 우리 학교 선도조치 활용 ─────────────
 function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: School | null }) {
   const dist = useMemo(() => {
-    const buckets = { 약함: 0, 보통: 0, 강함: 0, 매우강함: 0 };
-    let mySchoolPct: number | null = null;
-    let avgHeavy = 0, n = 0;
+    const buckets = { 부재: 0, 약함: 0, 보통: 0, 강함: 0 };
+    let mySchoolPC: number | null = null;
+    let avgPC = 0, n = 0;
     for (const s of data.schools) {
-      let total = 0, heavy = 0;
+      let perps = 0, measures = 0;
       for (const y of data.years) {
-        const pm = s.violence[y]?.perpMeasures;
-        if (!pm) continue;
-        for (let i = 0; i < 9; i++) total += pm[i] ?? 0;
-        for (let i = 5; i < 9; i++) heavy += pm[i] ?? 0;
+        const v = s.violence[y];
+        if (!v?.cases) continue;
+        perps += (v.cases.s1?.p ?? 0) + (v.cases.s2?.p ?? 0);
+        if (v.perpMeasures) {
+          for (let i = 0; i < 9; i++) measures += v.perpMeasures[i] ?? 0;
+        }
       }
-      if (total < 5) continue;
-      const pct = (heavy / total) * 100;
-      avgHeavy += pct; n++;
-      if (pct < 5) buckets.약함++;
-      else if (pct < 15) buckets.보통++;
-      else if (pct < 30) buckets.강함++;
-      else buckets.매우강함++;
-      if (selected && s.code === selected.code) mySchoolPct = pct;
+      if (perps < 3) continue;
+      const pc = measures / perps;
+      avgPC += pc; n++;
+      if (pc < 0.5) buckets.부재++;
+      else if (pc < 1.0) buckets.약함++;
+      else if (pc < 1.5) buckets.보통++;
+      else buckets.강함++;
+      if (selected && s.code === selected.code) mySchoolPC = pc;
     }
-    return { buckets, avgHeavy: n > 0 ? avgHeavy / n : 0, n, mySchoolPct };
+    return { buckets, avgPC: n > 0 ? avgPC / n : 0, n, mySchoolPC };
   }, [data, selected]);
 
   const labels: { key: keyof typeof dist.buckets; label: string; color: string; range: string }[] = [
-    { key: "약함", label: "약함", color: "#10b981", range: "<5%" },
-    { key: "보통", label: "보통", color: "#facc15", range: "5–15%" },
-    { key: "강함", label: "강함", color: "#f97316", range: "15–30%" },
-    { key: "매우강함", label: "매우 강함", color: "#dc2626", range: "≥30%" },
+    { key: "부재", label: "부재", color: "#10b981", range: "<0.5건" },
+    { key: "약함", label: "약함", color: "#facc15", range: "0.5–1.0" },
+    { key: "보통", label: "보통", color: "#f97316", range: "1.0–1.5" },
+    { key: "강함", label: "강함", color: "#dc2626", range: "≥1.5" },
   ];
   const total = Object.values(dist.buckets).reduce((a, b) => a + b, 0);
   const max = Math.max(1, ...Object.values(dist.buckets));
 
   return (
-    <Card title="학교의 처벌 강도 분포" subtitle="가해학생 중 6호(출석정지)~9호(퇴학) 처분 비율 — 사안 5건+ 학교만">
+    <Card title="학교의 선도조치 활용 분포" subtitle="가해학생 1명당 평균 선도조치 수 (가해 3명+)">
       <div className="flex flex-col gap-1">
         {labels.map((b) => {
           const cnt = dist.buckets[b.key];
           const pct = total > 0 ? (cnt / total) * 100 : 0;
           const w = (cnt / max) * 100;
           const myBucket =
-            dist.mySchoolPct == null ? false :
-            (b.key === "약함" && dist.mySchoolPct < 5) ||
-            (b.key === "보통" && dist.mySchoolPct >= 5 && dist.mySchoolPct < 15) ||
-            (b.key === "강함" && dist.mySchoolPct >= 15 && dist.mySchoolPct < 30) ||
-            (b.key === "매우강함" && dist.mySchoolPct >= 30);
+            dist.mySchoolPC == null ? false :
+            (b.key === "부재" && dist.mySchoolPC < 0.5) ||
+            (b.key === "약함" && dist.mySchoolPC >= 0.5 && dist.mySchoolPC < 1.0) ||
+            (b.key === "보통" && dist.mySchoolPC >= 1.0 && dist.mySchoolPC < 1.5) ||
+            (b.key === "강함" && dist.mySchoolPC >= 1.5);
           return (
             <div key={b.key} className={cn("flex items-center gap-2 text-xs", myBucket && "font-bold")}>
               <span className="w-20 text-muted-foreground">{b.label}</span>
-              <span className="text-[10px] text-muted-foreground w-12">({b.range})</span>
+              <span className="text-[10px] text-muted-foreground w-14">({b.range})</span>
               <div className="flex-1 bg-muted h-3 rounded-sm overflow-hidden">
                 <div className="h-full" style={{ width: `${w}%`, background: b.color }} />
               </div>
@@ -1087,16 +1089,15 @@ function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: S
         })}
       </div>
       <Insight>
-        전국 학교 평균 강한 처벌 비율: <b>{dist.avgHeavy.toFixed(1)}%</b>.
-        {dist.mySchoolPct != null && <> 우리 학교: <b className={cn(dist.mySchoolPct >= 15 ? "text-red-700 dark:text-red-400" : "text-green-700 dark:text-green-400")}>{dist.mySchoolPct.toFixed(1)}%</b>.</>}
-        {" "}처벌 강도는 사건의 심각성을 반영 — <b>"강함"이 무조건 좋은 학교는 아님</b>.
-        다만 사건이 많은데 약한 처벌만 있으면 솜방망이 가능성, 사건이 적은데도 강한 처벌이 있으면 엄정 처리 학교일 수 있음.
+        전국 평균: 가해 1명당 <b>{dist.avgPC.toFixed(2)}건</b> 처분 부여 (1호~9호 합산).
+        {dist.mySchoolPC != null && <> 우리 학교: <b className={cn(dist.mySchoolPC >= 1.0 ? "text-red-700 dark:text-red-400" : "text-green-700 dark:text-green-400")}>{dist.mySchoolPC.toFixed(2)}건</b>.</>}
+        {" "}한 학생에게 여러 호 중복 부여 가능 (예: 5호 특별교육 + 6호 출석정지). 부재이면 솜방망이 가능성, 강하면 엄정 처리 또는 중대 사안 비중↑.
       </Insight>
     </Card>
   );
 }
 
-// ─── Card 15: 피해자 보호 강도 ─────────────────
+// ─── Card 15: 피해자 보호조치 활용 ─────────────────
 function ProtectionStrengthCard({ data, selected }: { data: DataSet; selected: School | null }) {
   const stats = useMemo(() => {
     let totalVictims = 0, totalMeasures = 0;
@@ -1122,7 +1123,7 @@ function ProtectionStrengthCard({ data, selected }: { data: DataSet; selected: S
   }, [data, selected]);
 
   return (
-    <Card title="피해 학생 보호 강도" subtitle="피해 학생 1명당 평균 보호조치 수 (학폭예방법 16조 1~5호 합산)">
+    <Card title="피해 학생 보호조치 활용" subtitle="피해 학생 1명당 평균 보호조치 수 (학폭예방법 16조 1~5호 합산)">
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded bg-muted/40 p-2">
           <div className="text-[10px] text-muted-foreground">전국 평균</div>
@@ -1205,30 +1206,32 @@ function NeighborhoodRankCard({ data, selected }: { data: DataSet; selected: Sch
   );
 }
 
-// ─── Card 17: 처벌 강도 가장 높은 학교 TOP ──────
+// ─── Card 17: 선도조치 활용 가장 높은 학교 TOP ──────
 function TopDisciplineSchoolsCard({ data, selected }: { data: DataSet; selected: School | null }) {
   const items = useMemo(() => {
-    const out: { s: School; pct: number; total: number }[] = [];
+    const out: { s: School; perPerp: number; perps: number }[] = [];
     for (const s of data.schools) {
-      let total = 0, heavy = 0;
+      let perps = 0, measures = 0;
       for (const y of data.years) {
-        const pm = s.violence[y]?.perpMeasures;
-        if (!pm) continue;
-        for (let i = 0; i < 9; i++) total += pm[i] ?? 0;
-        for (let i = 5; i < 9; i++) heavy += pm[i] ?? 0;
+        const v = s.violence[y];
+        if (!v?.cases) continue;
+        perps += (v.cases.s1?.p ?? 0) + (v.cases.s2?.p ?? 0);
+        if (v.perpMeasures) {
+          for (let i = 0; i < 9; i++) measures += v.perpMeasures[i] ?? 0;
+        }
       }
-      if (total < 5) continue;
-      out.push({ s, pct: (heavy / total) * 100, total });
+      if (perps < 3) continue;
+      out.push({ s, perPerp: measures / perps, perps });
     }
-    return out.sort((a, b) => b.pct - a.pct).slice(0, 12);
+    return out.sort((a, b) => b.perPerp - a.perPerp).slice(0, 12);
   }, [data]);
   return (
-    <Card title="처벌 강도 가장 높은 학교 TOP 12" subtitle="6~9호 처분 비율 (사안 5건+ 학교 중)">
+    <Card title="선도조치 활용 가장 높은 학교 TOP 12" subtitle="가해학생 1명당 평균 선도조치 수 (가해 3명+)">
       {items.length === 0 ? (
         <Empty msg="조건을 만족하는 학교 없음" />
       ) : (
         <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
-          {items.map(({ s, pct, total }, i) => {
+          {items.map(({ s, perPerp, perps }, i) => {
             const isMine = selected?.code === s.code;
             return (
               <div key={s.code} className={cn("flex items-center gap-2 text-xs", isMine && "font-bold")}>
@@ -1239,23 +1242,22 @@ function TopDisciplineSchoolsCard({ data, selected }: { data: DataSet; selected:
                 <span className="text-[10px] text-muted-foreground w-20 text-right truncate">
                   {[s.city, s.district].filter(Boolean).join(" ")}
                 </span>
-                <span className="tabular-nums w-12 text-right text-red-700 dark:text-red-400 font-semibold">{pct.toFixed(0)}%</span>
-                <span className="text-[10px] text-muted-foreground w-10 text-right">{total}건</span>
+                <span className="tabular-nums w-12 text-right text-red-700 dark:text-red-400 font-semibold">{perPerp.toFixed(2)}</span>
+                <span className="text-[10px] text-muted-foreground w-10 text-right">가해 {perps}</span>
               </div>
             );
           })}
         </div>
       )}
       <Insight>
-        강한 처벌(전학·퇴학 포함) 비율이 높은 학교 — 사건의 심각성을 반영함.
-        "엄정 처리" 학교일 수도 있고, 한두 건의 중대 사안이 비율을 끌어올린 경우일 수도 있음.
-        총 사안 수도 함께 살펴봐야 함.
+        가해 학생 1명당 다층 처분(여러 호 동시 부여)을 두텁게 내리는 학교.
+        분모를 가해 학생 수로 잡아 보호조치 카드와 일관된 의미. 한 학생에게 여러 호 중복 부여(예: 5호 + 6호)되면 비율↑.
       </Insight>
     </Card>
   );
 }
 
-// ─── Card 18: 피해자 보호 강도 가장 높은 학교 TOP
+// ─── Card 18: 피해자 보호조치 활용 가장 높은 학교 TOP
 function TopProtectionSchoolsCard({ data, selected }: { data: DataSet; selected: School | null }) {
   const items = useMemo(() => {
     const out: { s: School; perVictim: number; victims: number }[] = [];
@@ -1275,7 +1277,7 @@ function TopProtectionSchoolsCard({ data, selected }: { data: DataSet; selected:
     return out.sort((a, b) => b.perVictim - a.perVictim).slice(0, 12);
   }, [data]);
   return (
-    <Card title="피해 학생 보호 강도 가장 높은 학교 TOP 12" subtitle="피해 학생 1명당 평균 보호조치 수 (피해 3명+)">
+    <Card title="피해 학생 보호조치 활용 가장 높은 학교 TOP 12" subtitle="피해 학생 1명당 평균 보호조치 수 (피해 3명+)">
       {items.length === 0 ? (
         <Empty msg="조건을 만족하는 학교 없음" />
       ) : (
