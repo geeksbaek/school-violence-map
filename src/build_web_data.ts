@@ -104,6 +104,7 @@ interface SchoolView {
   gender: "여" | "남" | "공학";
   city: string;
   district: string;
+  sido: string;        // 광역 시·도 (atptOrg에서 추출). 17개 표준 단위.
   dong: string;        // 행정동 (없으면 빈 문자열)
   dongCode: string;
   sgg: string;
@@ -540,6 +541,7 @@ for (const code of Object.keys(schools)) {
     dongCode: dongMatch?.code ?? "",
     city: s.city,
     district: s.district,
+    sido: (s.atptOrg ?? "").replace(/교육청$/, "") || s.city,
     sgg: s.sgg,
     addr: s.addr,
     lat: s.lat,

@@ -53,3 +53,172 @@ export function setToBits(s: Set<number>): number {
   return m;
 }
 export const ALL_TYPES_MASK = ALL_BITS;
+
+// ─── 학부모 인사이트용 집계 ───────────────────────────────
+
+export type SizeBucket = "<200" | "200–500" | "500–1000" | "1000+";
+
+export function sizeBucket(n: number | null | undefined): SizeBucket | null {
+  if (n == null) return null;
+  if (n < 200) return "<200";
+  if (n < 500) return "200–500";
+  if (n < 1000) return "500–1000";
+  return "1000+";
+}
+
+export interface SegmentStat {
+  count: number;
+  withData: number;
+  zeroFour: number;
+  avgRate: number;
+  avgViolence: number;
+  avgSelfResolved: number;
+  selfRatio: number;
+  typeShare: number[];
+  yearTotals: { year: string; violence: number; selfResolved: number }[];
+}
+
+interface AggInput {
+  count: number;
+  withData: number;
+  zeroFour: number;
+  rateSum: number;
+  rateCount: number;
+  violenceSum: number;
+  selfSum: number;
+  typeSum: number[];
+  yearViolence: Map<string, number>;
+  yearSelf: Map<string, number>;
+}
+function emptyAgg(years: readonly string[]): AggInput {
+  return {
+    count: 0, withData: 0, zeroFour: 0,
+    rateSum: 0, rateCount: 0, violenceSum: 0, selfSum: 0,
+    typeSum: Array(8).fill(0),
+    yearViolence: new Map(years.map((y) => [y, 0])),
+    yearSelf: new Map(years.map((y) => [y, 0])),
+  };
+}
+function feed(agg: AggInput, s: School, years: readonly string[]) {
+  agg.count++;
+  let totalV = 0, totalS = 0, hadAny = false;
+  for (const y of years) {
+    const v = s.violence[y];
+    const sr = s.selfResolved?.[y];
+    if (v) {
+      hadAny = true;
+      totalV += v.total;
+      agg.yearViolence.set(y, (agg.yearViolence.get(y) ?? 0) + v.total);
+      for (let i = 0; i < 8; i++) agg.typeSum[i] += v.types[i] ?? 0;
+    }
+    if (sr) {
+      hadAny = true;
+      totalS += sr.total;
+      agg.yearSelf.set(y, (agg.yearSelf.get(y) ?? 0) + sr.total);
+    }
+  }
+  if (hadAny) {
+    agg.withData++;
+    agg.violenceSum += totalV;
+    agg.selfSum += totalS;
+    if (totalV === 0 && totalS === 0) agg.zeroFour++;
+    if (s.violenceRatePer100 != null) {
+      agg.rateSum += s.violenceRatePer100;
+      agg.rateCount++;
+    }
+  }
+}
+function finalize(agg: AggInput, years: readonly string[]): SegmentStat {
+  const typeTotal = agg.typeSum.reduce((a, b) => a + b, 0);
+  const totalAll = agg.violenceSum + agg.selfSum;
+  return {
+    count: agg.count,
+    withData: agg.withData,
+    zeroFour: agg.zeroFour,
+    avgRate: agg.rateCount > 0 ? agg.rateSum / agg.rateCount : 0,
+    avgViolence: agg.withData > 0 ? agg.violenceSum / agg.withData : 0,
+    avgSelfResolved: agg.withData > 0 ? agg.selfSum / agg.withData : 0,
+    selfRatio: totalAll > 0 ? agg.selfSum / totalAll : 0,
+    typeShare: typeTotal > 0 ? agg.typeSum.map((v) => v / typeTotal) : Array(8).fill(0),
+    yearTotals: years.map((y) => ({
+      year: y,
+      violence: agg.yearViolence.get(y) ?? 0,
+      selfResolved: agg.yearSelf.get(y) ?? 0,
+    })),
+  };
+}
+
+export interface AggregateResult {
+  all: SegmentStat;
+  byKind: Record<string, SegmentStat>;
+  byFoundation: Record<string, SegmentStat>;
+  bySize: Record<SizeBucket, SegmentStat>;
+  bySido: Record<string, SegmentStat>;
+}
+
+export function computeAggregates(schools: School[], years: readonly string[]): AggregateResult {
+  const all = emptyAgg(years);
+  const byKind: Record<string, AggInput> = {};
+  const byFoundation: Record<string, AggInput> = {};
+  const bySize: Record<string, AggInput> = {};
+  const bySido: Record<string, AggInput> = {};
+
+  for (const s of schools) {
+    feed(all, s, years);
+    (byKind[s.kind] ??= emptyAgg(years));
+    feed(byKind[s.kind], s, years);
+    if (s.foundation) {
+      (byFoundation[s.foundation] ??= emptyAgg(years));
+      feed(byFoundation[s.foundation], s, years);
+    }
+    const sb = sizeBucket(s.studentTotal);
+    if (sb) {
+      (bySize[sb] ??= emptyAgg(years));
+      feed(bySize[sb], s, years);
+    }
+    const sido = s.sido || s.city;
+    if (sido) {
+      (bySido[sido] ??= emptyAgg(years));
+      feed(bySido[sido], s, years);
+    }
+  }
+
+  const fin = (m: Record<string, AggInput>) => {
+    const out: Record<string, SegmentStat> = {};
+    for (const k of Object.keys(m)) out[k] = finalize(m[k], years);
+    return out;
+  };
+  return {
+    all: finalize(all, years),
+    byKind: fin(byKind),
+    byFoundation: fin(byFoundation),
+    bySize: fin(bySize) as Record<SizeBucket, SegmentStat>,
+    bySido: fin(bySido),
+  };
+}
+
+// ─── 선택된 학교의 백분위 (낮을수록 안전) ─────────────
+export interface PercentileInfo {
+  scope: string;
+  count: number;
+  rank: number;
+  percentile: number;   // 0~100, 100이면 가장 위험
+}
+
+export function schoolPercentile(
+  target: School,
+  pool: School[],
+  scopeLabel: string,
+): PercentileInfo | null {
+  if (target.violenceRatePer100 == null) return null;
+  const rates = pool
+    .filter((s) => s.violenceRatePer100 != null && s.code !== target.code)
+    .map((s) => s.violenceRatePer100 as number);
+  if (rates.length < 2) return null;
+  const lower = rates.filter((r) => r < (target.violenceRatePer100 as number)).length;
+  const equal = rates.filter((r) => r === (target.violenceRatePer100 as number)).length;
+  const total = rates.length + 1;
+  const rank = lower + Math.ceil(equal / 2) + 1;
+  const percentile = Math.round((rank / total) * 100);
+  return { scope: scopeLabel, count: total, rank, percentile };
+}

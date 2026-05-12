@@ -17,6 +17,7 @@ export interface School {
   dongCode?: string;
   city: string;
   district: string;
+  sido?: string;
   sgg: string;
   addr: string;
   lat: number;

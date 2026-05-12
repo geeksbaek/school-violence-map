@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,18 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
   const selectedYearPe = school.preventionEdu?.[selectedYear];
   const maxTypeTotal = Math.max(1, ...(selectedYearV?.types ?? [0]));
 
+  // 주의 신호 — 같은 학교종류 평균과 비교
+  const peerAvgRate = useMemo(() => {
+    const rates = data.schools
+      .filter((s) => s.kind === school.kind && s.violenceRatePer100 != null)
+      .map((s) => s.violenceRatePer100 as number);
+    if (rates.length < 5) return null;
+    return rates.reduce((a, b) => a + b, 0) / rates.length;
+  }, [data.schools, school.kind]);
+  const myRate = school.violenceRatePer100;
+  const ratio = peerAvgRate && myRate != null ? myRate / Math.max(0.01, peerAvgRate) : null;
+  const isAllZero = stat.hasData && stat.years === data.years.length && stat.total === 0 && (school.selfResolvedTotal ?? 0) === 0;
+
   return (
     <Card className="w-full gap-3 py-0 pb-4">
       <CardHeader className="sticky top-0 z-20 bg-card rounded-t-xl flex-row items-start justify-between gap-2 px-4 pt-4 pb-3 border-b">
@@ -95,6 +107,27 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
           <Stat label="학급수" value={school.classTotal?.toString() ?? "—"} />
           <Stat label="교원" value={school.teachers?.toString() ?? "—"} />
         </div>
+
+        {/* 주의 신호 */}
+        {(ratio != null && (ratio >= 1.5 || ratio <= 0.5)) || isAllZero ? (
+          <div className="flex flex-wrap gap-1.5">
+            {ratio != null && ratio >= 1.5 && (
+              <Badge variant="destructive" className="text-[10px]">
+                {school.kind} 평균 대비 {ratio.toFixed(1)}배 ↑
+              </Badge>
+            )}
+            {ratio != null && ratio <= 0.5 && !isAllZero && (
+              <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-900">
+                {school.kind} 평균 대비 낮음
+              </Badge>
+            )}
+            {isAllZero && (
+              <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-900">
+                4년 연속 사건 0건
+              </Badge>
+            )}
+          </div>
+        ) : null}
 
         {/* 학폭 요약 */}
         <div

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Search, X } from "lucide-react";
+import { BarChart3, Search, X } from "lucide-react";
+import { StatsDialog } from "@/components/StatsDialog";
 import {
   SEVERITY_COLOR, SEVERITY_ORDER, severityOf, severityLabel, type Metric,
 } from "@/lib/severity";
@@ -40,6 +41,7 @@ const ALL_TYPES = [0, 1, 2, 3, 4, 5, 6, 7];
 export function Sidebar({
   data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, onClose,
 }: Props) {
+  const [statsOpen, setStatsOpen] = useState(false);
   const sortedTop = useMemo(() => {
     return [...filtered].sort((a, b) => {
       const sa = stats.get(a.code);
@@ -84,12 +86,24 @@ export function Sidebar({
             전국 {data.schools.length.toLocaleString()}개 학교
           </span>
         </div>
-        {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden shrink-0 -mt-1 -mr-1">
-            <X className="size-4" />
+        <div className="flex items-center gap-1 shrink-0 -mt-1 -mr-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setStatsOpen(true)}
+            className="h-7 px-2 gap-1 text-xs"
+          >
+            <BarChart3 className="size-3.5" />
+            통계
           </Button>
-        )}
+          {onClose && (
+            <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden">
+              <X className="size-4" />
+            </Button>
+          )}
+        </div>
       </header>
+      <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} data={data} selected={selected} />
 
       {/* 자동완성 검색 — 학교 1개 선택 */}
       <SchoolAutocomplete
