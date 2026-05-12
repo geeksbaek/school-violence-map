@@ -135,14 +135,14 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
           <div className="grid grid-cols-3 gap-1.5">
             <div className="rounded bg-muted/50 p-1.5">
               <div className="text-[10px] text-muted-foreground">
-                심의 4년 {!allTypesOn && <span>· 선택</span>}
+                {allTypesOn ? "전체 4년 (심의+자체)" : "심의 4년 · 선택"}
               </div>
               <div className="text-sm font-semibold tabular-nums">
                 {stat.hasData ? `${stat.total}건` : "—"}
               </div>
             </div>
             <div className="rounded bg-muted/50 p-1.5">
-              <div className="text-[10px] text-muted-foreground">자체해결 4년</div>
+              <div className="text-[10px] text-muted-foreground">└ 자체해결 4년</div>
               <div className="text-sm font-semibold tabular-nums">
                 {school.selfResolvedTotal != null ? `${school.selfResolvedTotal}건` : "—"}
               </div>

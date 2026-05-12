@@ -448,12 +448,7 @@ for (const code of Object.keys(schools)) {
     yearsWithData++;
   }
 
-  const violenceRatePer100 =
-    studentTotal && studentTotal > 0 && yearsWithData > 0
-      ? Math.round((violenceTotal / yearsWithData / studentTotal) * 100 * 1000) / 1000
-      : null;
-
-  // 자체해결 (cd 75)
+  // 자체해결 (cd 75) — 먼저 계산해야 violenceRatePer100에 합산 가능
   const sr: SchoolView["selfResolved"] = {};
   let selfResolvedTotal = 0;
   for (const y of YEARS) {
@@ -467,6 +462,12 @@ for (const code of Object.keys(schools)) {
     sr[y] = { s1, s2, total: s1 + s2 };
     selfResolvedTotal += s1 + s2;
   }
+
+  // 학폭 비율 — 심의 + 자체해결 합산 (학부모가 인식하는 "전체 학폭")
+  const violenceRatePer100 =
+    studentTotal && studentTotal > 0 && yearsWithData > 0
+      ? Math.round(((violenceTotal + selfResolvedTotal) / yearsWithData / studentTotal) * 100 * 1000) / 1000
+      : null;
 
   // 예방교육 (cd 66) — 의미 추출된 요약치만
   const pe: SchoolView["preventionEdu"] = {};

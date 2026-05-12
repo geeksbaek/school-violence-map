@@ -1,7 +1,11 @@
 /**
- * 학폭 심각도 → 색상/라벨.
- * - rate 모드: (4년 평균 사건수 / 학생수) × 100 (학생100명당 연 사건)
- * - count 모드: 4년 절대 합계 건수
+ * 학폭 심각도 → 색상/라벨. 심의 + 자체해결 합산 기준.
+ * - rate 모드: ((심의+자체) / 데이터년수 / 학생수) × 100 (학생100명당 연 사건)
+ * - count 모드: (심의+자체) 4년 절대 합계 건수
+ *
+ * 전국 분포 (12,563교):
+ *   비율: p25=0.43 · p50=0.93 · p75=1.85 · p90=3.18 · p95=4.31 · p99=7.69
+ *   건수: p25=3    · p50=12   · p75=28   · p90=51   · p95=70   · p99=115
  */
 export type Severity = "none" | "low" | "moderate" | "high" | "severe" | "unknown";
 export type Metric = "rate" | "count";
@@ -9,20 +13,19 @@ export type Metric = "rate" | "count";
 export function severityOfRate(rate: number | null, hasData: boolean): Severity {
   if (!hasData) return "unknown";
   if (rate == null || rate === 0) return "none";
-  if (rate < 0.5) return "low";
-  if (rate < 1.5) return "moderate";
-  if (rate < 3.0) return "high";
-  return "severe";
+  if (rate < 0.5) return "low";        // ~p25
+  if (rate < 2.0) return "moderate";   // ~p75
+  if (rate < 4.5) return "high";       // ~p95
+  return "severe";                     // p95+
 }
 
 export function severityOfCount(total: number, hasData: boolean): Severity {
   if (!hasData) return "unknown";
   if (total === 0) return "none";
-  // 분포 기반 (전국 4년 합계: p25=3, p50=8, p75=17, p90=30, p95=39, p99=62)
-  if (total < 5) return "low";        // ~p25
-  if (total < 20) return "moderate";  // ~p75
-  if (total < 40) return "high";      // ~p95
-  return "severe";                    // p95+
+  if (total < 5) return "low";         // ~p25
+  if (total < 30) return "moderate";   // ~p75
+  if (total < 70) return "high";       // ~p95
+  return "severe";                     // p95+
 }
 
 export function severityOf(
@@ -49,18 +52,18 @@ export const SEVERITY_LABEL_RATE: Record<Severity, string> = {
   unknown: "데이터 없음",
   none: "발생 없음",
   low: "낮음 (<0.5)",
-  moderate: "보통 (0.5–1.5)",
-  high: "높음 (1.5–3.0)",
-  severe: "심각 (≥3.0)",
+  moderate: "보통 (0.5–2.0)",
+  high: "높음 (2.0–4.5)",
+  severe: "심각 (≥4.5)",
 };
 
 export const SEVERITY_LABEL_COUNT: Record<Severity, string> = {
   unknown: "데이터 없음",
   none: "발생 없음",
   low: "낮음 (1–4건)",
-  moderate: "보통 (5–19건)",
-  high: "높음 (20–39건)",
-  severe: "심각 (≥40건)",
+  moderate: "보통 (5–29건)",
+  high: "높음 (30–69건)",
+  severe: "심각 (≥70건)",
 };
 
 export function severityLabel(metric: Metric): Record<Severity, string> {

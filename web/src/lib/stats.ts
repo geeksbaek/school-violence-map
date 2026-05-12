@@ -23,17 +23,23 @@ export function computeStat(
 ): SchoolStat {
   let total = 0;
   let dataYears = 0;
+  const includeAll = typesMask === ALL_BITS;
   for (const y of years) {
     const v = school.violence[y];
-    if (!v) continue;
+    const sr = school.selfResolved?.[y];
+    if (!v && !sr) continue;
     dataYears++;
-    if (typesMask === ALL_BITS) {
-      total += v.total;
-    } else {
-      for (let i = 0; i < 8; i++) {
-        if (typesMask & (1 << i)) total += v.types[i] ?? 0;
+    if (v) {
+      if (includeAll) {
+        total += v.total;
+      } else {
+        for (let i = 0; i < 8; i++) {
+          if (typesMask & (1 << i)) total += v.types[i] ?? 0;
+        }
       }
     }
+    // 자체해결은 유형 분류 없음 → 모든 유형 켜진 경우에만 합산
+    if (includeAll && sr) total += sr.total;
   }
   const ratePer100 =
     school.studentTotal && school.studentTotal > 0 && dataYears > 0
