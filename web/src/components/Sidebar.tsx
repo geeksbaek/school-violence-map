@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { BarChart3, Search, X } from "lucide-react";
-import { StatsDialog } from "@/components/StatsDialog";
+const StatsDialog = lazy(() => import("@/components/StatsDialog").then((m) => ({ default: m.StatsDialog })));
 import {
   SEVERITY_COLOR, SEVERITY_ORDER, severityOf, severityLabel, type Metric,
 } from "@/lib/severity";
@@ -117,7 +117,11 @@ export function Sidebar({
           )}
         </div>
       </header>
-      <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} data={data} selected={selected} statsYear={statsYear} />
+      {statsOpen && (
+        <Suspense fallback={null}>
+          <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} data={data} selected={selected} statsYear={statsYear} />
+        </Suspense>
+      )}
 
       {/* 자동완성 검색 — 학교 1개 선택 */}
       <SchoolAutocomplete

@@ -59,6 +59,19 @@ export function App() {
           if (!s.gender || s.gender === "남") (s as any).gender = "공학";
         }
         setData(d);
+
+        // 백그라운드: 무거운 details 로드 후 학교 객체에 머지 (학교 패널/통계 일부 카드)
+        const detailsUrl = `${import.meta.env.BASE_URL}data-details.json?v=${BUILD_TS}`;
+        fetch(detailsUrl, { cache: "no-cache" })
+          .then((r) => r.json())
+          .then((details: Record<string, Record<string, any>>) => {
+            for (const s of d.schools) {
+              const heavy = details[s.code];
+              if (heavy) Object.assign(s, heavy);
+            }
+            setData({ ...d }); // re-render
+          })
+          .catch((e) => console.error("details load fail", e));
       })
       .catch((e) => console.error("data load fail", e));
 

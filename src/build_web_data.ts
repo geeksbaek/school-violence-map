@@ -643,12 +643,34 @@ const output = {
   schools: out,
 };
 
-await Bun.write(OUT_PATH, JSON.stringify(output));
+// ── 페이지 초기 로딩 최적화: 무거운 필드(details/preventionEdu/addr/schoolinfoUuid)는
+//    별도 파일로 분리해 백그라운드 fetch. 핵심 화면(지도/리스트/severity)은 data.json만으로 작동.
+const HEAVY_FIELDS = ["details", "preventionEdu", "addr", "schoolinfoUuid"] as const;
+const detailsMap: Record<string, Record<string, any>> = {};
+const coreSchools = out.map((s) => {
+  const slim: any = { ...s };
+  const heavy: Record<string, any> = {};
+  for (const f of HEAVY_FIELDS) {
+    if (slim[f] !== undefined) {
+      heavy[f] = slim[f];
+      delete slim[f];
+    }
+  }
+  if (Object.keys(heavy).length > 0) detailsMap[s.code] = heavy;
+  return slim;
+});
+
+const coreOutput = { ...output, schools: coreSchools };
+const DETAILS_PATH = join(ROOT, "web/public/data-details.json");
+
+await Bun.write(OUT_PATH, JSON.stringify(coreOutput));
+await Bun.write(DETAILS_PATH, JSON.stringify(detailsMap));
 
 const withCoords = out.length;
 const withViolence = out.filter((s) => s.violenceYears > 0).length;
 const withInfo = out.filter((s) => s.studentTotal).length;
 const sumViolence = out.reduce((a, b) => a + b.violenceTotal, 0);
-console.log(`web/public/data.json 작성: ${withCoords} 학교`);
+console.log(`web/public/data.json 작성: ${withCoords} 학교 (코어, 분할 후)`);
 console.log(`  학생수 ${withInfo}, 학폭 데이터 ${withViolence} (총 ${sumViolence}건)`);
-console.log(`  파일 크기: ${(Bun.file(OUT_PATH).size / 1024).toFixed(1)}KB`);
+console.log(`  코어 파일 크기: ${(Bun.file(OUT_PATH).size / 1024).toFixed(1)}KB`);
+console.log(`  details 파일 크기: ${(Bun.file(DETAILS_PATH).size / 1024).toFixed(1)}KB (백그라운드 fetch)`);
