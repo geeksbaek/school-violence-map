@@ -406,6 +406,13 @@ for (const code of Object.keys(schools)) {
   if (wkly) teachers = num(wkly.ITRT_TCR_TOT_FGR);
   if (teachers == null && grade) teachers = num(grade.TEACH_CNT);
 
+  // OpenAPI 미등록 학교 — 학교알리미 b01 메타 fallback (학생수/교원수만 가능)
+  const b01 = i["_b01"] as { studentTotal?: number; teachers?: number; foundType?: string } | undefined;
+  if (b01) {
+    if (studentTotal == null && b01.studentTotal != null) studentTotal = b01.studentTotal;
+    if (teachers == null && b01.teachers != null) teachers = b01.teachers;
+  }
+
   // 성비: gender row의 키 패턴 분석 — COL_211/212 = (학년 1, 남/여) 형태로 추정
   let genderRatio: { boy: number; girl: number } | null = null;
   if (gender) {
@@ -560,12 +567,12 @@ for (const code of Object.keys(schools)) {
     preventionEdu: pe,
     schoolinfoUuid: schoolIds[code]?.uuid,
     foundation: (() => {
-      // 모든 apiType row를 훑어 첫 번째 FOND_SC_CODE 사용 (학교마다 달라질 일 없음)
       for (const k of Object.keys(i)) {
+        if (k === "_b01" || k === "_meta") continue;
         const v = i[k]?.FOND_SC_CODE;
         if (v) return String(v);
       }
-      return undefined;
+      return i["_b01"]?.foundType;
     })(),
     details: extractDetails(i, s.kind, code),
   });
