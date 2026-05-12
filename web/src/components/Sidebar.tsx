@@ -12,6 +12,7 @@ import {
   SEVERITY_COLOR, SEVERITY_ORDER, severityOf, severityLabel, type Metric,
 } from "@/lib/severity";
 import type { SchoolStat } from "@/lib/stats";
+import { computeSchoolStrengthLabels } from "@/components/RegionDetail";
 import { cn } from "@/lib/utils";
 import { trackFilter, trackMetric, trackSearch, trackSelection } from "@/lib/analytics";
 
@@ -330,6 +331,32 @@ export function Sidebar({
                     {s.kind} · {s.city} {s.district}
                     {s.studentTotal ? ` · ${s.studentTotal.toLocaleString()}명` : ""}
                   </div>
+                  {(() => {
+                    const labels = computeSchoolStrengthLabels(s);
+                    if (!labels.discipline && !labels.protection) return null;
+                    return (
+                      <div className="pl-4 mt-1 flex items-center gap-1.5 flex-wrap">
+                        {labels.discipline && (
+                          <span
+                            className="px-1 py-px rounded text-[9px] font-semibold leading-none"
+                            style={{ background: labels.discipline.bg, color: labels.discipline.color }}
+                            title={`강한 처벌(6~9호) 비율 ${labels.discipline.pct.toFixed(0)}%`}
+                          >
+                            처벌 {labels.discipline.label}
+                          </span>
+                        )}
+                        {labels.protection && (
+                          <span
+                            className="px-1 py-px rounded text-[9px] font-semibold leading-none"
+                            style={{ background: labels.protection.bg, color: labels.protection.color }}
+                            title={`사안당 보호조치 ${labels.protection.perCase.toFixed(2)}건`}
+                          >
+                            보호 {labels.protection.label}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </button>
               </li>
             );

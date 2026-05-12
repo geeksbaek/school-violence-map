@@ -10,6 +10,40 @@ import type { SchoolStat } from "@/lib/stats";
 import type { RegionPick } from "./SchoolDeckLayer";
 import { cn } from "@/lib/utils";
 
+// 학교별 처벌·보호 강도 라벨 (StatsDialog와 동일 경계)
+export function computeSchoolStrengthLabels(s: School) {
+  let perpTotal = 0, perpHeavy = 0, cases = 0, victimMeasures = 0;
+  for (const y of Object.keys(s.violence)) {
+    const v = s.violence[y];
+    if (!v) continue;
+    if (v.cases) cases += (v.cases.s1?.n ?? 0) + (v.cases.s2?.n ?? 0);
+    if (v.perpMeasures) {
+      for (let i = 0; i < 9; i++) perpTotal += v.perpMeasures[i] ?? 0;
+      for (let i = 5; i < 9; i++) perpHeavy += v.perpMeasures[i] ?? 0;
+    }
+    if (v.victimMeasures) {
+      for (let i = 0; i < 5; i++) victimMeasures += v.victimMeasures[i] ?? 0;
+    }
+  }
+  let discipline = null;
+  if (perpTotal >= 5) {
+    const p = (perpHeavy / perpTotal) * 100;
+    if (p < 5) discipline = { label: "약함", color: "#065f46", bg: "#d1fae5", pct: p };
+    else if (p < 15) discipline = { label: "보통", color: "#854d0e", bg: "#fef9c3", pct: p };
+    else if (p < 30) discipline = { label: "강함", color: "#9a3412", bg: "#ffedd5", pct: p };
+    else discipline = { label: "매우 강함", color: "#7f1d1d", bg: "#fee2e2", pct: p };
+  }
+  let protection = null;
+  if (cases >= 3) {
+    const pc = victimMeasures / cases;
+    if (pc < 0.5) protection = { label: "부재", color: "#7f1d1d", bg: "#fee2e2", perCase: pc };
+    else if (pc < 1.0) protection = { label: "평균", color: "#854d0e", bg: "#fef9c3", perCase: pc };
+    else if (pc < 1.5) protection = { label: "두터움", color: "#065f46", bg: "#d1fae5", perCase: pc };
+    else protection = { label: "매우 두터움", color: "#14532d", bg: "#bbf7d0", perCase: pc };
+  }
+  return { discipline, protection };
+}
+
 interface Props {
   region: RegionPick;
   schools: School[];
@@ -195,6 +229,7 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
             const st = stats.get(s.code);
             const ssev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false);
             const isSel = selectedCode === s.code;
+            const labels = computeSchoolStrengthLabels(s);
             return (
               <li key={s.code}>
                 <button
@@ -219,8 +254,26 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
                       ) : "—"}
                     </span>
                   </div>
-                  <div className="text-[11px] text-muted-foreground pl-4 truncate">
-                    {s.kind} {s.studentTotal ? `· ${s.studentTotal.toLocaleString()}명` : ""}
+                  <div className="text-[11px] text-muted-foreground pl-4 truncate flex items-center gap-1.5 flex-wrap">
+                    <span>{s.kind}{s.studentTotal ? ` · ${s.studentTotal.toLocaleString()}명` : ""}</span>
+                    {labels.discipline && (
+                      <span
+                        className="px-1 py-px rounded text-[9px] font-semibold leading-none"
+                        style={{ background: labels.discipline.bg, color: labels.discipline.color }}
+                        title={`강한 처벌(6~9호) 비율 ${labels.discipline.pct.toFixed(0)}%`}
+                      >
+                        처벌 {labels.discipline.label}
+                      </span>
+                    )}
+                    {labels.protection && (
+                      <span
+                        className="px-1 py-px rounded text-[9px] font-semibold leading-none"
+                        style={{ background: labels.protection.bg, color: labels.protection.color }}
+                        title={`사안당 보호조치 ${labels.protection.perCase.toFixed(2)}건`}
+                      >
+                        보호 {labels.protection.label}
+                      </span>
+                    )}
                   </div>
                 </button>
               </li>
