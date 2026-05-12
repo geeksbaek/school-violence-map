@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { X } from "lucide-react";
 import type { DataSet, School, SchoolDetails, SchoolPreventionEdu } from "@/types";
 import { severityOf, SEVERITY_COLOR, severityLabel, type Metric } from "@/lib/severity";
-import type { SchoolStat } from "@/lib/stats";
+import { schoolPercentile, verdictFromPercentile, type SchoolStat } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 import { trackSection } from "@/lib/analytics";
 
@@ -59,17 +59,16 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
   const selectedYearPe = school.preventionEdu?.[selectedYear];
   const maxTypeTotal = Math.max(1, ...(selectedYearV?.types ?? [0]));
 
-  // 주의 신호 — 같은 학교종류 평균과 비교
-  const peerAvgRate = useMemo(() => {
-    const rates = data.schools
-      .filter((s) => s.kind === school.kind && s.violenceRatePer100 != null)
-      .map((s) => s.violenceRatePer100 as number);
-    if (rates.length < 5) return null;
-    return rates.reduce((a, b) => a + b, 0) / rates.length;
-  }, [data.schools, school.kind]);
-  const myRate = school.violenceRatePer100;
-  const ratio = peerAvgRate && myRate != null ? myRate / Math.max(0.01, peerAvgRate) : null;
+  // 같은 학교종류 백분위 기반 verdict 칩
   const isAllZero = stat.hasData && stat.years === data.years.length && stat.total === 0 && (school.selfResolvedTotal ?? 0) === 0;
+  const verdict = useMemo(() => {
+    if (isAllZero) {
+      return { label: "4년 연속 사건 0건", icon: "🟢", bg: "#dcfce7", fg: "#14532d" };
+    }
+    const peers = data.schools.filter((s) => s.kind === school.kind);
+    const p = schoolPercentile(school, peers, school.kind);
+    return p ? verdictFromPercentile(p.percentile, school.kind) : null;
+  }, [data.schools, school, isAllZero]);
 
   return (
     <Card className="w-full gap-3 py-0 pb-4">
@@ -108,26 +107,16 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
           <Stat label="교원" value={school.teachers?.toString() ?? "—"} />
         </div>
 
-        {/* 주의 신호 */}
-        {(ratio != null && (ratio >= 1.5 || ratio <= 0.5)) || isAllZero ? (
-          <div className="flex flex-wrap gap-1.5">
-            {ratio != null && ratio >= 1.5 && (
-              <Badge variant="destructive" className="text-[10px]">
-                {school.kind} 평균 대비 {ratio.toFixed(1)}배 ↑
-              </Badge>
-            )}
-            {ratio != null && ratio <= 0.5 && !isAllZero && (
-              <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-900">
-                {school.kind} 평균 대비 낮음
-              </Badge>
-            )}
-            {isAllZero && (
-              <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-900">
-                4년 연속 사건 0건
-              </Badge>
-            )}
+        {/* Verdict 칩 — 같은 학교종류 백분위 기준 */}
+        {verdict && (
+          <div
+            className="rounded-md px-2 py-1.5 text-xs font-semibold flex items-center gap-2"
+            style={{ background: verdict.bg, color: verdict.fg }}
+          >
+            <span className="text-base leading-none">{verdict.icon}</span>
+            <span>{verdict.label}</span>
           </div>
-        ) : null}
+        )}
 
         {/* 학폭 요약 */}
         <div

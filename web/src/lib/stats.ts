@@ -205,6 +205,22 @@ export interface PercentileInfo {
   percentile: number;   // 0~100, 100이면 가장 위험
 }
 
+export interface Verdict {
+  label: string;
+  icon: string;
+  bg: string;
+  fg: string;
+}
+export function verdictFromPercentile(p: number, kind?: string): Verdict {
+  const peer = kind ? `또래 ${kind}` : "또래";
+  if (p < 20) return { label: `${peer} 중 매우 안전한 편 (하위 20%)`, icon: "🟢", bg: "#dcfce7", fg: "#14532d" };
+  if (p < 40) return { label: `${peer} 평균보다 안전 (하위 40%)`, icon: "🟢", bg: "#ecfccb", fg: "#365314" };
+  if (p < 60) return { label: `${peer} 평균 수준`, icon: "⚪", bg: "#f1f5f9", fg: "#334155" };
+  if (p < 80) return { label: `${peer} 평균보다 다소 높음 (상위 ${100 - p}%)`, icon: "🟠", bg: "#ffedd5", fg: "#9a3412" };
+  if (p < 95) return { label: `${peer} 중 높은 편 (상위 ${100 - p}%)`, icon: "🔴", bg: "#fee2e2", fg: "#991b1b" };
+  return { label: `${peer} 중 매우 높음 (상위 ${100 - p}%)`, icon: "🔴", bg: "#fecaca", fg: "#7f1d1d" };
+}
+
 export function schoolPercentile(
   target: School,
   pool: School[],
