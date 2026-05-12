@@ -29,7 +29,27 @@ export interface School {
   violenceTotal: number;
   violenceYears: number;
   violenceRatePer100: number | null;
+  selfResolved?: Record<string, SchoolSelfResolved | null>;
+  selfResolvedTotal?: number;
+  preventionEdu?: Record<string, SchoolPreventionEdu | null>;
   details?: SchoolDetails;
+}
+
+export interface SchoolSelfResolved {
+  s1: number;
+  s2: number;
+  total: number;
+}
+
+export interface PreventionEduRow {
+  th: string[];
+  td: (number | string | null)[];
+}
+
+export interface SchoolPreventionEdu {
+  studentEdu?: PreventionEduRow[];
+  staffEdu?: PreventionEduRow[];
+  prevProgram?: PreventionEduRow[];
 }
 
 export interface SchoolDetails {

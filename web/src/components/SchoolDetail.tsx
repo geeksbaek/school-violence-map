@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { X } from "lucide-react";
-import type { DataSet, School, SchoolDetails } from "@/types";
+import type { DataSet, School, SchoolDetails, PreventionEduRow } from "@/types";
 import { severityOf, SEVERITY_COLOR, severityLabel, type Metric } from "@/lib/severity";
 import type { SchoolStat } from "@/lib/stats";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,11 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
     for (const i of selectedTypes) s += v.types[i] ?? 0;
     return s;
   });
-  const maxYearTotal = Math.max(1, ...yearTotals.map((t) => t ?? 0));
+  const yearSelfResolved = yearsArr.map((y) => school.selfResolved?.[y]?.total ?? null);
+  const maxYearTotal = Math.max(
+    1,
+    ...yearsArr.map((_, i) => (yearTotals[i] ?? 0) + (yearSelfResolved[i] ?? 0)),
+  );
   const allTypesOn = selectedTypes.size === 8;
 
   const defaultYear = (() => {
@@ -51,6 +55,8 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
   })();
   const [selectedYear, setSelectedYear] = useState<string>(defaultYear);
   const selectedYearV = school.violence[selectedYear];
+  const selectedYearSr = school.selfResolved?.[selectedYear];
+  const selectedYearPe = school.preventionEdu?.[selectedYear];
   const maxTypeTotal = Math.max(1, ...(selectedYearV?.types ?? [0]));
 
   return (
@@ -96,17 +102,23 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
               {metric === "rate" ? "비율 기준" : "건수 기준"}
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-3 gap-1.5">
             <div className="rounded bg-muted/50 p-1.5">
               <div className="text-[10px] text-muted-foreground">
-                4년 합계 {!allTypesOn && <span>· 선택 유형</span>}
+                심의 4년 {!allTypesOn && <span>· 선택</span>}
               </div>
               <div className="text-sm font-semibold tabular-nums">
                 {stat.hasData ? `${stat.total}건` : "—"}
               </div>
             </div>
             <div className="rounded bg-muted/50 p-1.5">
-              <div className="text-[10px] text-muted-foreground">학생100명당/년</div>
+              <div className="text-[10px] text-muted-foreground">자체해결 4년</div>
+              <div className="text-sm font-semibold tabular-nums">
+                {school.selfResolvedTotal != null ? `${school.selfResolvedTotal}건` : "—"}
+              </div>
+            </div>
+            <div className="rounded bg-muted/50 p-1.5">
+              <div className="text-[10px] text-muted-foreground">학생100명/년</div>
               <div className="text-sm font-semibold tabular-nums">
                 {stat.ratePer100 != null ? stat.ratePer100.toFixed(2) : "—"}
               </div>
@@ -114,17 +126,31 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
           </div>
         </div>
 
-        {/* 년도별 막대 */}
+        {/* 년도별 막대 (심의 + 자체해결 stacked) */}
         <div>
-          <div className="text-muted-foreground mb-2 text-xs">
-            공시년도별 사건 {!allTypesOn && <span>· 선택 유형</span>}
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-muted-foreground text-xs">
+              공시년도별 {!allTypesOn && <span>· 선택 유형</span>}
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <span className="size-2 rounded-sm" style={{ background: color }} />심의
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="size-2 rounded-sm" style={{ background: color, opacity: 0.35 }} />자체
+              </span>
+            </div>
           </div>
           <div className="flex items-end gap-1.5 h-24 px-0.5">
             {yearsArr.map((y, idx) => {
               const t = yearTotals[idx];
-              const h = t != null ? Math.max(2, (t / maxYearTotal) * 64) : 0;
+              const sr = yearSelfResolved[idx];
+              const sum = (t ?? 0) + (sr ?? 0);
+              const heightTotal = (sum / maxYearTotal) * 64;
+              const hViolence = t != null ? Math.max(t > 0 ? 2 : 0, (t / maxYearTotal) * 64) : 0;
+              const hSelf = sr != null ? Math.max(sr > 0 ? 2 : 0, (sr / maxYearTotal) * 64) : 0;
               const isActive = y === selectedYear;
-              const hasData = !!school.violence[y];
+              const hasData = !!school.violence[y] || !!school.selfResolved?.[y];
               return (
                 <button
                   type="button"
@@ -137,15 +163,34 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
                     isActive && hasData && "bg-accent ring-1 ring-foreground/20",
                   )}
                 >
-                  <div className="text-[10px] tabular-nums leading-none h-3">{t != null ? t : "—"}</div>
-                  <div
-                    className="w-full rounded-sm transition-all"
-                    style={{
-                      height: h,
-                      background: t != null ? color : "#e5e7eb",
-                      opacity: t != null ? (isActive ? 1 : 0.7) : 0.4,
-                    }}
-                  />
+                  <div className="text-[10px] tabular-nums leading-none h-3">
+                    {t != null || sr != null
+                      ? (sr ? `${t ?? 0}+${sr}` : `${t ?? 0}`)
+                      : "—"}
+                  </div>
+                  <div className="w-full flex flex-col-reverse" style={{ height: Math.max(0, heightTotal) }}>
+                    {hViolence > 0 && (
+                      <div
+                        className="w-full transition-all"
+                        style={{
+                          height: hViolence,
+                          background: color,
+                          opacity: isActive ? 1 : 0.7,
+                          borderTopLeftRadius: hSelf > 0 ? 0 : 2,
+                          borderTopRightRadius: hSelf > 0 ? 0 : 2,
+                        }}
+                      />
+                    )}
+                    {hSelf > 0 && (
+                      <div
+                        className="w-full transition-all rounded-t-sm"
+                        style={{ height: hSelf, background: color, opacity: 0.35 }}
+                      />
+                    )}
+                    {hViolence === 0 && hSelf === 0 && hasData && (
+                      <div className="w-full h-0.5" style={{ background: color, opacity: 0.4 }} />
+                    )}
+                  </div>
                   <div className={cn("text-[10px]", isActive ? "text-foreground font-semibold" : "text-muted-foreground")}>
                     {y}
                   </div>
@@ -189,6 +234,40 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
           </div>
         )}
 
+        {/* 자체해결 (선택된 년도) */}
+        {selectedYearSr && (
+          <div className="rounded-md border bg-muted/20 p-2 text-xs">
+            <div className="text-muted-foreground mb-1.5">
+              {selectedYear}공시 자체해결 <span className="text-[10px]">(심의위 회부 없이 학교 자체)</span>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              <Stat label="1학기" value={`${selectedYearSr.s1}건`} />
+              <Stat label="2학기" value={`${selectedYearSr.s2}건`} />
+              <Stat label="합계" value={`${selectedYearSr.total}건`} />
+            </div>
+          </div>
+        )}
+
+        {/* 예방교육 (선택된 년도) */}
+        {selectedYearPe && (
+          <div className="rounded-md border p-2 text-xs">
+            <div className="text-muted-foreground mb-1.5">
+              {selectedYear}공시 예방교육·연수
+            </div>
+            <div className="flex flex-col gap-2">
+              {selectedYearPe.studentEdu && (
+                <PreventionTable title="학생 대상 정규 수업" rows={selectedYearPe.studentEdu} />
+              )}
+              {selectedYearPe.staffEdu && (
+                <PreventionTable title="교원·학부모 연수" rows={selectedYearPe.staffEdu} />
+              )}
+              {selectedYearPe.prevProgram && (
+                <PreventionTable title="학생 중심 예방프로그램" rows={selectedYearPe.prevProgram} />
+              )}
+            </div>
+          </div>
+        )}
+
         {/* 공시 정보 */}
         {school.details && (
           <>
@@ -198,6 +277,27 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function PreventionTable({ title, rows }: { title: string; rows: PreventionEduRow[] }) {
+  if (!rows || rows.length === 0) return null;
+  return (
+    <div>
+      <div className="text-[10px] font-medium text-muted-foreground mb-1">{title}</div>
+      <div className="rounded bg-muted/30 divide-y divide-border/40">
+        {rows.map((r, i) => (
+          <div key={i} className="flex items-baseline justify-between gap-2 py-1 px-1.5">
+            <span className="text-muted-foreground text-[10px] truncate flex-1">
+              {r.th.join(" · ") || "—"}
+            </span>
+            <span className="tabular-nums text-[10px] shrink-0">
+              {r.td.length === 0 ? "—" : r.td.map((v) => (v == null ? "—" : v)).join(" / ")}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

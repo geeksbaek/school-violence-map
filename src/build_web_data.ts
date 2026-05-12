@@ -28,6 +28,12 @@ const info: Record<string, any> = existsSync(join(DATA_DIR, "school_info.json"))
 const violence: Record<string, Record<string, any>> = existsSync(join(DATA_DIR, "violence.json"))
   ? await Bun.file(join(DATA_DIR, "violence.json")).json()
   : {};
+const selfResolved: Record<string, Record<string, any>> = existsSync(join(DATA_DIR, "self_resolved.json"))
+  ? await Bun.file(join(DATA_DIR, "self_resolved.json")).json()
+  : {};
+const preventionEdu: Record<string, Record<string, any>> = existsSync(join(DATA_DIR, "prevention_edu.json"))
+  ? await Bun.file(join(DATA_DIR, "prevention_edu.json")).json()
+  : {};
 const studentTrend: Record<string, Record<string, number>> = existsSync(join(DATA_DIR, "student_trend.json"))
   ? await Bun.file(join(DATA_DIR, "student_trend.json")).json()
   : {};
@@ -114,6 +120,15 @@ interface SchoolView {
   violenceTotal: number;
   violenceYears: number; // 데이터 있는 년도 수
   violenceRatePer100: number | null; // 학생수 대비
+  // cd 75 자체해결: 학기 합계 (s1+s2). 학교가 심의위 회부 없이 자체해결한 건수.
+  selfResolved: Record<string, { s1: number; s2: number; total: number } | null>;
+  selfResolvedTotal: number;
+  // cd 66 예방교육: 표 raw rows (학기별 td/th)
+  preventionEdu: Record<string, {
+    studentEdu?: { th: string[]; td: (number | string | null)[] }[];
+    staffEdu?: { th: string[]; td: (number | string | null)[] }[];
+    prevProgram?: { th: string[]; td: (number | string | null)[] }[];
+  } | null>;
   details: SchoolDetails;
 }
 
@@ -426,6 +441,35 @@ for (const code of Object.keys(schools)) {
       ? Math.round((violenceTotal / yearsWithData / studentTotal) * 100 * 1000) / 1000
       : null;
 
+  // 자체해결 (cd 75)
+  const sr: SchoolView["selfResolved"] = {};
+  let selfResolvedTotal = 0;
+  for (const y of YEARS) {
+    const r = selfResolved[code]?.[y];
+    if (!r || r.error || r.parseError || r.skipped) { sr[y] = null; continue; }
+    if (r.zero || r.noData) { sr[y] = { s1: 0, s2: 0, total: 0 }; continue; }
+    const inner = r.selfResolved;
+    if (!inner) { sr[y] = null; continue; }
+    const s1 = inner.s1 ?? 0;
+    const s2 = inner.s2 ?? 0;
+    sr[y] = { s1, s2, total: s1 + s2 };
+    selfResolvedTotal += s1 + s2;
+  }
+
+  // 예방교육 (cd 66) — raw rows 그대로 전달, 프론트에서 표시
+  const pe: SchoolView["preventionEdu"] = {};
+  for (const y of YEARS) {
+    const r = preventionEdu[code]?.[y];
+    if (!r || r.error || r.parseError || r.skipped) { pe[y] = null; continue; }
+    if (r.zero || r.noData) { pe[y] = null; continue; }
+    if (!r.studentEdu && !r.staffEdu && !r.prevProgram) { pe[y] = null; continue; }
+    pe[y] = {
+      studentEdu: r.studentEdu,
+      staffEdu: r.staffEdu,
+      prevProgram: r.prevProgram,
+    };
+  }
+
   // 학교명 기반 분류. 학교알리미 정식명은 "OO여자중학교"/"OO남자고등학교" 형태.
   // 줄임("OO여중")은 정식명에 없으므로 "여자"/"남자" 단어만 검사.
   const schoolGender: "여" | "남" | "공학" = s.name.includes("여자")
@@ -458,6 +502,9 @@ for (const code of Object.keys(schools)) {
     violenceTotal,
     violenceYears: yearsWithData,
     violenceRatePer100,
+    selfResolved: sr,
+    selfResolvedTotal,
+    preventionEdu: pe,
     details: extractDetails(i, s.kind, code),
   });
 }
