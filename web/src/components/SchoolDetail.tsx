@@ -564,6 +564,12 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
   const openRef = useRef<Set<string> | null>(null);
   type Section = { key: string; title: string; body: React.ReactNode };
   const sections: Section[] = [];
+  // KV 카드를 추가하되 의미 있는 값이 하나도 없으면 카드 자체를 숨김
+  const addKV = (key: string, title: string, pairs: [string, string][]) => {
+    const trimmed = trim(pairs);
+    if (trimmed.length === 0) return;
+    sections.push({ key, title, body: <KV pairs={trimmed} /> });
+  };
 
   if (details.studentTrend?.length) {
     const max = Math.max(1, ...details.studentTrend.map((t) => t.total));
@@ -619,182 +625,85 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
 
   if (details.teaching) {
     const t = details.teaching;
-    sections.push({
-      key: "teaching",
-      title: "수업·교사",
-      body: <KV pairs={trim([
-        ["총 교사", suffix(t.teachers, "명")],
-        ["주당 총수업", suffix(t.weeklyHours, "시간")],
-        ["교사 1인당 주당", suffix(t.daysPerWeek, "시간")],
-      ])} />,
-    });
+    addKV("teaching", "수업·교사", [
+      ["총 교사", suffix(t.teachers, "명")],
+      ["주당 총수업", suffix(t.weeklyHours, "시간")],
+      ["교사 1인당 주당", suffix(t.daysPerWeek, "시간")],
+    ]);
   }
 
   if (details.facility) {
     const f = details.facility;
-    sections.push({
-      key: "facility",
-      title: "시설",
-      body: <KV pairs={trim([
-        ["일반교실", suffix(f.regularClassrooms, "실")],
-        ["특별교실", suffix(f.specialClassrooms, "실")],
-        ["교과교실", suffix(f.subjectClassrooms, "실")],
-        ["남자 화장실", suffix(f.maleToilets, "개")],
-        ["여자 화장실", suffix(f.femaleToilets, "개")],
-        ["샤워실", suffix(f.showers, "실")],
-        ["체육관", suffix(f.gym, "실")],
-        ["강당", suffix(f.auditorium, "실")],
-        ["수영장", f.pool ?? "—"],
-        ["진로상담실", suffix(f.careerRoom, "실")],
-        ["기숙사 수용", suffix(f.boardingCapacity, "명")],
-      ])} />,
-    });
+    addKV("facility", "시설", [
+      ["일반교실", suffix(f.regularClassrooms, "실")],
+      ["특별교실", suffix(f.specialClassrooms, "실")],
+      ["교과교실", suffix(f.subjectClassrooms, "실")],
+      ["남자 화장실", suffix(f.maleToilets, "개")],
+      ["여자 화장실", suffix(f.femaleToilets, "개")],
+      ["샤워실", suffix(f.showers, "실")],
+      ["체육관", suffix(f.gym, "실")],
+      ["강당", suffix(f.auditorium, "실")],
+      ["수영장", f.pool ?? "—"],
+      ["진로상담실", suffix(f.careerRoom, "실")],
+      ["기숙사 수용", suffix(f.boardingCapacity, "명")],
+    ]);
   }
 
-  if (details.land) {
-    const l = details.land;
-    sections.push({
-      key: "land",
-      title: "학교 환경",
-      body: <KV pairs={trim([
-        ["전체 부지", l.totalArea ? `${l.totalArea.toLocaleString()} m²` : "—"],
-        ["교사 대지", l.schoolGround ? `${l.schoolGround.toLocaleString()} m²` : "—"],
-        ["체육장", l.sportsGround ? `${l.sportsGround.toLocaleString()} m²` : "—"],
-        ["부속 토지", l.extraLand ? `${l.extraLand.toLocaleString()} m²` : "—"],
-        ["학생 1인당 체육장", l.sportsPerStudent != null ? `${l.sportsPerStudent} m²` : "—"],
-      ])} />,
-    });
-  }
-
-  if (details.openness) {
-    const o = details.openness;
-    const yn = (b: boolean | undefined) => b ? "개방" : "—";
-    sections.push({
-      key: "openness",
-      title: "시설 개방 (지역사회 이용)",
-      body: <KV pairs={trim([
-        ["체육장", yn(o.sports)],
-        ["체육관", yn(o.gym)],
-        ["강당", yn(o.auditorium)],
-        ["일반교실", yn(o.classroom)],
-        ["특별교실", yn(o.specialClassroom)],
-        ["시청각실", yn(o.avRoom)],
-      ])} />,
-    });
-  }
-
-  if (details.disability) {
-    const dis = details.disability;
-    sections.push({
-      key: "disability",
-      title: `장애인 편의시설 (${dis.installedCount}/${dis.totalChecks})`,
-      body: (
-        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-          {dis.items.map((it) => (
-            <div key={it.label} className="contents">
-              <div className="text-muted-foreground">{it.label}</div>
-              <div className="text-right">{it.installed ? "✓" : "—"}</div>
-            </div>
-          ))}
-        </div>
-      ),
-    });
-  }
+  // 신뢰도 낮은 카드 영구 제거: 학교 환경(land), 시설 개방(openness),
+  // 장애인 편의시설(disability), 안전교육(safetyEducation)
 
   if (details.meal) {
     const m = details.meal;
-    sections.push({
-      key: "meal",
-      title: "급식",
-      body: <KV pairs={trim([
-        ["급식 학생수", suffix(m.students, "명")],
-        ["영양(교)사", suffix(m.nutritionists, "명")],
-        ["조리사", suffix(m.cooks, "명")],
-        ["조리원", suffix(m.cookAssistants, "명")],
-        ["운영방식", m.operationMethod ?? "—"],
-      ])} />,
-    });
+    addKV("meal", "급식", [
+      ["급식 학생수", suffix(m.students, "명")],
+      ["영양(교)사", suffix(m.nutritionists, "명")],
+      ["조리사", suffix(m.cooks, "명")],
+      ["조리원", suffix(m.cookAssistants, "명")],
+      ["운영방식", m.operationMethod ?? "—"],
+    ]);
   }
 
   if (details.health) {
     const h = details.health;
-    sections.push({
-      key: "health",
-      title: "보건실 이용",
-      body: <KV pairs={trim([
-        ["연간 이용건수", suffix(h.annualVisits, "건")],
-        ["1인당 연 이용", suffix(h.perStudentVisits, "건")],
-      ])} />,
-    });
-  }
-
-  if (details.safetyEducation) {
-    const cats = Object.entries(details.safetyEducation);
-    const maxTotal = Math.max(1, ...cats.map(([, v]) => v.total ?? 0));
-    sections.push({
-      key: "safety",
-      title: "안전교육",
-      body: (
-        <div className="flex flex-col gap-1">
-          {cats.map(([cat, v]) => {
-            const w = ((v.total ?? 0) / maxTotal) * 100;
-            return (
-              <div key={cat} className="flex items-center gap-2 text-xs">
-                <div className="w-20 text-muted-foreground truncate">{cat}</div>
-                <div className="flex-1 bg-muted h-3 rounded-sm overflow-hidden">
-                  <div className="h-full" style={{ width: `${w}%`, background: color, opacity: 0.7 }} />
-                </div>
-                <div className="w-12 text-right tabular-nums">{fmtNum(v.total)}h</div>
-              </div>
-            );
-          })}
-        </div>
-      ),
-    });
+    addKV("health", "보건실 이용", [
+      ["연간 이용건수", suffix(h.annualVisits, "건")],
+      ["1인당 연 이용", suffix(h.perStudentVisits, "건")],
+    ]);
   }
 
   if (details.activities) {
     const a = details.activities;
-    sections.push({
-      key: "activities",
-      title: "동아리 활동",
-      body: <KV pairs={trim([
-        ["창의적체험 동아리 학생수", suffix(a.creativeStudents, "명")],
-        ["창체 지도교사", suffix(a.creativeTeachers, "명")],
-        ["외부강사", suffix(a.creativeExternalLecturers, "명")],
-        ["창체 예산", fmtAmt(a.creativeBudget)],
-        ["학생자율 동아리 수", suffix(a.clubs, "개")],
-        ["자율동아리 예산", fmtAmt(a.clubBudget)],
-      ])} />,
-    });
+    addKV("activities", "동아리 활동", [
+      ["창의적체험 동아리 학생수", suffix(a.creativeStudents, "명")],
+      ["창체 지도교사", suffix(a.creativeTeachers, "명")],
+      ["외부강사", suffix(a.creativeExternalLecturers, "명")],
+      ["창체 예산", fmtAmt(a.creativeBudget)],
+      ["학생자율 동아리 수", suffix(a.clubs, "개")],
+      ["자율동아리 예산", fmtAmt(a.clubBudget)],
+    ]);
   }
 
   if (details.afterSchool) {
     const a = details.afterSchool;
-    sections.push({
-      key: "after",
-      title: "방과후·돌봄",
-      body: <KV pairs={trim([
-        ["방과후 프로그램", suffix(a.programs, "개")],
-        ["방과후 학생", suffix(a.students, "명")],
-        ["수익자 부담금", fmtAmt(a.burdenAmount)],
-        ["돌봄 교실", suffix(a.careRooms, "실")],
-        ["돌봄 학생", suffix(a.careStudents, "명")],
-      ])} />,
-    });
+    addKV("after", "방과후·돌봄", [
+      ["방과후 프로그램", suffix(a.programs, "개")],
+      ["방과후 학생", suffix(a.students, "명")],
+      ["수익자 부담금", fmtAmt(a.burdenAmount)],
+      ["돌봄 교실", suffix(a.careRooms, "실")],
+      ["돌봄 학생", suffix(a.careStudents, "명")],
+    ]);
   }
 
   if (details.scholarship) {
     const s = details.scholarship;
-    sections.push({
-      key: "scholarship",
-      title: "장학금·학비지원",
-      body: <KV pairs={trim([
+    const has = (s.schoCount ?? 0) > 0 || (s.aidCount ?? 0) > 0 || (s.totalCount ?? 0) > 0;
+    if (has) {
+      addKV("scholarship", "장학금·학비지원", [
         ["장학금 (인원/금액)", `${fmtNum(s.schoCount)} / ${fmtAmt(s.schoAmount)}`],
         ["학비지원 (인원/금액)", `${fmtNum(s.aidCount)} / ${fmtAmt(s.aidAmount)}`],
         ["합계 (인원/금액)", `${fmtNum(s.totalCount)} / ${fmtAmt(s.totalAmount)}`],
-      ])} />,
-    });
+      ]);
+    }
   }
 
   if (sections.length === 0) return null;
@@ -830,8 +739,9 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
 function suffix(n: number | null | undefined, unit: string): string {
   return n == null ? "—" : `${fmtNum(n)}${unit}`;
 }
+// 의미 없는 값 제거: "—", "0명/0건/0개/0실/0시간/0원/0만원" 등
 function trim(pairs: [string, string][]): [string, string][] {
-  return pairs.filter(([, v]) => v !== "—");
+  return pairs.filter(([, v]) => v !== "—" && !/^0[가-힣]/.test(v) && !/^0\.0/.test(v));
 }
 
 function KV({ pairs }: { pairs: [string, string][] }) {
