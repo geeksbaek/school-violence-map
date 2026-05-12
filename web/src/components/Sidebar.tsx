@@ -340,7 +340,7 @@ export function Sidebar({
                           <span
                             className="px-1 py-px rounded text-[9px] font-semibold leading-none"
                             style={{ background: labels.discipline.bg, color: labels.discipline.color }}
-                            title={`강한 처벌(6~9호) 비율 ${labels.discipline.pct.toFixed(0)}%`}
+                            title={labels.discipline.pct != null ? `강한 처벌(6~9호) 비율 ${labels.discipline.pct.toFixed(0)}%` : undefined}
                           >
                             처벌 {labels.discipline.label}
                           </span>
@@ -349,7 +349,7 @@ export function Sidebar({
                           <span
                             className="px-1 py-px rounded text-[9px] font-semibold leading-none"
                             style={{ background: labels.protection.bg, color: labels.protection.color }}
-                            title={`사안당 보호조치 ${labels.protection.perCase.toFixed(2)}건`}
+                            title={labels.protection.perCase != null ? `사안당 보호조치 ${labels.protection.perCase.toFixed(2)}건` : undefined}
                           >
                             보호 {labels.protection.label}
                           </span>

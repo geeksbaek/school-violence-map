@@ -1310,7 +1310,7 @@ function Empty({ msg }: { msg: string }) {
   return <div className="text-xs text-muted-foreground py-4 text-center">{msg}</div>;
 }
 
-// 학교 링크 — 클릭 시 confirm 다이얼로그 띄움
+// 학교 링크 — 클릭 시 confirm 다이얼로그 띄움. 평상시에도 링크임을 색상+밑줄로 표시.
 const PickContext = createContext<((s: School) => void) | null>(null);
 function SchoolLink({ school, className, children }: { school: School; className?: string; children?: React.ReactNode }) {
   const requestPick = useContext(PickContext);
@@ -1319,7 +1319,11 @@ function SchoolLink({ school, className, children }: { school: School; className
     <button
       type="button"
       onClick={() => requestPick(school)}
-      className={cn("hover:underline cursor-pointer text-left", className)}
+      className={cn(
+        "text-left text-blue-700 dark:text-blue-400 underline decoration-blue-300/60 dark:decoration-blue-500/40 underline-offset-2 hover:decoration-blue-700 dark:hover:decoration-blue-300 cursor-pointer",
+        className,
+      )}
+      title={`${school.name} 학교 패널로 이동`}
     >
       {children ?? school.name}
     </button>
