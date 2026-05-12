@@ -53,21 +53,27 @@ function detectDataInconsistencies(school: School, years: readonly string[]): st
     const victimMeasureSum = v.victimMeasures
       ? v.victimMeasures.slice(0, 5).reduce((a, b) => a + b, 0)
       : 0;
+    const otherTablesHaveData = typeSum > 0 || perpMeasureSum > 0 || victimMeasureSum > 0 || victims > 0 || perps > 0;
+
+    // 가장 흔한 모순: 심의 결과 표 0건이나 다른 표에 데이터 있음
+    if (totalCases === 0 && otherTablesHaveData) {
+      const parts = [];
+      if (typeSum > 0) parts.push(`유형별 ${typeSum}건`);
+      if (perpMeasureSum > 0) parts.push(`선도조치 ${perpMeasureSum}건`);
+      if (victimMeasureSum > 0) parts.push(`보호조치 ${victimMeasureSum}건`);
+      if (perps > 0 && parts.length === 0) parts.push(`가해 ${perps}명`);
+      issues.push(`${y}년 공시: 심의 결과 표는 0건이나 다른 표에 데이터 있음 (${parts.join(", ")}) — 학교가 심의 결과 표를 미입력한 것으로 보임. 실제 심의는 발생한 듯.`);
+    }
+    // 반대 모순: 심의는 있으나 유형 분류 모두 0
     if (totalCases > 0 && typeSum === 0) {
       issues.push(`${y}년 공시: 심의 ${totalCases}건이 있으나 폭력 유형 분류는 모두 0 (학교가 유형별 표 미입력)`);
     }
-    if (totalCases === 0 && (perpMeasureSum > 0 || victimMeasureSum > 0)) {
-      issues.push(`${y}년 공시: 심의 0건이나 처분/보호조치가 기록됨`);
-    }
+    // 가해/피해 학생 수가 모두 0인데 심의 있음
     if (totalCases > 0 && victims === 0 && perps === 0) {
       issues.push(`${y}년 공시: 심의 ${totalCases}건이 있으나 가해/피해 학생 수가 모두 0`);
     }
-    if (perps > 0 && perpMeasureSum === 0) {
-      issues.push(`${y}년 공시: 가해 학생 ${perps}명이 있으나 선도조치 0건`);
-    }
-    if (victims > 0 && victimMeasureSum === 0) {
-      issues.push(`${y}년 공시: 피해 학생 ${victims}명이 있으나 보호조치 0건`);
-    }
+    // 주의: "가해 있고 선도 0건" / "피해 있고 보호 0건"은 심의위가 "조치 없음" 결정한
+    // 정상 케이스(예방법 17조 단서)이므로 불일치로 보지 않음. 강도 라벨에서 "부재"로 표시.
   }
   return issues;
 }
