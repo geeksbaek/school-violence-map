@@ -139,6 +139,7 @@ interface SchoolView {
     progTeachers?: number | null;   // 예방프로그램 지도교사 누적
   } | null>;
   schoolinfoUuid?: string;          // 학교알리미 직접 링크용
+  foundation?: string;              // 공립/사립/국립 (school_info FOND_SC_CODE)
   details: SchoolDetails;
 }
 
@@ -555,6 +556,14 @@ for (const code of Object.keys(schools)) {
     selfResolvedTotal,
     preventionEdu: pe,
     schoolinfoUuid: schoolIds[code]?.uuid,
+    foundation: (() => {
+      // 모든 apiType row를 훑어 첫 번째 FOND_SC_CODE 사용 (학교마다 달라질 일 없음)
+      for (const k of Object.keys(i)) {
+        const v = i[k]?.FOND_SC_CODE;
+        if (v) return String(v);
+      }
+      return undefined;
+    })(),
     details: extractDetails(i, s.kind, code),
   });
 }

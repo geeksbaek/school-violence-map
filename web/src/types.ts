@@ -33,6 +33,7 @@ export interface School {
   selfResolvedTotal?: number;
   preventionEdu?: Record<string, SchoolPreventionEdu | null>;
   schoolinfoUuid?: string;
+  foundation?: string;
   details?: SchoolDetails;
 }
 

@@ -72,6 +72,11 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
             <Badge variant={KIND_VARIANT[school.kind]} className="shrink-0">
               {school.kind}
             </Badge>
+            {school.foundation && (
+              <Badge variant="outline" className="shrink-0 text-[10px] font-normal">
+                {school.foundation}
+              </Badge>
+            )}
           </CardTitle>
           <span className="text-muted-foreground text-xs truncate">
             {school.city} {school.district}
