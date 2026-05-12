@@ -62,7 +62,7 @@ export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 pr-8">
             <DialogTitle>{scope} 학교폭력 통계</DialogTitle>
             <div className="inline-flex rounded-md border bg-muted p-0.5 text-xs shrink-0">
               {(["전국", "수도권"] as const).map((s) => (
