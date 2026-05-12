@@ -29,6 +29,7 @@ type Scope = "전국" | "수도권";
 
 export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "all", onPick }: Props) {
   const [scope, setScope] = useState<Scope>("전국");
+  const [view, setView] = useState<"essential" | "all">("essential");
   const [pendingPick, setPendingPick] = useState<School | null>(null);
 
   const requestPick = useCallback((s: School) => {
@@ -124,19 +125,35 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
         <DialogHeader>
           <div className="flex items-center justify-between gap-2 pr-8">
             <DialogTitle>{scope} 학교폭력 통계</DialogTitle>
-            <div className="inline-flex rounded-md border bg-muted p-0.5 text-xs shrink-0">
-              {(["전국", "수도권"] as const).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setScope(s)}
-                  className={cn(
-                    "px-3 py-1 rounded transition-colors",
-                    scope === s ? "bg-background shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {s}
-                </button>
-              ))}
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="inline-flex rounded-md border bg-muted p-0.5 text-xs">
+                {(["essential", "all"] as const).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setView(v)}
+                    className={cn(
+                      "px-2 py-1 rounded transition-colors",
+                      view === v ? "bg-background shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {v === "essential" ? "핵심" : "전체"}
+                  </button>
+                ))}
+              </div>
+              <div className="inline-flex rounded-md border bg-muted p-0.5 text-xs">
+                {(["전국", "수도권"] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setScope(s)}
+                    className={cn(
+                      "px-2 py-1 rounded transition-colors",
+                      scope === s ? "bg-background shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           <DialogDescription>
@@ -155,67 +172,41 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
         )}
 
         <PickContext.Provider value={onPick ? requestPick : null}>
+        {/* 핵심 카드 — 학부모 시점에서 가장 중요한 6개 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {/* 1. 우리 학교 위치 */}
           <SchoolPositionCard selected={selected} percentiles={percentiles} all={agg.all} />
-
-          {/* 2. 시·도별 평균 ranking */}
-          <SidoRankingCard agg={agg} selected={selected} scope={scope} />
-
-          {/* 3. 초→중→고 변화 */}
-          <KindTransitionCard agg={agg} typeLabels={data.typeLabels} />
-
-          {/* 4. 학교 규모별 평균 */}
-          <SizeBucketCard agg={agg} selected={selected} />
-
-          {/* 5. 공립 vs 사립 vs 국립 */}
-          <FoundationCard agg={agg} selected={selected} scope={scope} />
-
-          {/* 6. 학교의 사건 처리 방식 */}
-          <SelfRatioCard agg={agg} selected={selected} />
-
-          {/* 7. 여학교 vs 공학 통념 검증 */}
-          <GenderCard agg={agg} typeLabels={data.typeLabels} selected={selected} />
-
-          {/* 8. 가장 평화로운 동네 TOP 10 */}
-          <PeacefulSggCard agg={agg} selected={selected} scope={scope} />
-
-          {/* 8-1. 가장 거친 동네 TOP 10 */}
-          <RoughSggCard agg={agg} selected={selected} scope={scope} />
-
-          {/* 9. 학생수 변화 vs 학폭 */}
-          <TrendCard agg={agg} selected={selected} scope={scope} />
-
-          {/* 10. 교사 1인당 학생수 vs 학폭 */}
-          <TeacherRatioCard agg={agg} selected={selected} scope={scope} />
-
-          {/* 11. 학폭과 강하게 연관된 데이터 */}
-          <CorrelationCard data={yearScopedData} scope={scope} />
-
-          {/* 12. 유형별 심각한 동네 TOP 3 */}
-          <TypeSeverityCard data={yearScopedData} scope={scope} />
-
-          {/* 13. 우리 아이가 학폭 당사자가 될 확률 */}
           <SafetyOddsCard data={yearScopedData} selected={yearScopedSelected} scope={scope} />
-
-          {/* 14. 우리 학교의 선도조치 활용 */}
-          <DisciplineStrengthCard data={yearScopedData} selected={yearScopedSelected} />
-
-          {/* 15. 우리 학교의 피해자 보호조치 활용 */}
-          <ProtectionStrengthCard data={yearScopedData} selected={yearScopedSelected} />
-
-          {/* 16. 우리 동네 학교 안전 순위 */}
           {yearScopedSelected && <NeighborhoodRankCard data={yearScopedData} selected={yearScopedSelected} />}
-
-          {/* 17. 선도조치 활용 가장 높은 학교 TOP */}
-          <TopDisciplineSchoolsCard data={yearScopedData} selected={selected} />
-
-          {/* 18. 피해자 보호조치 활용 가장 높은 학교 TOP */}
-          <TopProtectionSchoolsCard data={yearScopedData} selected={selected} />
-
-          {/* 19. 가해학생/보호자 특별교육 이수율 */}
+          <DisciplineStrengthCard data={yearScopedData} selected={yearScopedSelected} />
+          <ProtectionStrengthCard data={yearScopedData} selected={yearScopedSelected} />
           <SpecialEdCard data={yearScopedData} selected={yearScopedSelected} />
         </div>
+
+        {/* 추가 카드 — "전체" 모드에서만 노출 */}
+        {view === "all" && (
+          <>
+            <div className="text-[10px] text-muted-foreground pt-1 border-t mt-1">지역·집단 비교</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <SidoRankingCard agg={agg} selected={selected} scope={scope} />
+              <KindTransitionCard agg={agg} typeLabels={data.typeLabels} />
+              <PeacefulSggCard agg={agg} selected={selected} scope={scope} />
+              <RoughSggCard agg={agg} selected={selected} scope={scope} />
+              <TypeSeverityCard data={yearScopedData} scope={scope} />
+              <SizeBucketCard agg={agg} selected={selected} />
+              <FoundationCard agg={agg} selected={selected} scope={scope} />
+              <GenderCard agg={agg} typeLabels={data.typeLabels} selected={selected} />
+            </div>
+            <div className="text-[10px] text-muted-foreground pt-1 border-t mt-1">전국 패턴·심층 분석</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <SelfRatioCard agg={agg} selected={selected} />
+              <TrendCard agg={agg} selected={selected} scope={scope} />
+              <TeacherRatioCard agg={agg} selected={selected} scope={scope} />
+              <CorrelationCard data={yearScopedData} scope={scope} />
+              <TopDisciplineSchoolsCard data={yearScopedData} selected={selected} />
+              <TopProtectionSchoolsCard data={yearScopedData} selected={selected} />
+            </div>
+          </>
+        )}
         </PickContext.Provider>
 
         <div className="text-[10px] text-muted-foreground pt-1 border-t">

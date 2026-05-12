@@ -804,7 +804,7 @@ function DetailsSections({ details, color }: { details: SchoolDetails; color: st
       <div className="text-muted-foreground text-xs">공시 정보</div>
       <Accordion
         type="multiple"
-        defaultValue={sections.map((s) => s.key)}
+        defaultValue={[]}
         onValueChange={(open) => {
           // 새로 열린 섹션만 트래킹 (이전 set과의 diff)
           const prev = openRef.current ?? new Set(sections.map((s) => s.key));
