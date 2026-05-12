@@ -31,6 +31,8 @@ interface Props {
   onPick: (s: School) => void;
   metric: Metric;
   setMetric: (m: Metric) => void;
+  statsYear: string;
+  setStatsYear: (y: string) => void;
   onClose?: () => void;
 }
 
@@ -39,10 +41,10 @@ const GENDER_LIST: SchoolGender[] = ["공학", "여"];
 const ALL_TYPES = [0, 1, 2, 3, 4, 5, 6, 7];
 
 export function Sidebar({
-  data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, onClose,
+  data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, statsYear, setStatsYear, onClose,
 }: Props) {
   const [statsOpen, setStatsOpen] = useState(false);
-  const [statsYear, setStatsYear] = useState<string>("all");
+  const yearsDesc = useMemo(() => [...data.years].sort((a, b) => b.localeCompare(a)), [data.years]);
   const sortedTop = useMemo(() => {
     return [...filtered].sort((a, b) => {
       const sa = stats.get(a.code);
@@ -95,7 +97,7 @@ export function Sidebar({
             title="통계 기준 연도"
           >
             <option value="all">전체</option>
-            {data.years.map((y) => (
+            {yearsDesc.map((y) => (
               <option key={y} value={y}>{y}</option>
             ))}
           </select>

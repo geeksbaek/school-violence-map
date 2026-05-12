@@ -39,6 +39,7 @@ export function App() {
   const [selected, setSelected] = useState<School | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<RegionPick | null>(null);
   const [metric, setMetric] = useState<Metric>("rate");
+  const [statsYear, setStatsYear] = useState<string>("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filter, setFilter] = useState<FilterState>({
     kinds: new Set(ALL_KINDS),
@@ -162,9 +163,10 @@ export function App() {
     const m = new Map<string, SchoolStat>();
     if (!data) return m;
     const mask = setToBits(filter.types);
-    for (const s of data.schools) m.set(s.code, computeStat(s, data.years, mask));
+    const ys = statsYear === "all" ? data.years : [statsYear];
+    for (const s of data.schools) m.set(s.code, computeStat(s, ys, mask));
     return m;
-  }, [data, filter.types]);
+  }, [data, filter.types, statsYear]);
 
   if (!KEY) {
     return (
@@ -193,6 +195,8 @@ export function App() {
       }}
       metric={metric}
       setMetric={setMetric}
+      statsYear={statsYear}
+      setStatsYear={setStatsYear}
       onClose={() => setSidebarOpen(false)}
     />
   );
