@@ -33,8 +33,10 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
 
   const requestPick = useCallback((s: School) => {
     if (s.code === selected?.code) return;
-    setPendingPick(s);
-  }, [selected]);
+    // SchoolLink가 단일 연도로 잘린 인스턴스를 전달할 수 있으므로 원본에서 다시 찾음
+    const original = data.schools.find((x) => x.code === s.code) ?? s;
+    setPendingPick(original);
+  }, [selected, data]);
   const confirmPick = () => {
     if (pendingPick && onPick) {
       onPick(pendingPick);
@@ -203,13 +205,13 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
           <ProtectionStrengthCard data={yearScopedData} selected={yearScopedSelected} />
 
           {/* 16. 우리 동네 학교 안전 순위 */}
-          {selected && <NeighborhoodRankCard data={yearScopedData} selected={selected} />}
+          {yearScopedSelected && <NeighborhoodRankCard data={yearScopedData} selected={yearScopedSelected} />}
 
           {/* 17. 처벌 강도 가장 높은 학교 TOP */}
-          <TopDisciplineSchoolsCard data={yearScopedData} />
+          <TopDisciplineSchoolsCard data={yearScopedData} selected={selected} />
 
           {/* 18. 피해자 보호 강도 가장 높은 학교 TOP */}
-          <TopProtectionSchoolsCard data={yearScopedData} />
+          <TopProtectionSchoolsCard data={yearScopedData} selected={selected} />
         </div>
         </PickContext.Provider>
 
@@ -1204,7 +1206,7 @@ function NeighborhoodRankCard({ data, selected }: { data: DataSet; selected: Sch
 }
 
 // ─── Card 17: 처벌 강도 가장 높은 학교 TOP ──────
-function TopDisciplineSchoolsCard({ data }: { data: DataSet }) {
+function TopDisciplineSchoolsCard({ data, selected }: { data: DataSet; selected: School | null }) {
   const items = useMemo(() => {
     const out: { s: School; pct: number; total: number }[] = [];
     for (const s of data.schools) {
@@ -1215,7 +1217,7 @@ function TopDisciplineSchoolsCard({ data }: { data: DataSet }) {
         for (let i = 0; i < 9; i++) total += pm[i] ?? 0;
         for (let i = 5; i < 9; i++) heavy += pm[i] ?? 0;
       }
-      if (total < 5) continue; // 표본 부족 제외
+      if (total < 5) continue;
       out.push({ s, pct: (heavy / total) * 100, total });
     }
     return out.sort((a, b) => b.pct - a.pct).slice(0, 12);
@@ -1226,17 +1228,22 @@ function TopDisciplineSchoolsCard({ data }: { data: DataSet }) {
         <Empty msg="조건을 만족하는 학교 없음" />
       ) : (
         <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
-          {items.map(({ s, pct, total }, i) => (
-            <div key={s.code} className="flex items-center gap-2 text-xs">
-              <span className="w-5 text-right text-muted-foreground tabular-nums">{i + 1}</span>
-              <SchoolLink school={s} className="flex-1 truncate" />
-              <span className="text-[10px] text-muted-foreground w-20 text-right truncate">
-                {[s.city, s.district].filter(Boolean).join(" ")}
-              </span>
-              <span className="tabular-nums w-12 text-right text-red-700 dark:text-red-400 font-semibold">{pct.toFixed(0)}%</span>
-              <span className="text-[10px] text-muted-foreground w-10 text-right">{total}건</span>
-            </div>
-          ))}
+          {items.map(({ s, pct, total }, i) => {
+            const isMine = selected?.code === s.code;
+            return (
+              <div key={s.code} className={cn("flex items-center gap-2 text-xs", isMine && "font-bold")}>
+                <span className="w-5 text-right text-muted-foreground tabular-nums">{i + 1}</span>
+                <SchoolLink school={s} className={cn("flex-1 truncate", isMine && "text-red-600 dark:text-red-400")}>
+                  {s.name}{isMine && " ← 우리 학교"}
+                </SchoolLink>
+                <span className="text-[10px] text-muted-foreground w-20 text-right truncate">
+                  {[s.city, s.district].filter(Boolean).join(" ")}
+                </span>
+                <span className="tabular-nums w-12 text-right text-red-700 dark:text-red-400 font-semibold">{pct.toFixed(0)}%</span>
+                <span className="text-[10px] text-muted-foreground w-10 text-right">{total}건</span>
+              </div>
+            );
+          })}
         </div>
       )}
       <Insight>
@@ -1249,7 +1256,7 @@ function TopDisciplineSchoolsCard({ data }: { data: DataSet }) {
 }
 
 // ─── Card 18: 피해자 보호 강도 가장 높은 학교 TOP
-function TopProtectionSchoolsCard({ data }: { data: DataSet }) {
+function TopProtectionSchoolsCard({ data, selected }: { data: DataSet; selected: School | null }) {
   const items = useMemo(() => {
     const out: { s: School; perVictim: number; victims: number }[] = [];
     for (const s of data.schools) {
@@ -1273,17 +1280,22 @@ function TopProtectionSchoolsCard({ data }: { data: DataSet }) {
         <Empty msg="조건을 만족하는 학교 없음" />
       ) : (
         <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
-          {items.map(({ s, perVictim, victims }, i) => (
-            <div key={s.code} className="flex items-center gap-2 text-xs">
-              <span className="w-5 text-right text-muted-foreground tabular-nums">{i + 1}</span>
-              <SchoolLink school={s} className="flex-1 truncate" />
-              <span className="text-[10px] text-muted-foreground w-20 text-right truncate">
-                {[s.city, s.district].filter(Boolean).join(" ")}
-              </span>
-              <span className="tabular-nums w-12 text-right text-green-700 dark:text-green-400 font-semibold">{perVictim.toFixed(2)}</span>
-              <span className="text-[10px] text-muted-foreground w-10 text-right">피해 {victims}</span>
-            </div>
-          ))}
+          {items.map(({ s, perVictim, victims }, i) => {
+            const isMine = selected?.code === s.code;
+            return (
+              <div key={s.code} className={cn("flex items-center gap-2 text-xs", isMine && "font-bold")}>
+                <span className="w-5 text-right text-muted-foreground tabular-nums">{i + 1}</span>
+                <SchoolLink school={s} className={cn("flex-1 truncate", isMine && "text-red-600 dark:text-red-400")}>
+                  {s.name}{isMine && " ← 우리 학교"}
+                </SchoolLink>
+                <span className="text-[10px] text-muted-foreground w-20 text-right truncate">
+                  {[s.city, s.district].filter(Boolean).join(" ")}
+                </span>
+                <span className="tabular-nums w-12 text-right text-green-700 dark:text-green-400 font-semibold">{perVictim.toFixed(2)}</span>
+                <span className="text-[10px] text-muted-foreground w-10 text-right">피해 {victims}</span>
+              </div>
+            );
+          })}
         </div>
       )}
       <Insight>
