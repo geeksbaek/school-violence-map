@@ -76,6 +76,9 @@ export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
           {/* 8. 가장 평화로운 동네 TOP 10 */}
           <PeacefulSggCard agg={agg} selected={selected} />
 
+          {/* 8-1. 가장 거친 동네 TOP 10 */}
+          <RoughSggCard agg={agg} selected={selected} />
+
           {/* 9. 학생수 변화 vs 학폭 */}
           <TrendCard agg={agg} selected={selected} />
 
@@ -475,6 +478,45 @@ function PeacefulSggCard({ agg, selected }: { agg: ReturnType<typeof computeAggr
         TOP 10 대부분 농어촌 군 단위 — 학생수가 적어 신고 자체가 드물 수도, 실제 평화로움일 수도.
         도시 신축 단지는 거의 등장하지 않음.
       </Insight>
+    </Card>
+  );
+}
+
+// ─── Card 8-1: 가장 거친 동네 TOP 10 ──────────
+function RoughSggCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+  const items = useMemo(() => {
+    return Object.entries(agg.bySgg)
+      .map(([k, v]) => ({ name: k, ...v }))
+      .filter((x) => x.withData >= 10 && x.avgRate > 0)
+      .sort((a, b) => b.avgRate - a.avgRate)
+      .slice(0, 10);
+  }, [agg]);
+  const max = Math.max(0.001, ...items.map((x) => x.avgRate));
+  const mySgg = selected ? [selected.sido || "", selected.city === (selected.sido || "") ? "" : selected.city, selected.district].filter(Boolean).join(" ").trim() : null;
+  return (
+    <Card title="가장 거친 동네 TOP 10" subtitle="시·군·구 평균 학폭 비율 (학교 10교+ 만)">
+      <div className="flex flex-col gap-1">
+        {items.map((it, i) => {
+          const isMine = mySgg === it.name;
+          return (
+            <div key={it.name} className={cn("flex items-center gap-2 text-xs", isMine && "font-semibold")}>
+              <span className="w-4 text-right text-muted-foreground tabular-nums">{i + 1}</span>
+              <span className="w-32 truncate">{it.name}</span>
+              <div className="flex-1 bg-muted h-2 rounded-sm overflow-hidden">
+                <div className="h-full" style={{ width: `${(it.avgRate / max) * 100}%`, background: isMine ? "#ef4444" : "#dc2626" }} />
+              </div>
+              <span className="tabular-nums w-12 text-right">{it.avgRate.toFixed(2)}</span>
+              <span className="text-[10px] text-muted-foreground w-10 text-right">{it.withData}교</span>
+            </div>
+          );
+        })}
+      </div>
+      {items.length > 0 && (
+        <Insight>
+          최상위 <b>{items[0].name}</b> 평균 <b>{items[0].avgRate.toFixed(2)}/100명·년</b>으로 전국 평균({agg.all.avgRate.toFixed(2)})의 약 <b>{(items[0].avgRate / Math.max(0.01, agg.all.avgRate)).toFixed(1)}배</b>.
+          평화 동네와 마찬가지로 농어촌·소규모 학교가 많은 군 단위가 자주 등장 — 한 사건이 평균을 크게 끌어올리는 분모 효과 영향.
+        </Insight>
+      )}
     </Card>
   );
 }
