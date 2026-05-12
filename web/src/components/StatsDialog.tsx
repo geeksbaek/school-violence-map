@@ -105,7 +105,7 @@ export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
           <SizeBucketCard agg={agg} selected={selected} />
 
           {/* 5. 공립 vs 사립 vs 국립 */}
-          <FoundationCard agg={agg} selected={selected} />
+          <FoundationCard agg={agg} selected={selected} scope={scope} />
 
           {/* 6. 학교의 사건 처리 방식 */}
           <SelfRatioCard agg={agg} selected={selected} />
@@ -114,22 +114,22 @@ export function StatsDialog({ open, onOpenChange, data, selected }: Props) {
           <GenderCard agg={agg} typeLabels={data.typeLabels} selected={selected} />
 
           {/* 8. 가장 평화로운 동네 TOP 10 */}
-          <PeacefulSggCard agg={agg} selected={selected} />
+          <PeacefulSggCard agg={agg} selected={selected} scope={scope} />
 
           {/* 8-1. 가장 거친 동네 TOP 10 */}
-          <RoughSggCard agg={agg} selected={selected} />
+          <RoughSggCard agg={agg} selected={selected} scope={scope} />
 
           {/* 9. 학생수 변화 vs 학폭 */}
-          <TrendCard agg={agg} selected={selected} />
+          <TrendCard agg={agg} selected={selected} scope={scope} />
 
           {/* 10. 교사 1인당 학생수 vs 학폭 */}
-          <TeacherRatioCard agg={agg} selected={selected} />
+          <TeacherRatioCard agg={agg} selected={selected} scope={scope} />
 
           {/* 11. 학폭과 강하게 연관된 데이터 */}
-          <CorrelationCard data={scopedData} />
+          <CorrelationCard data={scopedData} scope={scope} />
 
           {/* 12. 유형별 심각한 동네 TOP 3 */}
-          <TypeSeverityCard data={scopedData} />
+          <TypeSeverityCard data={scopedData} scope={scope} />
         </div>
 
         <div className="text-[10px] text-muted-foreground pt-1 border-t">
@@ -266,23 +266,30 @@ function KindTransitionCard({ agg, typeLabels }: { agg: ReturnType<typeof comput
             );
           })}
         </div>
-        {/* 유형 비중 stacked bar */}
+        {/* 유형 비중 stacked bar (막대 길이 = 평균 비율, 내부 색 비율 = 유형 비중) */}
         <div className="flex flex-col gap-1">
-          <div className="text-[10px] text-muted-foreground">학교종류별 폭력 유형 비중</div>
-          {KIND_ORDER.map((k) => {
-            const v = agg.byKind[k];
-            if (!v) return null;
-            return (
-              <div key={k} className="flex items-center gap-2 text-[10px]">
-                <span className="w-8 text-muted-foreground">{k}</span>
-                <div className="flex-1 flex h-3 rounded-sm overflow-hidden">
-                  {v.typeShare.map((s, i) => (
-                    <div key={i} title={`${typeLabels[i]} ${(s * 100).toFixed(0)}%`} style={{ width: `${s * 100}%`, background: TYPE_COLORS[i] }} />
-                  ))}
+          <div className="text-[10px] text-muted-foreground">학교종류별 폭력 유형 비중 (막대 길이 = 평균 비율)</div>
+          {(() => {
+            const maxRate = Math.max(0.001, ...KIND_ORDER.map((k) => agg.byKind[k]?.avgRate ?? 0));
+            return KIND_ORDER.map((k) => {
+              const v = agg.byKind[k];
+              if (!v) return null;
+              const widthPct = (v.avgRate / maxRate) * 100;
+              return (
+                <div key={k} className="flex items-center gap-2 text-[10px]">
+                  <span className="w-8 text-muted-foreground">{k}</span>
+                  <div className="flex-1 h-3 bg-muted/40 rounded-sm relative overflow-hidden">
+                    <div className="absolute inset-y-0 left-0 flex" style={{ width: `${widthPct}%` }}>
+                      {v.typeShare.map((s, i) => (
+                        <div key={i} title={`${typeLabels[i]} ${(s * 100).toFixed(0)}%`} style={{ width: `${s * 100}%`, background: TYPE_COLORS[i] }} />
+                      ))}
+                    </div>
+                  </div>
+                  <span className="tabular-nums w-10 text-right">{v.avgRate.toFixed(2)}</span>
                 </div>
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
           <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1">
             {typeLabels.map((label, i) => (
               <span key={label} className="flex items-center gap-1 text-[9px] text-muted-foreground">
@@ -343,7 +350,7 @@ function SizeBucketCard({ agg, selected }: { agg: ReturnType<typeof computeAggre
 }
 
 // ─── Card 5: 공립 / 사립 / 국립 ──────────────────────
-function FoundationCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+function FoundationCard({ agg, selected, scope }: { agg: ReturnType<typeof computeAggregates>; selected: School | null; scope: Scope }) {
   const max = Math.max(0.001, ...FOUND_ORDER.map((k) => agg.byFoundation[k]?.avgRate ?? 0));
   return (
     <Card title="설립 유형별 평균 비율" subtitle="공립 vs 사립 vs 국립">
@@ -371,10 +378,13 @@ function FoundationCard({ agg, selected }: { agg: ReturnType<typeof computeAggre
         const rates = FOUND_ORDER.map((k) => agg.byFoundation[k]?.avgRate ?? 0).filter((r) => r > 0);
         if (rates.length < 2) return null;
         const gap = (Math.max(...rates) - Math.min(...rates)) / Math.max(...rates);
+        const nationalNote = "국립이 다소 낮은 건 표본 수(약 40여 교)가 적은 영향도 있음.";
+        const sudogwonCount = agg.byFoundation["국립"]?.count ?? 0;
+        const sudogwonNote = `수도권은 사립 비중이 전국 대비 높고, 국립은 ${sudogwonCount}교에 불과해 변동성 큼.`;
         return (
           <Insight>
             세 유형 차이는 <b>최대 {(gap * 100).toFixed(0)}% 이내</b> — 설립 주체(공·사·국립)는 학폭 발생률에 큰 영향이 없음.
-            국립이 다소 낮은 건 표본 수(약 40여 교)가 적은 영향도 있음.
+            {" "}{scope === "전국" ? nationalNote : sudogwonNote}
           </Insight>
         );
       })()}
@@ -493,7 +503,7 @@ function GenderCard({ agg, typeLabels, selected }: { agg: ReturnType<typeof comp
 }
 
 // ─── Card 8: 가장 평화로운 동네 TOP 10 ──────────
-function PeacefulSggCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+function PeacefulSggCard({ agg, selected, scope }: { agg: ReturnType<typeof computeAggregates>; selected: School | null; scope: Scope }) {
   const items = useMemo(() => {
     return Object.entries(agg.bySgg)
       .map(([k, v]) => ({ name: k, ...v, peaceRatio: v.withData > 0 ? v.zeroFour / v.withData : 0 }))
@@ -521,15 +531,16 @@ function PeacefulSggCard({ agg, selected }: { agg: ReturnType<typeof computeAggr
         ⚠ 신고 회피 가능성 있음. 0건 = 평화 또는 은폐.
       </div>
       <Insight>
-        TOP 10 대부분 농어촌 군 단위 — 학생수가 적어 신고 자체가 드물 수도, 실제 평화로움일 수도.
-        도시 신축 단지는 거의 등장하지 않음.
+        {scope === "전국"
+          ? "TOP 10 대부분 농어촌 군 단위 — 학생수가 적어 신고 자체가 드물 수도, 실제 평화로움일 수도. 도시 신축 단지는 거의 등장하지 않음."
+          : "수도권 안에서도 외곽 군 단위(연천·강화·옹진·가평·양평 등)가 상위 — 학생수 적은 학교가 많아 0건 비율이 자연스럽게 높아짐. 서울 자치구는 학생 표본이 커서 0건 학교가 거의 없음."}
       </Insight>
     </Card>
   );
 }
 
 // ─── Card 8-1: 가장 거친 동네 TOP 10 ──────────
-function RoughSggCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+function RoughSggCard({ agg, selected, scope }: { agg: ReturnType<typeof computeAggregates>; selected: School | null; scope: Scope }) {
   const items = useMemo(() => {
     return Object.entries(agg.bySgg)
       .map(([k, v]) => ({ name: k, ...v }))
@@ -559,8 +570,10 @@ function RoughSggCard({ agg, selected }: { agg: ReturnType<typeof computeAggrega
       </div>
       {items.length > 0 && (
         <Insight>
-          최상위 <b>{items[0].name}</b> 평균 <b>{items[0].avgRate.toFixed(2)}/100명·년</b>으로 전국 평균({agg.all.avgRate.toFixed(2)})의 약 <b>{(items[0].avgRate / Math.max(0.01, agg.all.avgRate)).toFixed(1)}배</b>.
-          평화 동네와 마찬가지로 농어촌·소규모 학교가 많은 군 단위가 자주 등장 — 한 사건이 평균을 크게 끌어올리는 분모 효과 영향.
+          최상위 <b>{items[0].name}</b> 평균 <b>{items[0].avgRate.toFixed(2)}/100명·년</b>으로 {scope} 평균({agg.all.avgRate.toFixed(2)})의 약 <b>{(items[0].avgRate / Math.max(0.01, agg.all.avgRate)).toFixed(1)}배</b>.
+          {scope === "전국"
+            ? " 평화 동네와 마찬가지로 농어촌·소규모 학교가 많은 군 단위가 자주 등장 — 한 사건이 평균을 크게 끌어올리는 분모 효과 영향."
+            : " 수도권에서는 외곽 군·시 단위와 일부 도심 자치구가 섞여 등장 — 학교 규모와 사건 빈도가 함께 영향."}
         </Insight>
       )}
     </Card>
@@ -568,7 +581,7 @@ function RoughSggCard({ agg, selected }: { agg: ReturnType<typeof computeAggrega
 }
 
 // ─── Card 9: 학생수 변화 vs 학폭 ─────────────────
-function TrendCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+function TrendCard({ agg, selected, scope }: { agg: ReturnType<typeof computeAggregates>; selected: School | null; scope: Scope }) {
   const order: TrendBucket[] = ["감소", "정체", "증가"];
   const max = Math.max(0.001, ...order.map((b) => agg.byTrend[b]?.avgRate ?? 0));
   const myBucket = selected ? trendBucket(selected.details?.studentTrend) : null;
@@ -599,8 +612,10 @@ function TrendCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates
         const lower = dec < inc ? "감소" : "증가";
         return (
           <Insight>
-            학생수 <b>{lower} 학교가 오히려 낮음</b> — "인구가 빠지면 학폭이 심해진다"는 통념과 반대.
-            농어촌 인구감소 지역이 평균적으로 학폭 비율도 낮은 경향(평화 동네 카드와 일치).
+            학생수 <b>{lower} 학교가 {dec === inc ? "비슷" : "오히려 낮음"}</b>.
+            {scope === "전국"
+              ? ' "인구가 빠지면 학폭이 심해진다"는 통념과 반대 — 농어촌 인구감소 지역이 평균적으로 학폭 비율도 낮은 경향(평화 동네 카드와 일치).'
+              : " 수도권에서는 신축 단지 유입(증가)과 구도심 학생 감소(감소)의 효과가 섞여, 차이가 비교적 작은 편."}
           </Insight>
         );
       })()}
@@ -609,7 +624,7 @@ function TrendCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates
 }
 
 // ─── Card 10: 교사 1인당 학생수 vs 학폭 ──────────
-function TeacherRatioCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+function TeacherRatioCard({ agg, selected, scope }: { agg: ReturnType<typeof computeAggregates>; selected: School | null; scope: Scope }) {
   const order: RatioBucket[] = ["<10명", "10–15명", "15–20명", "20명+"];
   const max = Math.max(0.001, ...order.map((b) => agg.byTeacherRatio[b]?.avgRate ?? 0));
   const myBucket = selected ? studentPerTeacherBucket(selected.studentTotal, selected.teachers) : null;
@@ -636,11 +651,13 @@ function TeacherRatioCard({ agg, selected }: { agg: ReturnType<typeof computeAgg
         const small = agg.byTeacherRatio["<10명"]?.avgRate ?? 0;
         const big = agg.byTeacherRatio["20명+"]?.avgRate ?? 0;
         if (!small || !big) return null;
+        const inverted = small > big;
         return (
           <Insight>
-            <b>교사당 학생이 적은 학교일수록 비율이 높음</b> — 통념과 반대.
-            교사당 &lt;10명은 대부분 농어촌 소규모 학교라 분모 효과 + 한 사건의 비율 충격이 큼.
-            "교사 부족 → 학폭 증가"는 이 데이터로 뒷받침되지 않음.
+            <b>교사당 학생이 {inverted ? "적은" : "많은"} 학교일수록 비율이 높음</b>{inverted ? " — 통념과 반대." : "."}
+            {scope === "전국"
+              ? " 교사당 <10명은 대부분 농어촌 소규모 학교라 분모 효과 + 한 사건의 비율 충격이 큼. \"교사 부족 → 학폭 증가\"는 이 데이터로 뒷받침되지 않음."
+              : " 수도권은 농어촌이 적어 분모 효과가 약함 — 교사당 학생수가 학폭과 강하게 연결되지 않음."}
           </Insight>
         );
       })()}
@@ -695,7 +712,7 @@ function pearson(xs: number[], ys: number[]): number {
   return den === 0 ? 0 : num / den;
 }
 
-function CorrelationCard({ data }: { data: DataSet }) {
+function CorrelationCard({ data, scope }: { data: DataSet; scope: Scope }) {
   const items = useMemo(() => {
     return CORR_CANDIDATES.map((c) => {
       const xs: number[] = [], ys: number[] = [];
@@ -741,16 +758,28 @@ function CorrelationCard({ data }: { data: DataSet }) {
         })}
       </div>
       <Insight>
-        <b className="text-green-700 dark:text-green-400">보호 요인(반비례)</b>: 돌봄·방과후·장학금·예방프로그램 — 학교의 사회경제적 지원·시간 채움이 분쟁 빈도를 낮추는 경향.
-        <b className="text-red-700 dark:text-red-400 ml-1">위험 요인(비례)</b>: 남학생 비율·학급당 학생수.
-        ⚠ 상관 ≠ 인과. 학교 규모·지역 등 교란변수 영향 존재.
+        {sorted.length > 0 && (
+          <>
+            상위 신호:
+            {sorted.slice(0, 3).map((it, i) => (
+              <span key={it.name} className={cn("ml-1", it.r > 0 ? "text-red-700 dark:text-red-400" : "text-green-700 dark:text-green-400")}>
+                {i > 0 && ","} <b>{it.name}</b>({it.r > 0 ? "+" : ""}{it.r.toFixed(2)})
+              </span>
+            ))}.
+          </>
+        )}
+        {" "}
+        {scope === "전국"
+          ? "전국 단위에서는 돌봄·방과후 인프라가 가장 일관된 보호 요인. 농어촌 소규모 학교 효과(교란변수)가 강하게 작용."
+          : "수도권은 농어촌 효과가 약해 순수 도시 효과가 더 두드러짐 — 학급당 학생수·학생 규모가 학폭 평균과 어떻게 연결되는지 전국과 비교해 보세요."}
+        ⚠ 상관 ≠ 인과.
       </Insight>
     </Card>
   );
 }
 
 // ─── Card 12: 유형별 심각한 동네 TOP 3 ───────────
-function TypeSeverityCard({ data }: { data: DataSet }) {
+function TypeSeverityCard({ data, scope }: { data: DataSet; scope: Scope }) {
   const topPerType = useMemo(() => {
     const map = new Map<string, { typeEvents: number[]; studentYears: number; schools: number }>();
     for (const s of data.schools) {
@@ -810,7 +839,9 @@ function TypeSeverityCard({ data }: { data: DataSet }) {
       <Insight>
         유형별로 상위 동네가 다름 — 같은 평균 비율이라도 폭력 양상이 다르게 나타남.
         성폭력·강요·따돌림은 전체 평균이 낮아 한두 사건에도 순위가 크게 바뀜.
-        다수 농어촌 군 단위 등장 → 분모 효과(소규모 학교) 영향.
+        {scope === "전국"
+          ? " 다수 농어촌 군 단위 등장 → 분모 효과(소규모 학교) 영향."
+          : " 수도권은 외곽 군·시 + 도심 자치구가 섞여 등장 — 사이버폭력은 도심에서, 신체폭력은 외곽에서 두드러지는 경향."}
       </Insight>
     </Card>
   );
