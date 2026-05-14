@@ -46,10 +46,10 @@ export function computeSchoolStrengthLabels(s: School): { discipline: StrengthLa
     discipline = NEUTRAL_LABEL(`표본 부족 (가해 ${perps}명)`);
   } else {
     const pc = perpMeasureSum / perps;
-    if (pc < 0.5) discipline = { label: "부재", color: "#065f46", bg: "#d1fae5", perCase: pc, tone: "good" };
+    if (pc < 0.5) discipline = { label: "부재", color: "#7f1d1d", bg: "#fee2e2", perCase: pc, tone: "bad" };
     else if (pc < 1.0) discipline = { label: "약함", color: "#854d0e", bg: "#fef9c3", perCase: pc, tone: "neutral" };
-    else if (pc < 1.5) discipline = { label: "보통", color: "#9a3412", bg: "#ffedd5", perCase: pc, tone: "warn" };
-    else discipline = { label: "강함", color: "#7f1d1d", bg: "#fee2e2", perCase: pc, tone: "bad" };
+    else if (pc < 1.5) discipline = { label: "적극", color: "#065f46", bg: "#d1fae5", perCase: pc, tone: "good" };
+    else discipline = { label: "매우 적극", color: "#14532d", bg: "#bbf7d0", perCase: pc, tone: "good" };
   }
 
   // 보호: 분모 = 피해 학생 수
@@ -125,14 +125,14 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
     return { total, avgRate, hasData, disciplinePerPerp, protectionPerVictim, cases, victims, perps };
   }, [inRegion, stats]);
 
-  // 선도조치 라벨 (분모 = 가해 학생 수, 보호와 일관)
+  // 선도조치 라벨 (분모 = 가해 학생 수, 보호와 동일하게 활용도↑=good)
   const discStrength = useMemo(() => {
     if (summary.disciplinePerPerp == null || summary.perps < 5) return null;
     const p = summary.disciplinePerPerp;
-    if (p < 0.5) return { label: "부재", color: "#065f46", bg: "#d1fae5" };
+    if (p < 0.5) return { label: "부재", color: "#7f1d1d", bg: "#fee2e2" };
     if (p < 1.0) return { label: "약함", color: "#854d0e", bg: "#fef9c3" };
-    if (p < 1.5) return { label: "보통", color: "#9a3412", bg: "#ffedd5" };
-    return { label: "강함", color: "#7f1d1d", bg: "#fee2e2" };
+    if (p < 1.5) return { label: "적극", color: "#065f46", bg: "#d1fae5" };
+    return { label: "매우 적극", color: "#14532d", bg: "#bbf7d0" };
   }, [summary.disciplinePerPerp, summary.perps]);
 
   // 보호조치 라벨 (ProtectionStrengthCard와 동일 경계, 분모=피해 학생)

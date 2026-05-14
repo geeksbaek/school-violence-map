@@ -1012,7 +1012,7 @@ function SafetyOddsCard({ data, selected, scope }: { data: DataSet; selected: Sc
 // ─── Card 14: 우리 학교 선도조치 활용 ─────────────
 function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: School | null }) {
   const dist = useMemo(() => {
-    const buckets = { 부재: 0, 약함: 0, 보통: 0, 강함: 0 };
+    const buckets = { 부재: 0, 약함: 0, 적극: 0, "매우 적극": 0 };
     let mySchoolPC: number | null = null;
     let avgPC = 0, n = 0;
     for (const s of data.schools) {
@@ -1030,18 +1030,18 @@ function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: S
       avgPC += pc; n++;
       if (pc < 0.5) buckets.부재++;
       else if (pc < 1.0) buckets.약함++;
-      else if (pc < 1.5) buckets.보통++;
-      else buckets.강함++;
+      else if (pc < 1.5) buckets.적극++;
+      else buckets["매우 적극"]++;
       if (selected && s.code === selected.code) mySchoolPC = pc;
     }
     return { buckets, avgPC: n > 0 ? avgPC / n : 0, n, mySchoolPC };
   }, [data, selected]);
 
   const labels: { key: keyof typeof dist.buckets; label: string; color: string; range: string }[] = [
-    { key: "부재", label: "부재", color: "#10b981", range: "<0.5건" },
+    { key: "부재", label: "부재", color: "#dc2626", range: "<0.5건" },
     { key: "약함", label: "약함", color: "#facc15", range: "0.5–1.0" },
-    { key: "보통", label: "보통", color: "#f97316", range: "1.0–1.5" },
-    { key: "강함", label: "강함", color: "#dc2626", range: "≥1.5" },
+    { key: "적극", label: "적극", color: "#10b981", range: "1.0–1.5" },
+    { key: "매우 적극", label: "매우 적극", color: "#047857", range: "≥1.5" },
   ];
   const total = Object.values(dist.buckets).reduce((a, b) => a + b, 0);
   const max = Math.max(1, ...Object.values(dist.buckets));
@@ -1057,8 +1057,8 @@ function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: S
             dist.mySchoolPC == null ? false :
             (b.key === "부재" && dist.mySchoolPC < 0.5) ||
             (b.key === "약함" && dist.mySchoolPC >= 0.5 && dist.mySchoolPC < 1.0) ||
-            (b.key === "보통" && dist.mySchoolPC >= 1.0 && dist.mySchoolPC < 1.5) ||
-            (b.key === "강함" && dist.mySchoolPC >= 1.5);
+            (b.key === "적극" && dist.mySchoolPC >= 1.0 && dist.mySchoolPC < 1.5) ||
+            (b.key === "매우 적극" && dist.mySchoolPC >= 1.5);
           return (
             <div key={b.key} className={cn("flex items-center gap-2 text-xs", myBucket && "font-bold")}>
               <span className="w-20 text-muted-foreground">{b.label}</span>
@@ -1074,8 +1074,8 @@ function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: S
       </div>
       <Insight>
         전국 평균: 가해 1명당 <b>{dist.avgPC.toFixed(2)}건</b> 처분 부여 (1호~9호 합산).
-        {dist.mySchoolPC != null && <> 우리 학교: <b className={cn(dist.mySchoolPC >= 1.0 ? "text-red-700 dark:text-red-400" : "text-green-700 dark:text-green-400")}>{dist.mySchoolPC.toFixed(2)}건</b>.</>}
-        {" "}한 학생에게 여러 호 중복 부여 가능 (예: 5호 특별교육 + 6호 출석정지). 부재이면 솜방망이 가능성, 강하면 엄정 처리 또는 중대 사안 비중↑.
+        {dist.mySchoolPC != null && <> 우리 학교: <b className={cn(dist.mySchoolPC >= 1.0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>{dist.mySchoolPC.toFixed(2)}건</b>.</>}
+        {" "}한 학생에게 여러 호 중복 부여 가능 (예: 5호 특별교육 + 6호 출석정지). 부재이면 솜방망이 가능성, 적극적이면 엄정 처리 또는 중대 사안 비중↑.
       </Insight>
     </Card>
   );
@@ -1226,7 +1226,7 @@ function TopDisciplineSchoolsCard({ data, selected }: { data: DataSet; selected:
                 <span className="text-[10px] text-muted-foreground w-20 text-right truncate">
                   {[s.city, s.district].filter(Boolean).join(" ")}
                 </span>
-                <span className="tabular-nums w-12 text-right text-red-700 dark:text-red-400 font-semibold">{perPerp.toFixed(2)}</span>
+                <span className="tabular-nums w-12 text-right text-green-700 dark:text-green-400 font-semibold">{perPerp.toFixed(2)}</span>
                 <span className="text-[10px] text-muted-foreground w-10 text-right">가해 {perps}</span>
               </div>
             );

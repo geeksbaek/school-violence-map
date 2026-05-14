@@ -272,9 +272,9 @@ function extractDetails(i: any, kind: "초등" | "중학" | "고등", code: stri
     const maxGrade = kind === "초등" ? 6 : 3;
     const arr: NonNullable<SchoolDetails["grades"]> = [];
     for (let g = 1; g <= maxGrade; g++) {
-      const c = num(grade[`COL_${g}`]);
+      const c = num(grade[`COL_C${g}`]);
       const s = num(grade[`COL_S${g}`]);
-      const pc = num(grade[`COL_C${g}`]);
+      const pc = num(grade[`COL_${g}`]);
       if (c != null || s != null) {
         arr.push({ label: `${g}학년`, classes: c, students: s, perClass: pc });
       }
