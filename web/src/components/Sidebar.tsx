@@ -9,9 +9,18 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { BarChart3, Search, X } from "lucide-react";
 const StatsDialog = lazy(() => import("@/components/StatsDialog").then((m) => ({ default: m.StatsDialog })));
 import {
-  SEVERITY_COLOR, SEVERITY_ORDER, severityOf, severityLabel, type Metric,
+  SEVERITY_COLOR, SEVERITY_ORDER, severityOf, severityLabel, type Metric, type SeverityThresholds,
 } from "@/lib/severity";
 import type { SchoolStat } from "@/lib/stats";
+import { APP_SCOPE_OPTIONS, type AppScope } from "@/lib/scope";
+import {
+  CAREER_SORT_BY_MODE,
+  SCHOOL_LIST_SORT_OPTIONS,
+  careerForSort,
+  careerListValue,
+  compareCareerSort,
+  type SchoolListSortMode,
+} from "@/lib/careerSort";
 import { computeSchoolStrengthLabels } from "@/components/RegionDetail";
 import { cn } from "@/lib/utils";
 import { trackFilter, trackMetric, trackSearch, trackSelection } from "@/lib/analytics";
@@ -24,8 +33,12 @@ interface FilterState {
 
 interface Props {
   data: DataSet;
+  scope: AppScope;
+  setScope: (scope: AppScope) => void;
+  totalSchoolCount: number;
   filtered: School[];
   stats: Map<string, SchoolStat>;
+  severityThresholds: SeverityThresholds;
   filter: FilterState;
   setFilter: (f: FilterState) => void;
   selected: School | null;
@@ -42,14 +55,19 @@ const GENDER_LIST: SchoolGender[] = ["공학", "여"];
 const ALL_TYPES = [0, 1, 2, 3, 4, 5, 6, 7];
 
 export function Sidebar({
-  data, filtered, stats, filter, setFilter, selected, onPick, metric, setMetric, statsYear, setStatsYear, onClose,
+  data, scope, setScope, totalSchoolCount, filtered, stats, severityThresholds, filter, setFilter, selected, onPick, metric, setMetric, statsYear, setStatsYear, onClose,
 }: Props) {
   const [statsOpen, setStatsOpen] = useState(false);
+  const [sortMode, setSortMode] = useState<SchoolListSortMode>("violence");
+  const currentCareerSort = sortMode === "violence" ? null : CAREER_SORT_BY_MODE[sortMode];
   const yearsDesc = useMemo(() => [...data.years].sort((a, b) => b.localeCompare(a)), [data.years]);
   const sortedTop = useMemo(() => {
     return [...filtered].sort((a, b) => {
       const sa = stats.get(a.code);
       const sb = stats.get(b.code);
+      if (sortMode !== "violence") {
+        return compareCareerSort(a, b, sortMode, statsYear);
+      }
       if (metric === "rate") {
         const ar = sa?.hasData ? sa.ratePer100 ?? -1 : -1;
         const br = sb?.hasData ? sb.ratePer100 ?? -1 : -1;
@@ -60,19 +78,19 @@ export function Sidebar({
       if (ah !== bh) return bh - ah;
       return (sb?.total ?? 0) - (sa?.total ?? 0);
     });
-  }, [filtered, stats, metric]);
+  }, [filtered, stats, metric, sortMode, statsYear]);
 
   const sevCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const s of filtered) {
       const st = stats.get(s.code);
-      const sev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false);
+      const sev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false, severityThresholds);
       counts[sev] = (counts[sev] ?? 0) + 1;
     }
     return counts;
-  }, [filtered, stats, metric]);
+  }, [filtered, stats, metric, severityThresholds]);
 
-  const labels = severityLabel(metric);
+  const labels = severityLabel(metric, severityThresholds);
   const allTypesOn = filter.types.size === 8;
 
   const genderCounts = useMemo(() => {
@@ -87,7 +105,8 @@ export function Sidebar({
         <div className="flex flex-col gap-0.5">
           <h1 className="text-base font-bold leading-tight">학교폭력 지도</h1>
           <span className="text-muted-foreground text-xs">
-            전국 {data.schools.length.toLocaleString()}개 학교
+            {scope} {data.schools.length.toLocaleString()}개 학교
+            {scope === "수도권" && ` · 전국 ${totalSchoolCount.toLocaleString()}개`}
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0 -mt-1 -mr-1">
@@ -120,15 +139,37 @@ export function Sidebar({
       </header>
       {statsOpen && (
         <Suspense fallback={null}>
-          <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} data={data} selected={selected} statsYear={statsYear} onPick={onPick} />
+          <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} data={data} scope={scope} selected={selected} statsYear={statsYear} onPick={onPick} />
         </Suspense>
       )}
+
+      <ToggleGroup
+        type="single"
+        value={scope}
+        onValueChange={(v) => {
+          if (!v) return;
+          const next = v as AppScope;
+          setScope(next);
+          trackFilter("scope", next);
+        }}
+        variant="outline"
+        size="sm"
+        spacing={2}
+        className="w-full !gap-2"
+      >
+        {APP_SCOPE_OPTIONS.map((option) => (
+          <ToggleGroupItem key={option} value={option} className="flex-1">
+            {option}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
 
       {/* 자동완성 검색 — 학교 1개 선택 */}
       <SchoolAutocomplete
         schools={data.schools}
         stats={stats}
         metric={metric}
+        severityThresholds={severityThresholds}
         onPick={onPick}
       />
 
@@ -292,13 +333,32 @@ export function Sidebar({
 
       {/* 리스트 */}
       <div className="flex flex-col gap-2">
-        <div className="text-muted-foreground text-xs px-1">
-          리스트 ({sortedTop.length.toLocaleString()}개) — {metric === "rate" ? "비율" : "건수"} ↓
+        <div className="flex items-center justify-between gap-2 px-1">
+          <div className="text-muted-foreground text-xs min-w-0 truncate">
+            리스트 ({sortedTop.length.toLocaleString()}개)
+            {sortMode === "violence"
+              ? ` — ${metric === "rate" ? "비율" : "건수"} ↓`
+              : ` — 진로 ${currentCareerSort?.asc ? "↑" : "↓"}`}
+          </div>
+          <select
+            value={sortMode}
+            onChange={(e) => {
+              const next = e.target.value as SchoolListSortMode;
+              setSortMode(next);
+              trackFilter("list_sort", next);
+            }}
+            className="h-7 max-w-[128px] rounded-md border bg-background px-1.5 text-[11px] shrink-0"
+            title="리스트 정렬"
+          >
+            {SCHOOL_LIST_SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
         </div>
         <ul className="flex flex-col gap-1">
           {sortedTop.slice(0, 200).map((s) => {
             const st = stats.get(s.code);
-            const sev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false);
+            const sev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false, severityThresholds);
             const isSel = selected?.code === s.code;
             return (
               <li key={s.code}>
@@ -320,7 +380,7 @@ export function Sidebar({
                     />
                     <span className="text-sm font-medium truncate flex-1">{s.name}</span>
                     <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
-                      {st?.hasData ? (
+                      {sortMode !== "violence" ? careerListValue(s, sortMode, statsYear) : st?.hasData ? (
                         metric === "rate" && st.ratePer100 != null
                           ? `${st.ratePer100.toFixed(2)}/100명·년`
                           : `${st.total}건`
@@ -330,6 +390,9 @@ export function Sidebar({
                   <div className="text-[11px] text-muted-foreground pl-4 truncate">
                     {s.kind} · {s.city} {s.district}
                     {s.studentTotal ? ` · ${s.studentTotal.toLocaleString()}명` : ""}
+                    {sortMode !== "violence" && careerForSort(s, statsYear)?.actualYear
+                      ? ` · ${careerForSort(s, statsYear)?.actualYear} 진로`
+                      : ""}
                   </div>
                   {(() => {
                     const labels = computeSchoolStrengthLabels(s);
@@ -394,11 +457,12 @@ function FilterBlock({
 
 // ─── 학교 검색 자동완성 ────────────────────────────
 function SchoolAutocomplete({
-  schools, stats, metric, onPick,
+  schools, stats, metric, severityThresholds, onPick,
 }: {
   schools: School[];
   stats: Map<string, SchoolStat>;
   metric: Metric;
+  severityThresholds: SeverityThresholds;
   onPick: (s: School) => void;
 }) {
   const [q, setQ] = useState("");
@@ -482,7 +546,7 @@ function SchoolAutocomplete({
             <ul className="max-h-72 overflow-y-auto py-1">
               {matches.map((s, i) => {
                 const st = stats.get(s.code);
-                const sev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false);
+                const sev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false, severityThresholds);
                 return (
                   <li key={s.code}>
                     <button

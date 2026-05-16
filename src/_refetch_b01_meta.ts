@@ -102,5 +102,5 @@ for (let i = 0; i < targets.length; i++) {
   }
   await sleep(80);
 }
-await Bun.write(outPath, JSON.stringify(data, null, 2));
+await saveSchoolInfo(data, sch);
 console.log(`\n=== 완료 ===\nok ${ok} / fail ${fail} / 시도 ${targets.length}`);

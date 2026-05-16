@@ -48,6 +48,9 @@ export interface School {
   selfResolved?: Record<string, SchoolSelfResolved | null>;
   selfResolvedTotal?: number;
   preventionEdu?: Record<string, SchoolPreventionEdu | null>;
+  careerSummary?: Record<string, SchoolCareerYear | null>;
+  careerLatest?: SchoolCareerYear | null;
+  graduationCareer?: Record<string, SchoolCareerYear | null>;
   schoolinfoUuid?: string;
   foundation?: string;
   details?: SchoolDetails;
@@ -68,6 +71,29 @@ export interface SchoolPreventionEdu {
   staffTeachers?: number | null;
   progStudents?: number | null;
   progTeachers?: number | null;
+}
+
+export interface SchoolCareerRow {
+  graduates?: number | null;
+  juniorCollege?: number | null;
+  university?: number | null;
+  overseasJuniorCollege?: number | null;
+  overseasUniversity?: number | null;
+  overseasTotal?: number | null;
+  advancementTotal?: number | null;
+  employed?: number | null;
+  other?: number | null;
+}
+
+export interface SchoolCareerYear {
+  requestedYear: string;
+  actualYear?: string;
+  total: SchoolCareerRow;
+  rates: Omit<SchoolCareerRow, "graduates">;
+  byGender?: {
+    male?: SchoolCareerRow;
+    female?: SchoolCareerRow;
+  };
 }
 
 export interface SchoolDetails {

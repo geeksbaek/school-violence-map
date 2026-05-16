@@ -6,9 +6,10 @@ import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { X } from "lucide-react";
-import type { DataSet, School, SchoolDetails, SchoolPreventionEdu } from "@/types";
-import { severityOf, SEVERITY_COLOR, severityLabel, type Metric } from "@/lib/severity";
+import type { DataSet, School, SchoolCareerRow, SchoolCareerYear, SchoolDetails, SchoolPreventionEdu } from "@/types";
+import { severityOf, SEVERITY_COLOR, severityLabel, type Metric, type SeverityThresholds } from "@/lib/severity";
 import { schoolPercentile, verdictFromPercentile, type SchoolStat } from "@/lib/stats";
+import type { AppScope } from "@/lib/scope";
 import { computeSchoolStrengthLabels } from "@/components/RegionDetail";
 import { cn } from "@/lib/utils";
 import { trackSection } from "@/lib/analytics";
@@ -18,6 +19,8 @@ interface Props {
   stat: SchoolStat;
   data: DataSet;
   metric: Metric;
+  scope: AppScope;
+  severityThresholds: SeverityThresholds;
   selectedTypes: Set<number>;
   onClose: () => void;
 }
@@ -91,10 +94,10 @@ const PERP_MEASURE_LABELS = [
   "9호 퇴학",
 ];
 
-export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClose }: Props) {
-  const sev = severityOf(metric, stat.ratePer100, stat.total, stat.hasData);
+export function SchoolDetail({ school, stat, data, metric, scope, severityThresholds, selectedTypes, onClose }: Props) {
+  const sev = severityOf(metric, stat.ratePer100, stat.total, stat.hasData, severityThresholds);
   const color = SEVERITY_COLOR[sev];
-  const labels = severityLabel(metric);
+  const labels = severityLabel(metric, severityThresholds);
 
   const yearsArr = data.years;
   const yearTotals = yearsArr.map((y) => {
@@ -180,7 +183,7 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
             <span className="text-base leading-none">{verdict.icon}</span>
             <div className="flex flex-col leading-tight">
               <span>{verdict.label}</span>
-              <span className="text-[9px] font-normal opacity-75">전국 같은 학교종류 · 학생 100명·년 비율 기준</span>
+              <span className="text-[9px] font-normal opacity-75">{scope} 같은 학교종류 · 학생 100명·년 비율 기준</span>
             </div>
           </div>
         )}
@@ -262,6 +265,10 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
             </div>
           </div>
         </div>
+
+        {(school.graduationCareer || school.careerSummary) && (
+          <GraduationCareerSection careers={school.graduationCareer ?? school.careerSummary!} />
+        )}
 
         {/* 년도별 막대 (심의 + 자체해결 stacked) */}
         <div>
@@ -507,6 +514,88 @@ export function SchoolDetail({ school, stat, data, metric, selectedTypes, onClos
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function GraduationCareerSection({ careers }: { careers: Record<string, SchoolCareerYear | null> }) {
+  const years = Object.keys(careers)
+    .filter((y) => careers[y])
+    .sort((a, b) => b.localeCompare(a));
+  const [selected, setSelected] = useState(years[0] ?? "");
+  if (years.length === 0) return null;
+
+  const activeYear = years.includes(selected) ? selected : years[0];
+  const career = careers[activeYear];
+  if (!career) return null;
+
+  const rows: { label: string; count?: number | null; rate?: number | null }[] = [
+    { label: "전문대", count: career.total.juniorCollege, rate: career.rates.juniorCollege },
+    { label: "4년제", count: career.total.university, rate: career.rates.university },
+    { label: "국외", count: career.total.overseasTotal, rate: career.rates.overseasTotal },
+    { label: "취업", count: career.total.employed, rate: career.rates.employed },
+    { label: "기타", count: career.total.other, rate: career.rates.other },
+  ];
+
+  return (
+    <div className="rounded-md border bg-muted/15 p-2 text-xs">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="min-w-0">
+          <div className="font-medium">졸업생 진로 현황</div>
+          <div className="text-[10px] text-muted-foreground">등록 기준 · 대학별 합격자 수 아님</div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          {years.map((y) => (
+            <button
+              key={y}
+              type="button"
+              onClick={() => setSelected(y)}
+              className={cn(
+                "h-6 rounded border px-1.5 text-[10px] tabular-nums",
+                y === activeYear ? "bg-foreground text-background" : "bg-background hover:bg-accent",
+              )}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-1.5">
+        <Stat label="졸업자" value={suffix(career.total.graduates, "명")} />
+        <Stat label="전체 진학률" value={career.rates.advancementTotal != null ? `${career.rates.advancementTotal.toFixed(1)}%` : "—"} />
+        <Stat label="4년제" value={career.rates.university != null ? `${career.rates.university.toFixed(1)}%` : "—"} />
+        <Stat label="기타" value={career.rates.other != null ? `${career.rates.other.toFixed(1)}%` : "—"} />
+      </div>
+
+      <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-x-2 gap-y-1 text-[11px]">
+        {rows.map((r) => (
+          <div key={r.label} className="contents">
+            <span className="text-muted-foreground">{r.label}</span>
+            <span className="text-right tabular-nums">{suffix(r.count, "명")}</span>
+            <span className="text-right tabular-nums">{r.rate != null ? `${r.rate.toFixed(1)}%` : "—"}</span>
+          </div>
+        ))}
+      </div>
+
+      {career.byGender && (
+        <div className="mt-2 grid grid-cols-2 gap-1.5">
+          <CareerGender label="남" row={career.byGender.male} />
+          <CareerGender label="여" row={career.byGender.female} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CareerGender({ label, row }: { label: string; row?: SchoolCareerRow }) {
+  if (!row) return null;
+  return (
+    <div className="rounded bg-background/70 p-1.5">
+      <div className="text-[10px] text-muted-foreground">{label}</div>
+      <div className="text-[11px] tabular-nums">
+        졸업 {fmtNum(row.graduates)} · 진학 {fmtNum(row.advancementTotal)}
+      </div>
+    </div>
   );
 }
 

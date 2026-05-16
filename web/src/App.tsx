@@ -2,8 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { APIProvider, Map as GMap, useMap } from "@vis.gl/react-google-maps";
 import { Menu, LocateFixed, Loader2 } from "lucide-react";
 import type { DataSet, School, SchoolKind, SchoolGender } from "@/types";
-import type { Metric } from "@/lib/severity";
+import { buildSeverityThresholds, type Metric } from "@/lib/severity";
 import { computeStat, setToBits, type SchoolStat } from "@/lib/stats";
+import {
+  filterGeoJsonByScope,
+  filterSchoolsByScope,
+  isCapitalAreaSchool,
+  scopeFromUrlValue,
+  scopeToUrlValue,
+  type AppScope,
+} from "@/lib/scope";
 import { SchoolDeckLayer, type RegionPick } from "@/components/SchoolDeckLayer";
 import { SchoolDetail } from "@/components/SchoolDetail";
 import { RegionDetail } from "@/components/RegionDetail";
@@ -39,6 +47,7 @@ export function App() {
   const [selected, setSelected] = useState<School | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<RegionPick | null>(null);
   const [metric, setMetric] = useState<Metric>("rate");
+  const [scope, setScope] = useState<AppScope>("전국");
   const [statsYear, setStatsYear] = useState<string>("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filter, setFilter] = useState<FilterState>({
@@ -91,10 +100,12 @@ export function App() {
   useEffect(() => {
     if (!data || restoredRef.current) return;
     const params = new URLSearchParams(window.location.search);
+    const restoredScope = scopeFromUrlValue(params.get("scope"));
+    if (restoredScope !== scope) setScope(restoredScope);
     const schoolCode = params.get("school");
     if (schoolCode) {
       const s = data.schools.find((x) => x.code === schoolCode);
-      if (s) {
+      if (s && (restoredScope === "전국" || isCapitalAreaSchool(s))) {
         setSelected(s);
         restoredRef.current = true;
         return;
@@ -119,14 +130,17 @@ export function App() {
     } else {
       restoredRef.current = true;
     }
-  }, [data, dongGeo]);
+  }, [data, dongGeo, scope]);
 
   // state → URL 동기화 + GA page_view
   useEffect(() => {
     if (!restoredRef.current) return;
     const params = new URLSearchParams(window.location.search);
+    params.delete("scope");
     params.delete("school");
     params.delete("region");
+    const scopeValue = scopeToUrlValue(scope);
+    if (scopeValue) params.set("scope", scopeValue);
     if (selected) params.set("school", selected.code);
     else if (selectedRegion) params.set("region", `${selectedRegion.type}:${selectedRegion.key}`);
     const qs = params.toString();
@@ -136,18 +150,34 @@ export function App() {
       ? `학교 — ${selected.name}`
       : selectedRegion
         ? `지역 — ${selectedRegion.label}`
-        : "전국 학교폭력 지도";
+        : `${scope} 학교폭력 지도`;
     trackPageView(`${window.location.pathname}${qs ? "?" + qs : ""}`, title);
-  }, [selected, selectedRegion]);
+  }, [selected, selectedRegion, scope]);
+
+  const scopedSchools = useMemo(() => (data ? filterSchoolsByScope(data.schools, scope) : []), [data, scope]);
+  const scopedData = useMemo(
+    () => (data ? { ...data, schools: scopedSchools } : null),
+    [data, scopedSchools],
+  );
+  const scopedAdminGeo = useMemo(() => filterGeoJsonByScope(adminGeo, scope), [adminGeo, scope]);
+  const scopedDongGeo = useMemo(() => filterGeoJsonByScope(dongGeo, scope), [dongGeo, scope]);
+
+  useEffect(() => {
+    if (!data) return;
+    if (selected && !scopedSchools.some((s) => s.code === selected.code)) setSelected(null);
+    if (selectedRegion && !scopedSchools.some((s) => regionContainsSchool(selectedRegion, s))) {
+      setSelectedRegion(null);
+    }
+  }, [data, scopedSchools, selected, selectedRegion]);
 
   const filtered = useMemo(() => {
-    if (!data) return [];
-    return data.schools.filter((s) => {
+    if (!scopedData) return [];
+    return scopedData.schools.filter((s) => {
       if (!filter.kinds.has(s.kind)) return false;
       if (!filter.genders.has(s.gender)) return false;
       return true;
     });
-  }, [data, filter]);
+  }, [scopedData, filter]);
 
   // 방향키 네비게이션 — 선택된 학교 기준 가장 가까운 학교(같은 방향 90° wedge)로 이동
   useEffect(() => {
@@ -174,12 +204,15 @@ export function App() {
 
   const stats = useMemo(() => {
     const m = new Map<string, SchoolStat>();
-    if (!data) return m;
+    if (!scopedData) return m;
     const mask = setToBits(filter.types);
-    const ys = statsYear === "all" ? data.years : [statsYear];
-    for (const s of data.schools) m.set(s.code, computeStat(s, ys, mask));
+    const ys = statsYear === "all" ? scopedData.years : [statsYear];
+    for (const s of scopedData.schools) m.set(s.code, computeStat(s, ys, mask));
     return m;
-  }, [data, filter.types, statsYear]);
+  }, [scopedData, filter.types, statsYear]);
+
+  const severityThresholds = useMemo(() => buildSeverityThresholds(stats.values()), [stats]);
+  const selectedStat = selected ? stats.get(selected.code) ?? null : null;
 
   if (!KEY) {
     return (
@@ -192,13 +225,17 @@ export function App() {
     );
   }
 
-  if (!data) return <LoadingScreen />;
+  if (!data || !scopedData) return <LoadingScreen />;
 
   const sidebarNode = (
     <Sidebar
-      data={data}
+      data={scopedData}
+      scope={scope}
+      setScope={setScope}
+      totalSchoolCount={data.schools.length}
       filtered={filtered}
       stats={stats}
+      severityThresholds={severityThresholds}
       filter={filter}
       setFilter={setFilter}
       selected={selected}
@@ -247,6 +284,7 @@ export function App() {
               <SchoolDeckLayer
                 schools={filtered}
                 stats={stats}
+                severityThresholds={severityThresholds}
                 metric={metric}
                 selectedCode={selected?.code ?? null}
                 selectedRegion={selectedRegion}
@@ -260,8 +298,8 @@ export function App() {
                   setSelected(null);
                   trackSelection("region", r.label, "marker", { region_type: r.type });
                 }}
-                adminGeo={adminGeo}
-                dongGeo={dongGeo}
+                adminGeo={scopedAdminGeo}
+                dongGeo={scopedDongGeo}
               />
               <FlyToSelected school={selected} />
               <MobileInitialLocate
@@ -284,7 +322,7 @@ export function App() {
           </div>
 
           {/* 디테일 패널 */}
-          {selected && (
+          {selected && selectedStat && (
             <div
               className={cn(
                 "absolute z-10 overflow-y-auto rounded-xl shadow-lg",
@@ -294,9 +332,11 @@ export function App() {
             >
               <SchoolDetail
                 school={selected}
-                stat={stats.get(selected.code)!}
-                data={data}
+                stat={selectedStat}
+                data={scopedData}
                 metric={metric}
+                scope={scope}
+                severityThresholds={severityThresholds}
                 selectedTypes={filter.types}
                 onClose={() => setSelected(null)}
               />
@@ -316,6 +356,8 @@ export function App() {
                 schools={filtered}
                 stats={stats}
                 metric={metric}
+                severityThresholds={severityThresholds}
+                statsYear={statsYear}
                 selectedCode={null}
                 onPickSchool={(s) => { setSelected(s); setSelectedRegion(null); }}
                 onClose={() => setSelectedRegion(null)}
@@ -347,6 +389,12 @@ function nearestInDirection(from: School, all: School[], dir: "left" | "right" |
     if (d2 < bestD2) { bestD2 = d2; best = s; }
   }
   return best;
+}
+
+function regionContainsSchool(region: RegionPick, school: School): boolean {
+  if (region.type === "city") return school.city === region.key || (school.sido || school.city) === region.key;
+  if (region.type === "district") return `${school.city}|${school.district}` === region.key;
+  return school.dongCode === region.key;
 }
 
 // 모바일 진입 시 1회: 현재 위치로 이동 + 마커 단위 줌. URL 딥링크 있으면 스킵.

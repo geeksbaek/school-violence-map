@@ -7,7 +7,8 @@
     "collect:schools": "bun src/collect_schools.ts",
     "collect:info": "bun src/collect_info.ts",
     "collect:coords": "bun src/collect_coords.ts",
-    "collect:violence": "bun src/collect_violence.ts"
+    "collect:violence": "bun src/collect_violence.ts",
+    "collect:graduation-careers": "bun src/collect_graduation_careers.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

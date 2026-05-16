@@ -1,14 +1,23 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { X } from "lucide-react";
 import type { School } from "@/types";
-import { severityOf, SEVERITY_COLOR, severityLabel, type Metric } from "@/lib/severity";
+import { severityOf, SEVERITY_COLOR, severityLabel, type Metric, type SeverityThresholds } from "@/lib/severity";
 import type { SchoolStat } from "@/lib/stats";
 import type { RegionPick } from "./SchoolDeckLayer";
+import {
+  CAREER_SORT_BY_MODE,
+  SCHOOL_LIST_SORT_OPTIONS,
+  careerForSort,
+  careerListValue,
+  compareCareerSort,
+  type SchoolListSortMode,
+} from "@/lib/careerSort";
 import { cn } from "@/lib/utils";
+import { trackFilter } from "@/lib/analytics";
 
 // 학교별 선도조치/보호조치 활용 라벨 (StatsDialog와 동일 경계).
 // perCase: 선도조치는 가해자당, 보호조치는 피해자당 평균 조치 건수.
@@ -74,12 +83,17 @@ interface Props {
   schools: School[];
   stats: Map<string, SchoolStat>;
   metric: Metric;
+  severityThresholds: SeverityThresholds;
+  statsYear: string;
   selectedCode: string | null;
   onPickSchool: (s: School) => void;
   onClose: () => void;
 }
 
-export function RegionDetail({ region, schools, stats, metric, selectedCode, onPickSchool, onClose }: Props) {
+export function RegionDetail({ region, schools, stats, metric, severityThresholds, statsYear, selectedCode, onPickSchool, onClose }: Props) {
+  const [sortMode, setSortMode] = useState<SchoolListSortMode>("violence");
+  const currentCareerSort = sortMode === "violence" ? null : CAREER_SORT_BY_MODE[sortMode];
+
   const inRegion = useMemo(() => {
     return schools.filter((s) => {
       if (region.type === "city") return s.city === region.key;
@@ -146,20 +160,21 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
   }, [summary.protectionPerVictim, summary.victims]);
 
   const avgTotalPerSchool = inRegion.length > 0 ? summary.total / inRegion.length : 0;
-  const sev = severityOf(metric, summary.avgRate, avgTotalPerSchool, summary.hasData);
-  const labels = severityLabel(metric);
+  const sev = severityOf(metric, summary.avgRate, avgTotalPerSchool, summary.hasData, severityThresholds);
+  const labels = severityLabel(metric, severityThresholds);
   const color = SEVERITY_COLOR[sev];
 
   const sorted = useMemo(() => {
     return [...inRegion].sort((a, b) => {
       const sa = stats.get(a.code);
       const sb = stats.get(b.code);
+      if (sortMode !== "violence") return compareCareerSort(a, b, sortMode, statsYear);
       if (metric === "rate") {
         return (sb?.ratePer100 ?? -1) - (sa?.ratePer100 ?? -1);
       }
       return (sb?.total ?? 0) - (sa?.total ?? 0);
     });
-  }, [inRegion, stats, metric]);
+  }, [inRegion, stats, metric, sortMode, statsYear]);
 
   const TYPE_LABEL = { city: "시", district: "구", dong: "동" }[region.type];
 
@@ -244,13 +259,32 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
 
         <Separator />
 
-        <div className="text-muted-foreground text-xs">
-          학교 ({sorted.length.toLocaleString()}개) — {metric === "rate" ? "비율" : "건수"} ↓
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-muted-foreground text-xs min-w-0 truncate">
+            학교 ({sorted.length.toLocaleString()}개)
+            {sortMode === "violence"
+              ? ` — ${metric === "rate" ? "비율" : "건수"} ↓`
+              : ` — 진로 ${currentCareerSort?.asc ? "↑" : "↓"}`}
+          </div>
+          <select
+            value={sortMode}
+            onChange={(e) => {
+              const next = e.target.value as SchoolListSortMode;
+              setSortMode(next);
+              trackFilter("region_list_sort", next);
+            }}
+            className="h-7 max-w-[150px] rounded-md border bg-background px-1.5 text-[11px] shrink-0"
+            title="지역 학교 정렬"
+          >
+            {SCHOOL_LIST_SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
         </div>
         <ul className="flex flex-col gap-1 max-h-[40dvh] md:max-h-[50dvh] overflow-y-auto">
           {sorted.map((s) => {
             const st = stats.get(s.code);
-            const ssev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false);
+            const ssev = severityOf(metric, st?.ratePer100 ?? null, st?.total ?? 0, st?.hasData ?? false, severityThresholds);
             const isSel = selectedCode === s.code;
             const labels = computeSchoolStrengthLabels(s);
             return (
@@ -270,7 +304,7 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
                     />
                     <span className="text-sm font-medium truncate flex-1">{s.name}</span>
                     <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
-                      {st?.hasData ? (
+                      {sortMode !== "violence" ? careerListValue(s, sortMode, statsYear) : st?.hasData ? (
                         metric === "rate" && st.ratePer100 != null
                           ? `${st.ratePer100.toFixed(2)}/100명·년`
                           : `${st.total}건`
@@ -279,6 +313,9 @@ export function RegionDetail({ region, schools, stats, metric, selectedCode, onP
                   </div>
                   <div className="text-[11px] text-muted-foreground pl-4 truncate flex items-center gap-1.5 flex-wrap">
                     <span>{s.kind}{s.studentTotal ? ` · ${s.studentTotal.toLocaleString()}명` : ""}</span>
+                    {sortMode !== "violence" && careerForSort(s, statsYear)?.actualYear && (
+                      <span>{careerForSort(s, statsYear)?.actualYear} 진로</span>
+                    )}
                     {labels.discipline && (
                       <span
                         className="px-1 py-px rounded text-[9px] font-semibold leading-none"

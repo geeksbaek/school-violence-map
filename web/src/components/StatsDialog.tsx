@@ -3,18 +3,21 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import type { DataSet, School } from "@/types";
+import type { DataSet, School, SchoolCareerRow } from "@/types";
 import {
   computeAggregates, schoolPercentile, sizeBucket, verdictFromPercentile,
   trendBucket, studentPerTeacherBucket,
   type SegmentStat, type SizeBucket, type TrendBucket, type RatioBucket,
 } from "@/lib/stats";
 import { cn } from "@/lib/utils";
+import type { AppScope } from "@/lib/scope";
+import { careerForSort } from "@/lib/careerSort";
 
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   data: DataSet;
+  scope: AppScope;
   selected: School | null;
   statsYear?: string; // "all" or a specific year
   onPick?: (s: School) => void; // 통계 카드의 학교 링크 클릭 → 이동
@@ -23,12 +26,10 @@ interface Props {
 const KIND_ORDER = ["초등", "중학", "고등"] as const;
 const SIZE_ORDER: SizeBucket[] = ["<200", "200–500", "500–1000", "1000+"];
 const FOUND_ORDER = ["공립", "사립", "국립"] as const;
-const SUDOGWON = new Set(["서울특별시", "인천광역시", "경기도"]);
 
-type Scope = "전국" | "수도권";
+type Scope = AppScope;
 
-export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "all", onPick }: Props) {
-  const [scope, setScope] = useState<Scope>("전국");
+export function StatsDialog({ open, onOpenChange, data, scope, selected, statsYear = "all", onPick }: Props) {
   const [pendingPick, setPendingPick] = useState<School | null>(null);
 
   const requestPick = useCallback((s: School) => {
@@ -46,11 +47,10 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
   };
   const cancelPick = () => setPendingPick(null);
 
-  // 1단계: scope(전국/수도권) 필터
+  // data는 App 전역 scope(전국/수도권)가 이미 반영된 학교 목록.
   const scopedSchools = useMemo(() => {
-    if (scope === "전국") return data.schools;
-    return data.schools.filter((s) => SUDOGWON.has(s.sido || s.city));
-  }, [data, scope]);
+    return data.schools;
+  }, [data]);
 
   // 2단계: statsYear 필터 — 단일 연도 선택 시 해당 연도만 남기고 violenceTotal/Rate 재계산
   const yearFilteredSchools: School[] = useMemo(() => {
@@ -116,7 +116,7 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
     };
   }, [yearScopedSelected, yearFilteredSchools, scope]);
 
-  const isSelectedInScope = !selected || scope === "전국" || SUDOGWON.has(selected.sido || selected.city);
+  const isSelectedInScope = !selected || data.schools.some((s) => s.code === selected.code);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,20 +124,6 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
         <DialogHeader>
           <div className="flex items-center justify-between gap-2 pr-8">
             <DialogTitle>{scope} 학교폭력 통계</DialogTitle>
-            <div className="inline-flex rounded-md border bg-muted p-0.5 text-xs shrink-0">
-              {(["전국", "수도권"] as const).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setScope(s)}
-                  className={cn(
-                    "px-3 py-1 rounded transition-colors",
-                    scope === s ? "bg-background shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
           </div>
           <DialogDescription>
             {statsYear === "all"
@@ -150,14 +136,14 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
 
         {!isSelectedInScope && selected && (
           <div className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded px-2 py-1.5">
-            ⚠ 선택한 학교({selected.name})는 수도권 밖입니다. 백분위·강조는 수도권 학교만 비교 대상으로 계산됩니다.
+            ⚠ 선택한 학교({selected.name})는 현재 대상({scope}) 밖입니다. 백분위·강조는 {scope} 학교만 비교 대상으로 계산됩니다.
           </div>
         )}
 
         <PickContext.Provider value={onPick ? requestPick : null}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* 1. 우리 학교 위치 */}
-          <SchoolPositionCard selected={selected} percentiles={percentiles} all={agg.all} />
+          <SchoolPositionCard selected={selected} percentiles={percentiles} all={agg.all} scope={scope} />
           {/* 2. 시·도별 평균 ranking */}
           <SidoRankingCard agg={agg} selected={selected} scope={scope} />
           {/* 3. 초→중→고 변화 */}
@@ -167,7 +153,7 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
           {/* 5. 공립 vs 사립 vs 국립 */}
           <FoundationCard agg={agg} selected={selected} scope={scope} />
           {/* 6. 학교의 사건 처리 방식 */}
-          <SelfRatioCard agg={agg} selected={selected} />
+          <SelfRatioCard agg={agg} selected={selected} scope={scope} />
           {/* 7. 여학교 vs 공학 */}
           <GenderCard agg={agg} typeLabels={data.typeLabels} selected={selected} />
           {/* 8. 평화 동네 TOP 10 */}
@@ -180,14 +166,16 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
           <TeacherRatioCard agg={agg} selected={selected} scope={scope} />
           {/* 11. 학폭과 강하게 연관된 데이터 */}
           <CorrelationCard data={yearScopedData} scope={scope} />
+          {/* 11-1. 고교 진로/진학과 학폭 상관 */}
+          <HighSchoolCareerCorrelationCard data={yearScopedData} scope={scope} statsYear={statsYear} />
           {/* 12. 유형별 심각한 동네 TOP 3 */}
           <TypeSeverityCard data={yearScopedData} scope={scope} />
           {/* 13. 우리 아이가 학폭 당사자가 될 확률 */}
           <SafetyOddsCard data={yearScopedData} selected={yearScopedSelected} scope={scope} />
           {/* 14. 학교의 선도조치 활용 */}
-          <DisciplineStrengthCard data={yearScopedData} selected={yearScopedSelected} />
+          <DisciplineStrengthCard data={yearScopedData} selected={yearScopedSelected} scope={scope} />
           {/* 15. 학교의 보호조치 활용 */}
-          <ProtectionStrengthCard data={yearScopedData} selected={yearScopedSelected} />
+          <ProtectionStrengthCard data={yearScopedData} selected={yearScopedSelected} scope={scope} />
           {/* 16. 동네 학교 안전 순위 */}
           {yearScopedSelected && <NeighborhoodRankCard data={yearScopedData} selected={yearScopedSelected} />}
           {/* 17. 선도조치 활용 TOP */}
@@ -195,7 +183,7 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
           {/* 18. 보호조치 활용 TOP */}
           <TopProtectionSchoolsCard data={yearScopedData} selected={selected} />
           {/* 19. 특별교육 이수율 */}
-          <SpecialEdCard data={yearScopedData} selected={yearScopedSelected} />
+          <SpecialEdCard data={yearScopedData} selected={yearScopedSelected} scope={scope} />
         </div>
         </PickContext.Provider>
 
@@ -237,8 +225,8 @@ export function StatsDialog({ open, onOpenChange, data, selected, statsYear = "a
 
 // ─── Card 1: 우리 학교 위치 ─────────────────────────
 function SchoolPositionCard({
-  selected, percentiles, all,
-}: { selected: School | null; percentiles: any; all: SegmentStat }) {
+  selected, percentiles, all, scope,
+}: { selected: School | null; percentiles: any; all: SegmentStat; scope: Scope }) {
   const kindP = percentiles?.kind;
   const verdict = kindP ? verdictFromPercentile(kindP.percentile, selected?.kind) : null;
   return (
@@ -255,7 +243,7 @@ function SchoolPositionCard({
               <span className="text-base leading-none">{verdict.icon}</span>
               <div className="flex flex-col leading-tight">
                 <span>{verdict.label}</span>
-                <span className="text-[9px] font-normal opacity-75">전국 같은 학교종류 · 학생 100명·년 비율 기준</span>
+                <span className="text-[9px] font-normal opacity-75">{scope} 같은 학교종류 · 학생 100명·년 비율 기준</span>
               </div>
             </div>
           )}
@@ -264,7 +252,7 @@ function SchoolPositionCard({
             <span className="font-semibold tabular-nums">{(selected.violenceRatePer100 ?? 0).toFixed(2)}/100명·년</span>
           </div>
           <div className="flex items-baseline justify-between text-xs">
-            <span className="text-muted-foreground">전국 평균</span>
+            <span className="text-muted-foreground">{scope} 평균</span>
             <span className="tabular-nums">{all.avgRate.toFixed(2)}</span>
           </div>
           <div className="border-t my-1" />
@@ -488,14 +476,14 @@ function FoundationCard({ agg, selected, scope }: { agg: ReturnType<typeof compu
 }
 
 // ─── Card 6: 사건 처리 방식 ────────────────────────
-function SelfRatioCard({ agg, selected }: { agg: ReturnType<typeof computeAggregates>; selected: School | null }) {
+function SelfRatioCard({ agg, selected, scope }: { agg: ReturnType<typeof computeAggregates>; selected: School | null; scope: Scope }) {
   const sel = selected && selected.violenceTotal + (selected.selfResolvedTotal ?? 0) > 0
     ? (selected.selfResolvedTotal ?? 0) / (selected.violenceTotal + (selected.selfResolvedTotal ?? 0))
     : null;
   return (
     <Card title="학교의 사건 처리 방식" subtitle="자체해결 비중 (= 자체해결 / 전체 사건)">
       <div className="flex flex-col gap-2">
-        <ProcRow label="전국" value={agg.all.selfRatio} />
+        <ProcRow label={scope} value={agg.all.selfRatio} />
         {KIND_ORDER.map((k) => agg.byKind[k] && (
           <ProcRow key={k} label={k} value={agg.byKind[k].selfRatio} />
         ))}
@@ -510,7 +498,7 @@ function SelfRatioCard({ agg, selected }: { agg: ReturnType<typeof computeAggreg
         높을수록 학교 자체에서 처리. 너무 낮으면 모든 사건이 심의위로, 너무 높으면 사건이 가려질 가능성도 있습니다.
       </div>
       <Insight>
-        전국 약 <b>{(agg.all.selfRatio * 100).toFixed(0)}%</b>가 자체해결 — 절반은 심의위로 가지 않고 학교 내부에서 종결.
+        {scope} 약 <b>{(agg.all.selfRatio * 100).toFixed(0)}%</b>가 자체해결 — 절반은 심의위로 가지 않고 학교 내부에서 종결.
         초등이 가장 높음(중대 사안 비중↓). 수치가 50%에서 크게 벗어난 학교는 처리 패턴 점검 필요.
       </Insight>
     </Card>
@@ -873,6 +861,112 @@ function CorrelationCard({ data, scope }: { data: DataSet; scope: Scope }) {
   );
 }
 
+type CareerRateKey = Exclude<keyof SchoolCareerRow, "graduates">;
+const HIGH_SCHOOL_CAREER_CANDIDATES: { name: string; key: CareerRateKey }[] = [
+  { name: "전체 진학률", key: "advancementTotal" },
+  { name: "전문대 진학률", key: "juniorCollege" },
+  { name: "4년제 진학률", key: "university" },
+  { name: "국외 전문대 진학률", key: "overseasJuniorCollege" },
+  { name: "국외 4년제 진학률", key: "overseasUniversity" },
+  { name: "국외 진학률", key: "overseasTotal" },
+  { name: "취업률", key: "employed" },
+  { name: "기타 비율", key: "other" },
+];
+
+function HighSchoolCareerCorrelationCard({
+  data, scope, statsYear,
+}: { data: DataSet; scope: Scope; statsYear: string }) {
+  const items = useMemo(() => {
+    return HIGH_SCHOOL_CAREER_CANDIDATES.map((candidate) => {
+      const xs: number[] = [], ys: number[] = [];
+      for (const s of data.schools) {
+        if (s.kind !== "고등" || s.violenceRatePer100 == null) continue;
+        const career = careerForStatsYear(s, statsYear);
+        const x = career?.rates[candidate.key];
+        if (x == null || !Number.isFinite(x)) continue;
+        xs.push(x);
+        ys.push(s.violenceRatePer100);
+      }
+      if (xs.length < 30) return null;
+      const r = pearson(rankArr(xs), rankArr(ys));
+      const avg = xs.reduce((a, b) => a + b, 0) / xs.length;
+      return {
+        name: candidate.name,
+        n: xs.length,
+        r,
+        avg,
+      };
+    }).filter((x): x is { name: string; n: number; r: number; avg: number } => !!x);
+  }, [data, statsYear]);
+
+  const sorted = [...items].sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
+  const max = Math.max(0.001, ...sorted.map((x) => Math.abs(x.r)));
+  const strongest = sorted[0];
+  const yearNote = statsYear === "all" ? "최신 진로 공시" : `${statsYear} 진로 공시(없으면 최신값)`;
+
+  return (
+    <Card title="고교 진로와 학폭 상관" subtitle={`고등학교만 · ${yearNote} · Spearman 순위 상관`}>
+      {sorted.length === 0 ? (
+        <Empty msg="비교 가능한 고교 진로 데이터가 부족합니다" />
+      ) : (
+        <>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+              <span className="w-28">진로 지표</span>
+              <span className="flex-1 text-center">상관</span>
+              <span className="w-12 text-right">r</span>
+              <span className="w-12 text-right">평균</span>
+              <span className="w-9 text-right">n</span>
+            </div>
+            {sorted.map((it) => {
+              const w = (Math.abs(it.r) / max) * 100;
+              const isPos = it.r > 0;
+              return (
+                <div key={it.name} className="flex items-center gap-2 text-xs">
+                  <span className="w-28 truncate text-muted-foreground">{it.name}</span>
+                  <div className="flex-1 bg-muted h-2 rounded-sm relative overflow-hidden">
+                    <div
+                      className="absolute top-0 bottom-0"
+                      style={{
+                        left: isPos ? "50%" : `${50 - w / 2}%`,
+                        width: `${w / 2}%`,
+                        background: isPos ? "#dc2626" : "#16a34a",
+                      }}
+                    />
+                    <div className="absolute top-0 bottom-0 left-1/2 w-px bg-border" />
+                  </div>
+                  <span className={cn("tabular-nums w-12 text-right", isPos ? "text-red-600" : "text-green-600")}>
+                    {it.r > 0 ? "+" : ""}{it.r.toFixed(2)}
+                  </span>
+                  <span className="tabular-nums w-12 text-right text-[10px] text-muted-foreground">{it.avg.toFixed(1)}%</span>
+                  <span className="tabular-nums w-9 text-right text-[10px] text-muted-foreground">{it.n}</span>
+                </div>
+              );
+            })}
+          </div>
+          <Insight>
+            {strongest && (
+              <>
+                {scope} 고교 기준 가장 큰 신호는{" "}
+                <b className={strongest.r > 0 ? "text-red-700 dark:text-red-400" : "text-green-700 dark:text-green-400"}>
+                  {strongest.name} {strongest.r > 0 ? "+" : ""}{strongest.r.toFixed(2)}
+                </b>
+                .
+              </>
+            )}
+            {" "}진로 데이터는 대학별 합격자 수가 아니라 졸업생 등록/취업/기타 결과입니다. 표본수는 오른쪽 숫자, 평균은 각 지표의 평균 비율입니다. ⚠ 상관 ≠ 인과.
+          </Insight>
+        </>
+      )}
+    </Card>
+  );
+}
+
+function careerForStatsYear(school: School, statsYear: string) {
+  if (statsYear !== "all") return school.careerSummary?.[statsYear] ?? school.careerLatest ?? null;
+  return careerForSort(school, statsYear);
+}
+
 // ─── Card 12: 유형별 심각한 동네 TOP 3 ───────────
 function TypeSeverityCard({ data, scope }: { data: DataSet; scope: Scope }) {
   const topPerType = useMemo(() => {
@@ -1010,7 +1104,7 @@ function SafetyOddsCard({ data, selected, scope }: { data: DataSet; selected: Sc
 }
 
 // ─── Card 14: 우리 학교 선도조치 활용 ─────────────
-function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: School | null }) {
+function DisciplineStrengthCard({ data, selected, scope }: { data: DataSet; selected: School | null; scope: Scope }) {
   const dist = useMemo(() => {
     const buckets = { 부재: 0, 약함: 0, 적극: 0, "매우 적극": 0 };
     let mySchoolPC: number | null = null;
@@ -1073,7 +1167,7 @@ function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: S
         })}
       </div>
       <Insight>
-        전국 평균: 가해 1명당 <b>{dist.avgPC.toFixed(2)}건</b> 처분 부여 (1호~9호 합산).
+        {scope} 평균: 가해 1명당 <b>{dist.avgPC.toFixed(2)}건</b> 처분 부여 (1호~9호 합산).
         {dist.mySchoolPC != null && <> 우리 학교: <b className={cn(dist.mySchoolPC >= 1.0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>{dist.mySchoolPC.toFixed(2)}건</b>.</>}
         {" "}한 학생에게 여러 호 중복 부여 가능 (예: 5호 특별교육 + 6호 출석정지). 부재이면 솜방망이 가능성, 적극적이면 엄정 처리 또는 중대 사안 비중↑.
       </Insight>
@@ -1082,7 +1176,7 @@ function DisciplineStrengthCard({ data, selected }: { data: DataSet; selected: S
 }
 
 // ─── Card 15: 피해자 보호조치 활용 ─────────────────
-function ProtectionStrengthCard({ data, selected }: { data: DataSet; selected: School | null }) {
+function ProtectionStrengthCard({ data, selected, scope }: { data: DataSet; selected: School | null; scope: Scope }) {
   const stats = useMemo(() => {
     let totalVictims = 0, totalMeasures = 0;
     let mySchool: { victims: number; measures: number } | null = null;
@@ -1110,7 +1204,7 @@ function ProtectionStrengthCard({ data, selected }: { data: DataSet; selected: S
     <Card title="피해 학생 보호조치 활용" subtitle="피해 학생 1명당 평균 보호조치 수 (학폭예방법 16조 1~5호 합산)">
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded bg-muted/40 p-2">
-          <div className="text-[10px] text-muted-foreground">전국 평균</div>
+          <div className="text-[10px] text-muted-foreground">{scope} 평균</div>
           <div className="text-base font-semibold tabular-nums">{stats.avgPerVictim.toFixed(2)}건</div>
           <div className="text-[10px] text-muted-foreground">/피해자</div>
         </div>
@@ -1121,7 +1215,7 @@ function ProtectionStrengthCard({ data, selected }: { data: DataSet; selected: S
           </div>
           <div className="text-[10px] text-muted-foreground">
             {stats.myAvg != null
-              ? (stats.myAvg >= stats.avgPerVictim ? "전국 평균 이상" : "전국 평균 이하")
+              ? (stats.myAvg >= stats.avgPerVictim ? `${scope} 평균 이상` : `${scope} 평균 이하`)
               : "피해 없음"}
           </div>
         </div>
@@ -1293,7 +1387,7 @@ function TopProtectionSchoolsCard({ data, selected }: { data: DataSet; selected:
 }
 
 // ─── Card 19: 특별교육 이수율 (학생 vs 보호자) ──
-function SpecialEdCard({ data, selected }: { data: DataSet; selected: School | null }) {
+function SpecialEdCard({ data, selected, scope }: { data: DataSet; selected: School | null; scope: Scope }) {
   const stats = useMemo(() => {
     let target = 0, studentDone = 0, parentDone = 0;
     let mySchool: { target: number; studentDone: number; parentDone: number } | null = null;
@@ -1324,7 +1418,7 @@ function SpecialEdCard({ data, selected }: { data: DataSet; selected: School | n
       </div>
       <div className="bg-muted h-2 rounded-sm overflow-hidden relative">
         <div className="h-full" style={{ width: `${value}%`, background: value >= 80 ? "#16a34a" : value >= 60 ? "#facc15" : "#dc2626" }} />
-        <div className="absolute top-0 bottom-0 w-px bg-foreground/40" style={{ left: `${avg}%` }} title={`전국 평균 ${avg.toFixed(1)}%`} />
+        <div className="absolute top-0 bottom-0 w-px bg-foreground/40" style={{ left: `${avg}%` }} title={`${scope} 평균 ${avg.toFixed(1)}%`} />
       </div>
     </div>
   );
@@ -1333,7 +1427,7 @@ function SpecialEdCard({ data, selected }: { data: DataSet; selected: School | n
     <Card title="특별교육 이수율 (가해학생·보호자)" subtitle="학폭예방법 17조 9항 이수 현황">
       <div className="flex flex-col gap-3">
         <div>
-          <div className="text-[10px] text-muted-foreground mb-1">전국 평균</div>
+          <div className="text-[10px] text-muted-foreground mb-1">{scope} 평균</div>
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded bg-muted/40 p-2">
               <div className="text-[10px] text-muted-foreground">학생 이수율</div>
@@ -1347,7 +1441,7 @@ function SpecialEdCard({ data, selected }: { data: DataSet; selected: School | n
         </div>
         {stats.myStudent != null && stats.myParent != null && (
           <div>
-            <div className="text-[10px] text-muted-foreground mb-1">우리 학교 vs 전국 평균(흰 선)</div>
+            <div className="text-[10px] text-muted-foreground mb-1">우리 학교 vs {scope} 평균(흰 선)</div>
             <div className="flex flex-col gap-1.5">
               <Bar label="학생 이수율" value={stats.myStudent} avg={stats.avgStudent} />
               <Bar label="보호자 이수율" value={stats.myParent} avg={stats.avgParent} />
@@ -1357,7 +1451,7 @@ function SpecialEdCard({ data, selected }: { data: DataSet; selected: School | n
       </div>
       <Insight>
         가해학생 본인뿐 아니라 <b>보호자에게도 특별교육 이수 의무</b>가 있음 (학폭예방법 17조 9항).
-        전국적으로 학생 이수율 <b>{stats.avgStudent.toFixed(0)}%</b> vs 보호자 이수율 <b>{stats.avgParent.toFixed(0)}%</b> —
+        {scope} 학생 이수율 <b>{stats.avgStudent.toFixed(0)}%</b> vs 보호자 이수율 <b>{stats.avgParent.toFixed(0)}%</b> —
         보호자 참여율이 낮으면 가정 내 후속 관리·재발 방지가 어려움.
       </Insight>
     </Card>

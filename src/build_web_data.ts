@@ -39,6 +39,9 @@ const preventionEdu: Record<string, Record<string, any>> = existsSync(join(DATA_
 const studentTrend: Record<string, Record<string, number>> = existsSync(join(DATA_DIR, "student_trend.json"))
   ? await Bun.file(join(DATA_DIR, "student_trend.json")).json()
   : {};
+const graduationCareers: Record<string, Record<string, any>> = existsSync(join(DATA_DIR, "graduation_careers.json"))
+  ? await Bun.file(join(DATA_DIR, "graduation_careers.json")).json()
+  : {};
 
 // 동 polygon 로드 + bbox 사전 계산 (학교 좌표 → 동 매핑용)
 const dongPath = join(ROOT, "web/public/dong.geojson");
@@ -94,7 +97,28 @@ function findDong(lng: number, lat: number): { code: string; name: string } | nu
 }
 
 const YEARS = ["2023", "2024", "2025", "2026"] as const;
+const CAREER_YEARS = ["2025", "2024", "2023"] as const;
 const TYPE_LABELS = ["신체폭력", "언어폭력", "금품갈취", "강요", "따돌림", "성폭력", "사이버폭력", "기타"];
+
+interface CareerRow {
+  graduates?: number | null;
+  juniorCollege?: number | null;
+  university?: number | null;
+  overseasJuniorCollege?: number | null;
+  overseasUniversity?: number | null;
+  overseasTotal?: number | null;
+  advancementTotal?: number | null;
+  employed?: number | null;
+  other?: number | null;
+}
+
+interface CareerYear {
+  requestedYear: string;
+  actualYear?: string;
+  total: CareerRow;
+  rates: Omit<CareerRow, "graduates">;
+  byGender?: { male?: CareerRow; female?: CareerRow };
+}
 
 interface SchoolView {
   code: string;
@@ -147,6 +171,9 @@ interface SchoolView {
   } | null>;
   schoolinfoUuid?: string;          // 학교알리미 직접 링크용
   foundation?: string;              // 공립/사립/국립 (school_info FOND_SC_CODE)
+  careerSummary?: Record<string, CareerYear | null>;
+  careerLatest?: CareerYear | null;
+  graduationCareer?: Record<string, CareerYear | null>;
   details: SchoolDetails;
 }
 
@@ -162,13 +189,16 @@ interface SchoolDetails {
   facility?: {
     regularClassrooms?: number | null;     // COM_CCCLA_FGR
     specialClassrooms?: number | null;     // CURR_CCCLA_FGR
+    subjectClassrooms?: number | null;     // CURR_CCCLA_FGR
     sportsClassrooms?: number | null;      // LRN_SPORT_ETC_CCCLA_FGR
     maleToilets?: number | null;
     femaleToilets?: number | null;
     showers?: number | null;
+    gym?: number | null;
     auditorium?: number | null;            // COSE_CNSRM_FGR (체육관/강당)
     pool?: string | null;                  // SWMPL_ENNC (Y/N)
     boardingCapacity?: number | null;      // BRHS_RCPTN_NMPR_FGR
+    careerRoom?: number | null;
   };
   // apiType 34: 급식
   meal?: {
@@ -446,6 +476,58 @@ function num(v: any): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function careerRow(raw: any): CareerRow {
+  return {
+    graduates: num(raw?.graduates),
+    juniorCollege: num(raw?.juniorCollege),
+    university: num(raw?.university),
+    overseasJuniorCollege: num(raw?.overseasJuniorCollege),
+    overseasUniversity: num(raw?.overseasUniversity),
+    overseasTotal: num(raw?.overseasTotal),
+    advancementTotal: num(raw?.advancementTotal),
+    employed: num(raw?.employed),
+    other: num(raw?.other),
+  };
+}
+
+function normalizeCareerYear(raw: any, year: string, includeGender: boolean): CareerYear | null {
+  if (!raw || raw.error || raw.parseError || raw.noData || raw.excluded) return null;
+  const out: CareerYear = {
+    requestedYear: raw.requestedYear ?? year,
+    actualYear: raw.actualYear ?? year,
+    total: careerRow(raw.total),
+    rates: careerRow(raw.rates),
+  };
+  if (includeGender && raw.byGender) {
+    out.byGender = {
+      male: raw.byGender.male ? careerRow(raw.byGender.male) : undefined,
+      female: raw.byGender.female ? careerRow(raw.byGender.female) : undefined,
+    };
+  }
+  return out.total.graduates != null || out.total.advancementTotal != null ? out : null;
+}
+
+function buildCareer(code: string): {
+  summary?: Record<string, CareerYear | null>;
+  latest?: CareerYear | null;
+  detail?: Record<string, CareerYear | null>;
+} {
+  const raw = graduationCareers[code];
+  if (!raw) return {};
+  const summary: Record<string, CareerYear | null> = {};
+  const detail: Record<string, CareerYear | null> = {};
+  let latest: CareerYear | null = null;
+  for (const y of CAREER_YEARS) {
+    const slim = normalizeCareerYear(raw[y], y, false);
+    const full = normalizeCareerYear(raw[y], y, true);
+    summary[y] = slim;
+    detail[y] = full;
+    if (!latest && slim) latest = slim;
+  }
+  if (!latest) return {};
+  return { summary, latest, detail };
+}
+
 const out: SchoolView[] = [];
 for (const code of Object.keys(schools)) {
   const s = schools[code];
@@ -608,6 +690,7 @@ for (const code of Object.keys(schools)) {
 
   // 학교 좌표 → 동 매핑
   const dongMatch = findDong(s.lng, s.lat);
+  const career = s.kind === "고등" ? buildCareer(code) : {};
 
   out.push({
     code,
@@ -643,6 +726,9 @@ for (const code of Object.keys(schools)) {
       }
       return i["_b01"]?.foundType;
     })(),
+    careerSummary: career.summary,
+    careerLatest: career.latest,
+    graduationCareer: career.detail,
     details: extractDetails(i, s.kind, code, studentTotal),
   });
 }
@@ -656,7 +742,7 @@ const output = {
 
 // ── 페이지 초기 로딩 최적화: 무거운 필드(details/preventionEdu/addr/schoolinfoUuid)는
 //    별도 파일로 분리해 백그라운드 fetch. 핵심 화면(지도/리스트/severity)은 data.json만으로 작동.
-const HEAVY_FIELDS = ["details", "preventionEdu", "addr", "schoolinfoUuid"] as const;
+const HEAVY_FIELDS = ["details", "preventionEdu", "addr", "schoolinfoUuid", "graduationCareer"] as const;
 const detailsMap: Record<string, Record<string, any>> = {};
 const coreSchools = out.map((s) => {
   const slim: any = { ...s };

@@ -10,7 +10,7 @@ import { useMap } from "@vis.gl/react-google-maps";
 import { GoogleMapsOverlay } from "@deck.gl/google-maps";
 import { ScatterplotLayer, GeoJsonLayer } from "@deck.gl/layers";
 import type { School } from "@/types";
-import { severityOf, SEVERITY_COLOR, type Metric } from "@/lib/severity";
+import { severityOf, SEVERITY_COLOR, type Metric, type SeverityThresholds } from "@/lib/severity";
 import type { SchoolStat } from "@/lib/stats";
 import { trackZoom } from "@/lib/analytics";
 
@@ -23,6 +23,7 @@ export interface RegionPick {
 interface Props {
   schools: School[];
   stats: Map<string, SchoolStat>;
+  severityThresholds: SeverityThresholds;
   metric: Metric;
   selectedCode: string | null;
   selectedRegion: RegionPick | null;
@@ -60,17 +61,72 @@ const COLOR_RGBA: Record<string, [number, number, number, number]> = Object.from
 const KIND_STROKE: Record<string, number> = { 초등: 1, 중학: 2, 고등: 3 };
 
 export function SchoolDeckLayer({
-  schools, stats, metric, selectedCode, selectedRegion, onPick, onPickRegion, adminGeo, dongGeo,
+  schools, stats, severityThresholds, metric, selectedCode, selectedRegion, onPick, onPickRegion, adminGeo, dongGeo,
 }: Props) {
   const map = useMap();
   const overlayRef = useRef<GoogleMapsOverlay | null>(null);
+  const schoolsRef = useRef(schools);
+  const [overlayReady, setOverlayReady] = useState(false);
   const [zoom, setZoom] = useState<number>(11);
   const aggLevel = aggLevelFor(zoom);
 
   const onPickRef = useRef(onPick);
   const onPickRegionRef = useRef(onPickRegion);
+  schoolsRef.current = schools;
   onPickRef.current = onPick;
   onPickRegionRef.current = onPickRegion;
+
+  useEffect(() => {
+    if (!map) return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      if (cancelled || overlayRef.current) return;
+      const overlay = new GoogleMapsOverlay({
+        onClick: (info) => {
+          const lid = info.layer?.id;
+          if (lid === "schools") {
+            const code = (info.object as any)?.code;
+            if (!code) return;
+            const s = schoolsRef.current.find((x) => x.code === code);
+            if (s) onPickRef.current(s);
+            return;
+          }
+          if (lid === "polygon-city" || lid === "polygon-district" || lid === "polygon-dong") {
+            const p = (info.object as any)?.properties ?? {};
+            if (lid === "polygon-city") {
+              onPickRegionRef.current({ type: "city", key: p.city, label: p.city });
+            } else if (lid === "polygon-district") {
+              const label = p.district ? `${p.city} ${p.district}` : p.city;
+              onPickRegionRef.current({
+                type: "district",
+                key: `${p.city}|${p.district}`,
+                label,
+              });
+            } else {
+              onPickRegionRef.current({
+                type: "dong",
+                key: p.code,
+                label: `${p.city ?? ""} ${p.district ?? ""} ${p.name ?? ""}`.trim(),
+              });
+            }
+          }
+        },
+      });
+      overlayRef.current = overlay;
+      overlay.setMap(map);
+      setOverlayReady(true);
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      if (overlayRef.current) {
+        overlayRef.current.setMap(null);
+        overlayRef.current = null;
+      }
+      setOverlayReady(false);
+    };
+  }, [map]);
 
   // 줌 변화 추적
   useEffect(() => {
@@ -152,41 +208,7 @@ export function SchoolDeckLayer({
   }, [schools, stats]);
 
   useEffect(() => {
-    if (!map) return;
-    if (!overlayRef.current) {
-      overlayRef.current = new GoogleMapsOverlay({
-        onClick: (info) => {
-          const lid = info.layer?.id;
-          if (lid === "schools") {
-            const code = (info.object as any)?.code;
-            if (!code) return;
-            const s = schools.find((x) => x.code === code);
-            if (s) onPickRef.current(s);
-            return;
-          }
-          if (lid === "polygon-city" || lid === "polygon-district" || lid === "polygon-dong") {
-            const p = (info.object as any)?.properties ?? {};
-            if (lid === "polygon-city") {
-              onPickRegionRef.current({ type: "city", key: p.city, label: p.city });
-            } else if (lid === "polygon-district") {
-              const label = p.district ? `${p.city} ${p.district}` : p.city;
-              onPickRegionRef.current({
-                type: "district",
-                key: `${p.city}|${p.district}`,
-                label,
-              });
-            } else {
-              onPickRegionRef.current({
-                type: "dong",
-                key: p.code,
-                label: `${p.city ?? ""} ${p.district ?? ""} ${p.name ?? ""}`.trim(),
-              });
-            }
-          }
-        },
-      });
-      overlayRef.current.setMap(map);
-    }
+    if (!map || !overlayReady || !overlayRef.current) return;
 
     // opacity는 layer 생성 시 prop으로 — 사후 mutation은 frozen으로 throw
     // zoom 레벨별 표시:
@@ -217,7 +239,7 @@ export function SchoolDeckLayer({
         return [d.lng, d.lat];
       },
       getFillColor: (d: any) => {
-        const sev = severityOf(metric, d.stat?.ratePer100 ?? null, d.stat?.total ?? 0, d.stat?.hasData ?? false);
+        const sev = severityOf(metric, d.stat?.ratePer100 ?? null, d.stat?.total ?? 0, d.stat?.hasData ?? false, severityThresholds);
         const c = COLOR_RGBA[sev];
         // 선택된 학교는 약간 더 진하게
         return d.code === selectedCode ? [c[0], c[1], c[2], 255] : [c[0], c[1], c[2], 220];
@@ -268,7 +290,7 @@ export function SchoolDeckLayer({
         if (!agg) return SEVERITY_COLOR.unknown;
         const avgRate = agg.rateCnt > 0 ? agg.rateSum / agg.rateCnt : null;
         const avgTotal = agg.cnt > 0 ? agg.total / agg.cnt : 0;
-        const sev = severityOf(metric, avgRate, avgTotal, agg.hasData);
+        const sev = severityOf(metric, avgRate, avgTotal, agg.hasData, severityThresholds);
         return SEVERITY_COLOR[sev];
       };
 
@@ -277,7 +299,7 @@ export function SchoolDeckLayer({
         if (!agg) return SEVERITY_COLOR.unknown;
         const avgRate = agg.rateCnt > 0 ? agg.rateSum / agg.rateCnt : null;
         const avgTotal = agg.cnt > 0 ? agg.total / agg.cnt : 0;
-        const sev = severityOf(metric, avgRate, avgTotal, agg.hasData);
+        const sev = severityOf(metric, avgRate, avgTotal, agg.hasData, severityThresholds);
         return SEVERITY_COLOR[sev];
       };
 
@@ -385,17 +407,7 @@ export function SchoolDeckLayer({
     }
 
     overlayRef.current.setProps({ layers });
-  }, [map, layerData, metric, selectedCode, selectedRegion, stats, schools, aggLevel, centroids, zoom, adminGeo, dongGeo, aggregatedStats]);
-
-  // 마운트 해제 시 cleanup
-  useEffect(() => {
-    return () => {
-      if (overlayRef.current) {
-        overlayRef.current.setMap(null);
-        overlayRef.current = null;
-      }
-    };
-  }, []);
+  }, [map, overlayReady, layerData, metric, selectedCode, selectedRegion, stats, schools, severityThresholds, aggLevel, centroids, zoom, adminGeo, dongGeo, aggregatedStats]);
 
   return null;
 }
